@@ -4,18 +4,6 @@
 #include <stdint.h>
 
 
-#define rotL(x, y) (						\
-	(((x) << (y)) | ((x) >> (32 - (y))))	\
-)
-
-#define quarterRound(a, b, c, d) (			\
-	a += b, d ^= a, rotL(d, 16),			\
-	c += d, b ^= c, rotL(b, 12),			\
-	a += b, d ^= a, rotL(d, 8),				\
-	c += d, b ^= c, rotL(b, 7)				\
-)
-
-
 static const unsigned short BAUD_RATE = 9600;
 
 static const unsigned short CONSTANT_LENGTH = 4;
@@ -25,33 +13,20 @@ static const unsigned short NONCE_LENGTH = 2;
 static const unsigned short BLOCK_LENGTH = 16;
 static const unsigned short ROUNDS = 20;
 
+
 //static const uint32_t constant[CONSTANT_LENGTH] = {0x65787061, 0x6e642033, 0x322d6279, 0x7465206b}; // In ASCII: "expand 32-byte k"
 static const uint32_t constant[CONSTANT_LENGTH] = {0x61707865, 0x3320646e, 0x79622d32, 0x6b206574};
-//												  (0x61707865, 0x3320646e, 0x79622d32, 0x6b206574)
-// 657870616e642033322d62797465206b
 
 // User defined variables:
-static const uint32_t key[KEY_LENGTH] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}; // User defined key.
-static const uint32_t blockNum[BLOCK_NUM_LENGTH] = {0x00000000, 0x00000000}; // User defined block Number.
-static const uint32_t nonce[NONCE_LENGTH] = {0x00000000, 0x00000000}; // User defined nonce.
+static const uint32_t key[KEY_LENGTH] = {0x03020100, 0x07060504, 0x0b0a0908, 0x0f0e0d0c, 0x13121110, 0x17161514, 0x1b1a1918, 0x1f1e1d1c}; // User defined key.
+static const uint32_t blockNum[BLOCK_NUM_LENGTH] = {0x00000001, 0x09000000}; // User defined block Number.
+static const uint32_t nonce[NONCE_LENGTH] = {0x4a000000, 0x00000000}; // User defined nonce.
 
 static uint32_t startState[BLOCK_LENGTH];
 static uint32_t keyStream[BLOCK_LENGTH];
 
 
 void constructStartState() {
-	/*for(unsigned short i = 0; i < BLOCK_LENGTH; i += 1) {
-		if(i < CONSTANT_LENGTH) {
-			startState[i] = constant[i];
-		} else if(i < (CONSTANT_LENGTH + KEY_LENGTH)) {
-			startState[i] = key[i];
-		} else if(i < (CONSTANT_LENGTH + KEY_LENGTH + BLOCK_NUM_LENGTH)) {
-			startState[i] = blockNum[i];
-		} else {
-			startState[i] = nonce[i];
-		}
-	}*/
-
 	for(unsigned short i = 0; i < 4; i += 1) {
 		startState[i] = constant[i];
 	}
@@ -67,47 +42,19 @@ void constructStartState() {
 	for(unsigned short i = 14; i < 16; i += 1) {
 		startState[i] = nonce[i - 14];
 	}
-/*
-	Serial.print("constant: ");
-	for(unsigned short i = 0; i < CONSTANT_LENGTH; i += 1) {
-		Serial.print(constant[i], HEX);
-	}
-	Serial.println();
-	Serial.print("sizeof constant: ");
-	Serial.println(sizeof(constant));
+}
 
-	Serial.print("key: ");
-	for(unsigned short i = 0; i < KEY_LENGTH; i += 1) {
-		Serial.print(key[i], HEX);
-	}
-	Serial.println();
-	Serial.print("sizeof key: ");
-	Serial.println(sizeof(key));
 
-	Serial.print("blockNum: ");
-	for(unsigned short i = 0; i < BLOCK_NUM_LENGTH; i += 1) {
-		Serial.print(blockNum[i], HEX);
-	}
-	Serial.println();
-	Serial.print("sizeof blockNum: ");
-	Serial.println(sizeof(blockNum));
+static uint32_t rotL(uint32_t n, unsigned short c) {
+	return (n << c) | (n >> (32 - c));
+}
 
-	Serial.print("nonce: ");
-	for(unsigned short i = 0; i < NONCE_LENGTH; i += 1) {
-		Serial.print(nonce[i], HEX);
-	}
-	Serial.println();
-	Serial.print("sizeof nonce: ");
-	Serial.println(sizeof(nonce));
 
-	Serial.print("startState: ");
-	for(unsigned short i = 0; i < BLOCK_LENGTH; i += 1) {
-			Serial.print(startState[i], HEX);
-	}
-	Serial.println();
-	Serial.print("sizeof startState: ");
-	Serial.println(sizeof(startState));
-*/
+void quarterRound(uint32_t& a, uint32_t& b, uint32_t& c, uint32_t& d) {
+	a += b; d ^= a; d = rotL(d, 16);
+	c += d; b ^= c; b = rotL(b, 12);
+	a += b; d ^= a; d = rotL(d, 8);
+	c += d; b ^= c; b = rotL(b, 7);
 }
 
 
