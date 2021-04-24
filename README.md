@@ -1,2 +1,1 @@
-# ChaCha4Dummies
- 
+# LiteChaCha
