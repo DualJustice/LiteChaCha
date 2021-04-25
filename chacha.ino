@@ -8,10 +8,10 @@ static const unsigned short BAUD_RATE = 9600;
 static ChaChaEncryption& cipher = *new ChaChaEncryption();
 
 
-void printKeyStream(uint32_t* keyStream) {
-	Serial.print("keyStream: ");
+void printEndState(uint32_t* endState) {
+	Serial.print("endState: ");
 	for(unsigned short i = 0; i < 16; i += 1) {
-		Serial.print(keyStream[i], HEX);
+		Serial.print(endState[i], HEX);
 	}
 
 	Serial.println();
@@ -25,9 +25,7 @@ void setup() {
 	}
 
 	cipher.encryptMessage();
-	//cipher.constructStartState();
-	//cipher.createKeyStream();
-	printKeyStream(cipher.getKeyStream());
+	printEndState(cipher.getEndState());
 }
 
 void loop() {}
