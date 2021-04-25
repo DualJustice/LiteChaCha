@@ -9,7 +9,7 @@
 1. Keep Little-endian in mind. When converting a stream of bytes into a word, the order matters. For example:
 
 *Key*:  
-  000  00  ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00  
+  000  00 ff  00 00 00 00 00 00 00 00 00 00 00 00 00 00  
   016  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
 *will become*:  
