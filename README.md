@@ -4,13 +4,13 @@
 
 * This is a basic implementation of the ChaCha20 stream-cipher, written for Arduino. I am not an authority with regards to cryptography. I would advise you use a mature and well-tested library such as OpenSSL, LibSodium, or the Crypto library for Arduino if possible, particularly if the application is of any importance.
 
-* LiteChaCha was tested against test vectors provided in [this document](https://tools.ietf.org/html/rfc8439). They are provided in a text file included in this repository. If you would like to test this implementation yourself, here are a few useful **rules of thumb**:
+* LiteChaCha was tested against test vectors provided in [this document](https://tools.ietf.org/html/rfc8439). They are provided in a text file included in this repository. If you would like to test this implementation yourself, here are a few useful ######rules of thumb######:
 
 1. Keep Little-endian in mind. When converting a stream of bytes into a word, the order matters. For example:
 
 *Key*:  
-000  00  ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00  
-016  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  000  00  ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00  
+  016  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
 *will become*:  
 0x0000ff00 0x00000000 ...
