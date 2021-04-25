@@ -8,18 +8,51 @@ class ChaChaEncryption {
 private:
 	static constexpr unsigned short CONSTANT_LENGTH = 4;
 	static constexpr unsigned short KEY_LENGTH = 8;
-	static constexpr unsigned short BLOCK_NUM_LENGTH = 2;
-	static constexpr unsigned short NONCE_LENGTH = 2;
+	static constexpr unsigned short BLOCK_NUM_LENGTH = 1;
+	static constexpr unsigned short NONCE_LENGTH = 3;
 	static constexpr unsigned short BLOCK_LENGTH = 16;
 	static constexpr unsigned short ROUNDS = 20;
 
 	//static const uint32_t constant[CONSTANT_LENGTH] = {0x65787061, 0x6e642033, 0x322d6279, 0x7465206b}; // In ASCII: "expand 32-byte k"
 	static constexpr uint32_t constant[CONSTANT_LENGTH] = {0x61707865, 0x3320646e, 0x79622d32, 0x6b206574};
 
+/*
+YOU GET THESE ONE'S WRONG!!!
+Key:
+  000  00 ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  016  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+
+  Nonce:
+  000  00 00 00 00 00 00 00 00 00 00 00 00              ............
+
+  Block Counter = 2
+
+    ChaCha state at the end
+        fb4dd572  4bc42ef1  df922636  327f1394
+        a78dea8f  5e269039  a1bebbc1  caf09aae
+        a25ab213  48a6b46c  1b9d9bcb  092c5be6
+        546ca624  1bec45d5  87f47473  96f0992e
+
+Key:
+  000  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  016  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+
+  Nonce:
+  000  00 00 00 00 00 00 00 00 00 00 00 02              ............
+
+  Block Counter = 0
+
+    ChaCha state at the end
+        374dc6c2  3736d58c  b904e24a  cd3f93ef
+        88228b1a  96a4dfb3  5b76ab72  c727ee54
+        0e0e978a  f3145c95  1b748ea8  f786c297
+        99c28f5f  628314e8  398a19fa  6ded1b53
+*/
+
 	// User defined variables:
-	static constexpr uint32_t key[KEY_LENGTH] = {0x03020100, 0x07060504, 0x0b0a0908, 0x0f0e0d0c, 0x13121110, 0x17161514, 0x1b1a1918, 0x1f1e1d1c}; // User defined key.
-	uint32_t blockNum[BLOCK_NUM_LENGTH] = {0x00000001, 0x09000000}; // User defined block Number.
-	uint32_t nonce[NONCE_LENGTH] = {0x4a000000, 0x00000000}; // User defined nonce.
+	static constexpr uint32_t key[KEY_LENGTH] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}; // User defined key.
+	uint32_t blockNum[BLOCK_NUM_LENGTH] = {0x00000000}; // User defined block Number.
+	uint32_t nonce[NONCE_LENGTH] = {0x00000000, 0x00000000, 0x00000000}; // User defined nonce.
 
 	uint32_t startState[BLOCK_LENGTH];
 	uint32_t keyStream[BLOCK_LENGTH];
@@ -57,12 +90,12 @@ void ChaChaEncryption::constructStartState() {
 		startState[i] = key[i - 4];
 	}
 
-	for(unsigned short i = 12; i < 14; i += 1) {
+	for(unsigned short i = 12; i < 13; i += 1) {
 		startState[i] = blockNum[i - 12];
 	}
 
-	for(unsigned short i = 14; i < 16; i += 1) {
-		startState[i] = nonce[i - 14];
+	for(unsigned short i = 13; i < 16; i += 1) {
+		startState[i] = nonce[i - 13];
 	}
 }
 
