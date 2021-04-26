@@ -4,6 +4,80 @@
 #include <stdint.h>
 
 
+/*
+   Note also that the original ChaCha had a 64-bit nonce and 64-bit
+   block count.  We have modified this here to be more consistent with
+   recommendations in Section 3.2 of [RFC5116].  This limits the use of
+   a single (key,nonce) combination to 2^32 blocks, or 256 GB, but that
+   is enough for most uses.  In cases where a single key is used by
+   multiple senders, it is important to make sure that they don't use
+   the same nonces.  This can be assured by partitioning the nonce space
+   so that the first 32 bits are unique per sender, while the other 64
+   bits come from a counter.
+
+   The ChaCha20 state is initialized as follows:
+
+   o  The first four words (0-3) are constants: 0x61707865, 0x3320646e,
+      0x79622d32, 0x6b206574.
+
+   o  The next eight words (4-11) are taken from the 256-bit key by
+      reading the bytes in little-endian order, in 4-byte chunks.
+
+   o  Word 12 is a block counter.  Since each block is 64-byte, a 32-bit
+      word is enough for 256 gigabytes of data.
+
+   o  Words 13-15 are a nonce, which MUST not be repeated for the same
+      key.  The 13th word is the first 32 bits of the input nonce taken
+      as a little-endian integer, while the 15th word is the last 32
+      bits.
+
+       cccccccc  cccccccc  cccccccc  cccccccc
+       kkkkkkkk  kkkkkkkk  kkkkkkkk  kkkkkkkk
+       kkkkkkkk  kkkkkkkk  kkkkkkkk  kkkkkkkk
+       bbbbbbbb  nnnnnnnn  nnnnnnnn  nnnnnnnn
+
+   c=constant k=key b=blockcount n=nonce
+
+========================================================================
+
+   ChaCha20 successively calls the ChaCha20 block function, with the
+   same key and nonce, and with successively increasing block counter
+   parameters.  ChaCha20 then serializes the resulting state by writing
+   the numbers in little-endian order, creating a keystream block.
+   Concatenating the keystream blocks from the successive blocks forms a
+   keystream.  The ChaCha20 function then performs an XOR of this
+   keystream with the plaintext.  Alternatively, each keystream block
+   can be XORed with a plaintext block before proceeding to create the
+   next block, saving some memory.  There is no requirement for the
+   plaintext to be an integral multiple of 512 bits.  If there is extra
+   keystream from the last block, it is discarded.  Specific protocols
+   MAY require that the plaintext and ciphertext have certain length.
+   Such protocols need to specify how the plaintext is padded and how
+   much padding it receives.
+
+   The inputs to ChaCha20 are:
+
+   o  A 256-bit key
+
+   o  A 32-bit initial counter.  This can be set to any number, but will
+      usually be zero or one.  It makes sense to use one if we use the
+      zero block for something else, such as generating a one-time
+      authenticator key as part of an AEAD algorithm.
+
+   o  A 96-bit nonce.  In some protocols, this is known as the
+      Initialization Vector.
+
+   o  An arbitrary-length plaintext
+
+   The output is an encrypted message, or "ciphertext", of the same
+   length.
+
+   Decryption is done in the same way.  The ChaCha20 block function is
+   used to expand the key into a keystream, which is XORed with the
+   ciphertext giving back the plaintext.
+*/
+
+
 class ChaChaEncryption {
 private:
 	static constexpr unsigned short CONSTANT_LENGTH = 4;
