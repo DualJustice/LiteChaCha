@@ -75,17 +75,56 @@
    Decryption is done in the same way.  The ChaCha20 block function is
    used to expand the key into a keystream, which is XORed with the
    ciphertext giving back the plaintext.
+
+========================================================================
+
+3.2.  Recommended Nonce Formation
+
+   The following method to construct nonces is RECOMMENDED.  The nonce
+   is formatted as illustrated in Figure 1, with the initial octets
+   consisting of a Fixed field, and the final octets consisting of a
+   Counter field.  For each fixed key, the length of each of these
+   fields, and thus the length of the nonce, is fixed.  Implementations
+   SHOULD support 12-octet nonces in which the Counter field is four
+   octets long.
+
+       <----- variable ----> <----------- variable ----------->
+      +---------------------+----------------------------------+
+      |        Fixed        |              Counter             |
+      +---------------------+----------------------------------+
+
+                    Figure 1: Recommended nonce format
+
+   The Counter fields of successive nonces form a monotonically
+   increasing sequence, when those fields are regarded as unsigned
+   integers in network byte order.  The length of the Counter field MUST
+   remain constant for all nonces that are generated for a given
+   encryption device.  The Counter part SHOULD be equal to zero for the
+   first nonce, and increment by one for each successive nonce that is
+   generated.  However, any particular Counter value MAY be skipped
+   over, and left out of the sequence of values that are used, if it is
+   convenient.  For example, an application could choose to skip the
+   initial Counter=0 value, and set the Counter field of the initial
+   nonce to 1.  Thus, at most 2^(8*C) nonces can be generated when the
+   Counter field is C octets in length.
+
+   The Fixed field MUST remain constant for all nonces that are
+   generated for a given encryption device.  If different devices are
+   performing encryption with a single key, then each distinct device
+   MUST use a distinct Fixed field, to ensure the uniqueness of the
+   nonces.  Thus, at most 2^(8*F) distinct encrypters can share a key
+   when the Fixed field is F octets in length.
 */
 
 
 class ChaChaEncryption {
 private:
-	static constexpr unsigned short CONSTANT_LENGTH = 4;
-	static constexpr unsigned short KEY_LENGTH = 8;
-	static constexpr unsigned short BLOCK_COUNTER_LENGTH = 1;
-	static constexpr unsigned short NONCE_LENGTH = 3;
-	static constexpr unsigned short BLOCK_LENGTH = 16;
-	static constexpr unsigned short ROUNDS = 20;
+	static const constexpr unsigned short CONSTANT_LENGTH = 4;
+	static const constexpr unsigned short KEY_LENGTH = 8;
+	static const constexpr unsigned short BLOCK_COUNTER_LENGTH = 1;
+	static const constexpr unsigned short NONCE_LENGTH = 3;
+	static const constexpr unsigned short BLOCK_LENGTH = 16;
+	static const constexpr unsigned short ROUNDS = 20;
 
 	static constexpr uint32_t constant[CONSTANT_LENGTH] = {0x61707865, 0x3320646e, 0x79622d32, 0x6b206574}; // In ASCII: "expand 32-byte k"
 
@@ -104,10 +143,12 @@ private:
 public:
 	ChaChaEncryption();
 	~ChaChaEncryption();
+
+	bool buildEncryption();
+	uint32_t* getEndState() {return endState;}
+
 	void encryptMessage();
 	void decryptMessage();
-
-	uint32_t* getEndState();
 };
 
 
@@ -173,14 +214,14 @@ void ChaChaEncryption::createEndState() {
 }
 
 
-void ChaChaEncryption::encryptMessage() {
-	constructStartState();
-	createEndState();
+bool buildEncryption() {
+
 }
 
 
-uint32_t* ChaChaEncryption::getEndState() {
-	return endState;
+void ChaChaEncryption::encryptMessage() {
+	constructStartState();
+	createEndState();
 }
 
 #endif
