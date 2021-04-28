@@ -117,6 +117,17 @@
 */
 
 
+static const constexpr unsigned short ANALOG_PIN_NUM = A0;
+static const constexpr unsigned short ANALOG_RESOLUTION = 32;
+static const constexpr unsigned short DEFAULT_ANALOG_RESOLUTION = 10;
+
+static const constexpr unsigned short MAX_BYTE = 0x100;
+static const constexpr unsigned short KEY_BYTES = 32;
+static const constexpr unsigned short MAX_USER_KEY_LENGTH = (KEY_BYTES*3);
+static const constexpr unsigned short FIXED_NONCE_BYTES = 4;
+static const constexpr unsigned short MAX_USER_FIXED_NONCE_LENGTH = (FIXED_NONCE_BYTES*3);
+
+
 class ChaChaEncryption {
 private:
 	static const constexpr unsigned short CONSTANT_LENGTH = 4;
@@ -127,11 +138,9 @@ private:
 	static const constexpr unsigned short ROUNDS = 20;
 
 	static constexpr uint32_t constant[CONSTANT_LENGTH] = {0x61707865, 0x3320646e, 0x79622d32, 0x6b206574}; // In ASCII: "expand 32-byte k"
-
-	// User defined variables:
-	static constexpr uint32_t key[KEY_LENGTH] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}; // User defined key.
-	uint32_t blockCounter[BLOCK_COUNTER_LENGTH] = {0x00000000}; // User defined block Number.
-	uint32_t nonce[NONCE_LENGTH] = {0x00000000, 0x00000000, 0x00000000}; // User defined nonce.
+	uint32_t key[KEY_LENGTH] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
+	uint32_t blockCounter[BLOCK_COUNTER_LENGTH] = {0x00000000};
+	uint32_t nonce[NONCE_LENGTH] = {0x00000000, 0x00000000, 0x00000000};
 
 	uint32_t startState[BLOCK_LENGTH];
 	uint32_t endState[BLOCK_LENGTH];
@@ -144,7 +153,7 @@ public:
 	ChaChaEncryption();
 	~ChaChaEncryption();
 
-	bool buildEncryption();
+	bool buildEncryption(char*, char*);
 	uint32_t* getEndState() {return endState;}
 
 	void encryptMessage();
@@ -214,7 +223,7 @@ void ChaChaEncryption::createEndState() {
 }
 
 
-bool buildEncryption() {
+bool buildEncryption(char* userKey, char* userFixedNonce) {
 
 }
 

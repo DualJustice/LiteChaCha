@@ -8,59 +8,106 @@ static const unsigned short BAUD_RATE = 9600;
 static ChaChaEncryption& cipher = *new ChaChaEncryption();
 
 
-bool setupEncryption() {
-	// print some useful messages.
-	// generate random nonce and key suggestions.
-	// user inputs desired nonce and key.
-	// calls if(cipher.buildEncryption(uint_32& or *?, uint_32& or *));
-
-	const unsigned short MAX_BYTE = 256;
-	const unsigned short SUGGESTED_NONCE_LENGTH = 4; // Bytes.
-	const unsigned short SUGGESTED_KEY_LENGTH = 32; // Bytes.
-	unsigned char suggestedNonce[SUGGESTED_NONCE_LENGTH];
-	unsigned char suggestedKey[SUGGESTED_KEY_LENGTH];
-
-	srand(micros()); // This could really stand to be improved.
-
-	Serial.println("Setting up encryption");
-	for(unsigned short i = 0; i < SUGGESTED_NONCE_LENGTH; i += 1){
-		suggestedNonce[i] = rand() % MAX_BYTE;
+void printHex(char* data, const unsigned short length) { // Boy do I sure love Serial.print!
+	for(unsigned short i = 0; i < length; i += 1) {
+		if(data[i] > 0x0f) {
+			Serial.print(data[i], HEX);
+			Serial.print(" ");
+		} else {
+			Serial.print('0');
+			Serial.print(data[i], HEX);
+			Serial.print(" ");
+		}
 	}
 
-	for(unsigned short i = 0; i < SUGGESTED_KEY_LENGTH; i += 1) {
+	if(data[length] > 0x0f) {
+		Serial.print(data[length], HEX);
+		Serial.println('\n');
+	} else {
+		Serial.print('0');
+		Serial.print(data[length], HEX);
+		Serial.println('\n');
+	}
+}
+
+
+bool setupEncryption() {
+	// print some useful messages. [DONE]
+	// generate random nonce and key suggestions. [DONE]
+	// user inputs desired nonce and key. [DONE]
+	// input is verifyied as valid.
+	// calls if(cipher.buildEncryption(uint_32& or *?, uint_32& or *));
+
+	char suggestedKey[KEY_BYTES];
+	char suggestedFixedNonce[FIXED_NONCE_BYTES];
+	unsigned short inputLength = 0;
+
+	Serial.println("Setting up encryption");
+
+	const unsigned long entropyTimeVal = micros();
+	analogReadResolution(ANALOG_RESOLUTION);
+	const unsigned long entropyPinVal = analogRead(ANALOG_PIN_NUM);
+	const unsigned long entropyVal = entropyTimeVal ^ entropyPinVal;
+	srand(entropyVal);
+	analogReadResolution(DEFAULT_ANALOG_RESOLUTION);
+
+	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 		suggestedKey[i] = rand() % MAX_BYTE;
 	}
 
 	Serial.println("Please input the shared, 32-Byte private key in the form of the suggested key given below.");
 	Serial.println("This must be the same for both users! \n");
 	Serial.print("Suggested random key:");
-	for(unsigned short i = 0; i < SUGGESTED_KEY_LENGTH - 1; i += 1) {
-		Serial.print(suggestedKey[i], HEX);
-		Serial.print(" ");
-	}
 
-	Serial.print(suggestedKey[SUGGESTED_KEY_LENGTH - 1], HEX);
-	Serial.println("\n");
-// ==============================================================================================
+	printHex(suggestedKey, (KEY_BYTES - 1));
+
+	char userKey[MAX_USER_KEY_LENGTH];
 	while(true) {
 		if(Serial.available() > 0) {
-			inputLength = Serial.readBytesUntil('\n', userSSID, internet.getMaxSSIDLength());
+			inputLength = Serial.readBytesUntil('\n', userKey, MAX_USER_KEY_LENGTH);
 			break;
 		}
 
 		delay(250);
 	}
-// ==============================================================================================
+
+	if(inputLength != (MAX_USER_KEY_LENGTH - 1)) {
+		// Log an error here.
+		Serial.println("ERROR: inputLength != MAX_USER_KEY_LENGTH");
+		return false;
+	}
+	userKey[inputLength] = '\0';
+
+	for(unsigned short i = 0; i < FIXED_NONCE_BYTES; i += 1){
+		suggestedFixedNonce[i] = rand() % MAX_BYTE;
+	}
+
 	Serial.println("Please input your unique, 4-Byte nonce in the form of the suggested nonce given below.");
 	Serial.println("This must be the different for both users! \n");
 	Serial.print("Suggested random nonce:");
-	for(unsigned short i = 0; i < SUGGESTED_NONCE_LENGTH - 1; i += 1) {
-		Serial.print(suggestedNonce[i], HEX);
-		Serial.print(" ");
+
+	printHex(suggestedFixedNonce, (FIXED_NONCE_BYTES - 1));
+
+	char userFixedNonce[MAX_USER_FIXED_NONCE_LENGTH];
+	while(true) {
+		if(Serial.available() > 0) {
+			inputLength = Serial.readBytesUntil('\n', userFixedNonce, MAX_USER_FIXED_NONCE_LENGTH);
+			break;
+		}
+
+		delay(250);
 	}
 
-	Serial.print(suggestedNonce[SUGGESTED_NONCE_LENGTH - 1], HEX);
-	Serial.println("\n");
+	if(inputLength != (MAX_USER_FIXED_NONCE_LENGTH - 1)) {
+		// Log an error here.
+		Serial.println("ERROR: inputLength != MAX_USER_FIXED_NONCE_LENGTH");
+		return false;
+	}
+	userFixedNonce[inputLength] = '\0';
+
+	if(cipher.buildEncryption(userKey, userFixedNonce)) {
+		return true;
+	}
 }
 
 
