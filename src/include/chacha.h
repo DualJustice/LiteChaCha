@@ -123,9 +123,9 @@ static const constexpr unsigned short DEFAULT_ANALOG_RESOLUTION = 10;
 
 static const constexpr unsigned short MAX_BYTE = 0x100;
 static const constexpr unsigned short KEY_BYTES = 32;
-static const constexpr unsigned short MAX_USER_KEY_LENGTH = (KEY_BYTES*3);
+static const constexpr unsigned short MAX_USER_KEY_LENGTH = (KEY_BYTES*2);
 static const constexpr unsigned short FIXED_NONCE_BYTES = 4;
-static const constexpr unsigned short MAX_USER_FIXED_NONCE_LENGTH = (FIXED_NONCE_BYTES*3);
+static const constexpr unsigned short MAX_USER_FIXED_NONCE_LENGTH = (FIXED_NONCE_BYTES*2);
 
 
 class ChaChaEncryption {
@@ -142,6 +142,8 @@ private:
 	uint32_t blockCounter[BLOCK_COUNTER_LENGTH] = {0x00000000};
 	uint32_t nonce[NONCE_LENGTH] = {0x00000000, 0x00000000, 0x00000000};
 
+   uint32_t peerFixedNonce = 0x00000000;
+
 	uint32_t startState[BLOCK_LENGTH];
 	uint32_t endState[BLOCK_LENGTH];
 
@@ -153,7 +155,7 @@ public:
 	ChaChaEncryption();
 	~ChaChaEncryption();
 
-	bool buildEncryption(char*, char*);
+	bool buildEncryption(char*, char*, char*);
 	uint32_t* getEndState() {return endState;}
 
 	void encryptMessage();
@@ -223,8 +225,8 @@ void ChaChaEncryption::createEndState() {
 }
 
 
-bool buildEncryption(char* userKey, char* userFixedNonce) {
-
+bool ChaChaEncryption::buildEncryption(char* userKey, char* userFixedNonce, char* peerFixedNonce) {
+   return true;
 }
 
 
