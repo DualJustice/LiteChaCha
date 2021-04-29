@@ -39,7 +39,7 @@ bool setupEncryption() {
 	analogReadResolution(ANALOG_RESOLUTION);
 	const unsigned long entropyPinVal = analogRead(ANALOG_PIN_NUM);
 	const unsigned long entropyVal = entropyTimeVal ^ entropyPinVal;
-	srand(entropyVal);
+	srand(entropyVal);													// This could stand to be improved.
 	analogReadResolution(DEFAULT_ANALOG_RESOLUTION);
 
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
@@ -52,10 +52,10 @@ bool setupEncryption() {
 
 	printHex(suggestedKey, KEY_BYTES);
 
-	char userKey[MAX_USER_KEY_LENGTH];
+	char userKeyDec[MAX_USER_KEY_LENGTH];
 	while(true) {
 		if(Serial.available() > 0) {
-			inputLength = Serial.readBytesUntil('\n', userKey, MAX_USER_KEY_LENGTH + 1);
+			inputLength = Serial.readBytesUntil('\n', userKeyDec, MAX_USER_KEY_LENGTH + 1);
 			break;
 		}
 
@@ -69,16 +69,38 @@ bool setupEncryption() {
 	}
 
 	for(unsigned short i = 0; i < inputLength; i += 1) {
-		if(!(48 <= userKey[i] && userKey[i] <= 57)) {
-			if(!(65 <= userKey[i] && userKey[i] <= 70)) {
-				if(!(97 <= userKey[i] && userKey[i] <= 102)) {
+		if(!(48 <= userKeyDec[i] && userKeyDec[i] <= 57)) {
+			if(!(65 <= userKeyDec[i] && userKeyDec[i] <= 70)) {
+				if(!(97 <= userKeyDec[i] && userKeyDec[i] <= 102)) {
 					// Log an error here?
-					Serial.print("ERROR: invalid userKey input: ");
-					Serial.println(userKey[i]);
+					Serial.print("ERROR: invalid userKeyDec input: ");
+					Serial.println(userKeyDec[i]);
 					return false;
 				}
 			}
 		}
+	}
+
+	char userKeyHex[KEY_BYTES];
+	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+		if(48 <= userKeyDec[i*2] && userKeyDec[i*2] <= 57) {
+			userKeyDec[i*2] -= 48;
+		} else if(65 <= userKeyDec[i*2] && userKeyDec[i*2] <= 70) {
+			userKeyDec[i*2] -= 55;
+		} else {
+			userKeyDec[i*2] -= 87;
+		}
+		userKeyHex[i] = userKeyDec[i*2];
+		userKeyHex[i] <<= 4;
+
+		if(48 <= userKeyDec[(i*2) + 1] && userKeyDec[(i*2) + 1] <= 57) {
+			userKeyDec[(i*2) + 1] -= 48;
+		} else if(65 <= userKeyDec[(i*2) + 1] && userKeyDec[(i*2) + 1] <= 70) {
+			userKeyDec[(i*2) + 1] -= 55;
+		} else {
+			userKeyDec[(i*2) + 1] -= 87;
+		}
+		userKeyHex[i] |= userKeyDec[(i*2) + 1];
 	}
 
 	for(unsigned short i = 0; i < FIXED_NONCE_BYTES; i += 1){
@@ -91,10 +113,10 @@ bool setupEncryption() {
 
 	printHex(suggestedFixedNonce, FIXED_NONCE_BYTES);
 
-	char userFixedNonce[MAX_USER_FIXED_NONCE_LENGTH];
+	char userFixedNonceDec[MAX_USER_FIXED_NONCE_LENGTH];
 	while(true) {
 		if(Serial.available() > 0) {
-			inputLength = Serial.readBytesUntil('\n', userFixedNonce, MAX_USER_FIXED_NONCE_LENGTH + 1);
+			inputLength = Serial.readBytesUntil('\n', userFixedNonceDec, MAX_USER_FIXED_NONCE_LENGTH + 1);
 			break;
 		}
 
@@ -108,25 +130,47 @@ bool setupEncryption() {
 	}
 
 	for(unsigned short i = 0; i < inputLength; i += 1) {
-		if(!(48 <= userFixedNonce[i] && userFixedNonce[i] <= 57)) {
-			if(!(65 <= userFixedNonce[i] && userFixedNonce[i] <= 70)) {
-				if(!(97 <= userFixedNonce[i] && userFixedNonce[i] <= 102)) {
+		if(!(48 <= userFixedNonceDec[i] && userFixedNonceDec[i] <= 57)) {
+			if(!(65 <= userFixedNonceDec[i] && userFixedNonceDec[i] <= 70)) {
+				if(!(97 <= userFixedNonceDec[i] && userFixedNonceDec[i] <= 102)) {
 					// Log an error here?
-					Serial.print("ERROR: invalid userFixedNonce input: ");
-					Serial.println(userFixedNonce[i]);
+					Serial.print("ERROR: invalid userFixedNonceDec input: ");
+					Serial.println(userFixedNonceDec[i]);
 					return false;
 				}
 			}
 		}
 	}
 
+	char userFixedNonceHex[FIXED_NONCE_BYTES];
+	for(unsigned short i = 0; i < FIXED_NONCE_BYTES; i += 1) {
+		if(48 <= userFixedNonceDec[i*2] && userFixedNonceDec[i*2] <= 57) {
+			userFixedNonceDec[i*2] -= 48;
+		} else if(65 <= userFixedNonceDec[i*2] && userFixedNonceDec[i*2] <= 70) {
+			userFixedNonceDec[i*2] -= 55;
+		} else {
+			userFixedNonceDec[i*2] -= 87;
+		}
+		userFixedNonceHex[i] = userFixedNonceDec[i*2];
+		userFixedNonceHex[i] <<= 4;
+
+		if(48 <= userFixedNonceDec[(i*2) + 1] && userFixedNonceDec[(i*2) + 1] <= 57) {
+			userFixedNonceDec[(i*2) + 1] -= 48;
+		} else if(65 <= userFixedNonceDec[(i*2) + 1] && userFixedNonceDec[(i*2) + 1] <= 70) {
+			userFixedNonceDec[(i*2) + 1] -= 55;
+		} else {
+			userFixedNonceDec[(i*2) + 1] -= 87;
+		}
+		userFixedNonceHex[i] |= userFixedNonceDec[(i*2) + 1];
+	}
+
 	Serial.println("Please input your glEEpal's unique, 4-Byte, hex nonce in the form of the suggested nonce given above.");
 	Serial.println("This cannot be the same as your nonce! \n");
 
-	char peerFixedNonce[MAX_USER_FIXED_NONCE_LENGTH];
+	char peerFixedNonceDec[MAX_USER_FIXED_NONCE_LENGTH];
 	while(true) {
 		if(Serial.available() > 0) {
-			inputLength = Serial.readBytesUntil('\n', peerFixedNonce, MAX_USER_FIXED_NONCE_LENGTH + 1);
+			inputLength = Serial.readBytesUntil('\n', peerFixedNonceDec, MAX_USER_FIXED_NONCE_LENGTH + 1);
 			break;
 		}
 
@@ -140,12 +184,12 @@ bool setupEncryption() {
 	}
 
 	for(unsigned short i = 0; i < inputLength; i += 1) {
-		if(!(48 <= peerFixedNonce[i] && peerFixedNonce[i] <= 57)) {
-			if(!(65 <= peerFixedNonce[i] && peerFixedNonce[i] <= 70)) {
-				if(!(97 <= peerFixedNonce[i] && peerFixedNonce[i] <= 102)) {
+		if(!(48 <= peerFixedNonceDec[i] && peerFixedNonceDec[i] <= 57)) {
+			if(!(65 <= peerFixedNonceDec[i] && peerFixedNonceDec[i] <= 70)) {
+				if(!(97 <= peerFixedNonceDec[i] && peerFixedNonceDec[i] <= 102)) {
 					// Log an error here?
-					Serial.print("ERROR: invalid userFixedNonce input: ");
-					Serial.println(peerFixedNonce[i]);
+					Serial.print("ERROR: invalid peerFixedNonceDec input: ");
+					Serial.println(peerFixedNonceDec[i]);
 					return false;
 				}
 			}
@@ -153,7 +197,7 @@ bool setupEncryption() {
 	}
 
 	for(unsigned short i = 0; i < inputLength; i += 1) {
-		if(peerFixedNonce[i] != userFixedNonce[i]) {
+		if(peerFixedNonceDec[i] != userFixedNonceDec[i]) {
 			break;
 		}
 
@@ -164,7 +208,29 @@ bool setupEncryption() {
 		}
 	}
 
-	if(cipher.buildEncryption(userKey, userFixedNonce, peerFixedNonce)) {
+	char peerFixedNonceHex[FIXED_NONCE_BYTES];
+	for(unsigned short i = 0; i < FIXED_NONCE_BYTES; i += 1) {
+		if(48 <= peerFixedNonceDec[i*2] && peerFixedNonceDec[i*2] <= 57) {
+			peerFixedNonceDec[i*2] -= 48;
+		} else if(65 <= peerFixedNonceDec[i*2] && peerFixedNonceDec[i*2] <= 70) {
+			peerFixedNonceDec[i*2] -= 55;
+		} else {
+			peerFixedNonceDec[i*2] -= 87;
+		}
+		peerFixedNonceHex[i] = peerFixedNonceDec[i*2];
+		peerFixedNonceHex[i] <<= 4;
+
+		if(48 <= peerFixedNonceDec[(i*2) + 1] && peerFixedNonceDec[(i*2) + 1] <= 57) {
+			peerFixedNonceDec[(i*2) + 1] -= 48;
+		} else if(65 <= peerFixedNonceDec[(i*2) + 1] && peerFixedNonceDec[(i*2) + 1] <= 70) {
+			peerFixedNonceDec[(i*2) + 1] -= 55;
+		} else {
+			peerFixedNonceDec[(i*2) + 1] -= 87;
+		}
+		peerFixedNonceHex[i] |= peerFixedNonceDec[(i*2) + 1];
+	}
+
+	if(cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex)) {
 		return true;
 	}
 }

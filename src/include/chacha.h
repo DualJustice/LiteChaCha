@@ -142,7 +142,7 @@ private:
 	uint32_t blockCounter[BLOCK_COUNTER_LENGTH] = {0x00000000};
 	uint32_t nonce[NONCE_LENGTH] = {0x00000000, 0x00000000, 0x00000000};
 
-   uint32_t peerFixedNonce = 0x00000000;
+	uint32_t peerFixedNonce = 0x00000000;
 
 	uint32_t startState[BLOCK_LENGTH];
 	uint32_t endState[BLOCK_LENGTH];
@@ -225,8 +225,14 @@ void ChaChaEncryption::createEndState() {
 }
 
 
-bool ChaChaEncryption::buildEncryption(char* userKey, char* userFixedNonce, char* peerFixedNonce) {
-   return true;
+bool ChaChaEncryption::buildEncryption(char* userKeyIn, char* userFixedNonceIn, char* peerFixedNonceIn) {
+	for(unsigned short i = 0; i < KEY_LENGTH; i += 1) {
+		key[i] = (userKeyIn[(i*4) + 3] << 24) | (userKeyIn[(i*4) + 2] << 16) | (userKeyIn[(i*4) + 1] << 8) | userKeyIn[i*4];
+	}
+	nonce[0] = (userFixedNonceIn[3] << 24) | (userFixedNonceIn[2] << 16) | (userFixedNonceIn[1] << 8) | userFixedNonceIn[0];
+	peerFixedNonce = (peerFixedNonceIn[3] << 24) | (peerFixedNonceIn[2] << 16) | (peerFixedNonceIn[1] << 8) | peerFixedNonceIn[0];
+
+	return true;
 }
 
 
