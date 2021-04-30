@@ -242,7 +242,17 @@ void printEndState(uint32_t* endState) {
 		Serial.print(endState[i], HEX);
 	}
 
-	Serial.println();
+	Serial.println('\n');
+}
+
+
+void printKeyStream(char* keyStream) {
+	Serial.print("keyStream: ");
+	for(unsigned short i = 0; i < 64; i += 1) {
+		Serial.print(keyStream[i], HEX);
+	}
+
+	Serial.println('\n');
 }
 
 
@@ -253,10 +263,13 @@ void setup() {
 	}
 
 	if(setupEncryption()) {
-		Serial.println("Encryption successfully set up!");
+		Serial.println("Encryption successfully set up! \n");
 		cipher.encryptMessage();
 		printEndState(cipher.getEndState());
+		printKeyStream(cipher.getKeyStream());
 	}
+
+	Serial.println("Done \n");
 }
 
 void loop() {}

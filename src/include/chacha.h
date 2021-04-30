@@ -137,6 +137,9 @@ private:
 	static const constexpr unsigned short BLOCK_LENGTH = 16;
 	static const constexpr unsigned short ROUNDS = 20;
 
+	static const constexpr unsigned short STREAM_BYTES = 64;
+	static const constexpr uint32_t BITMASK = 0x000000ff;
+
 	static constexpr uint32_t constant[CONSTANT_LENGTH] = {0x61707865, 0x3320646e, 0x79622d32, 0x6b206574}; // In ASCII: "expand 32-byte k"
 	uint32_t key[KEY_LENGTH] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
 	uint32_t blockCounter[BLOCK_COUNTER_LENGTH] = {0x00000000};
@@ -146,17 +149,21 @@ private:
 
 	uint32_t startState[BLOCK_LENGTH];
 	uint32_t endState[BLOCK_LENGTH];
+	char keyStream[STREAM_BYTES];
 
 	void constructStartState();
 	uint32_t rotL(uint32_t, unsigned short);
 	void quarterRound(uint32_t&, uint32_t&, uint32_t&, uint32_t&);
 	void createEndState();
+	void createKeyStream();
+	void createCipherText();
 public:
 	ChaChaEncryption();
 	~ChaChaEncryption();
 
 	bool buildEncryption(char*, char*, char*);
 	uint32_t* getEndState() {return endState;}
+	char* getKeyStream() {return keyStream;}
 
 	void encryptMessage();
 	void decryptMessage();
@@ -170,6 +177,17 @@ ChaChaEncryption::ChaChaEncryption() {
 
 ChaChaEncryption::~ChaChaEncryption() {
 
+}
+
+
+bool ChaChaEncryption::buildEncryption(char* userKeyIn, char* userFixedNonceIn, char* peerFixedNonceIn) {
+	for(unsigned short i = 0; i < KEY_LENGTH; i += 1) {
+		key[i] = (userKeyIn[(i*4) + 3] << 24) | (userKeyIn[(i*4) + 2] << 16) | (userKeyIn[(i*4) + 1] << 8) | userKeyIn[i*4];
+	}
+	nonce[0] = (userFixedNonceIn[3] << 24) | (userFixedNonceIn[2] << 16) | (userFixedNonceIn[1] << 8) | userFixedNonceIn[0];
+	peerFixedNonce = (peerFixedNonceIn[3] << 24) | (peerFixedNonceIn[2] << 16) | (peerFixedNonceIn[1] << 8) | peerFixedNonceIn[0];
+
+	return true;
 }
 
 
@@ -225,20 +243,26 @@ void ChaChaEncryption::createEndState() {
 }
 
 
-bool ChaChaEncryption::buildEncryption(char* userKeyIn, char* userFixedNonceIn, char* peerFixedNonceIn) {
-	for(unsigned short i = 0; i < KEY_LENGTH; i += 1) {
-		key[i] = (userKeyIn[(i*4) + 3] << 24) | (userKeyIn[(i*4) + 2] << 16) | (userKeyIn[(i*4) + 1] << 8) | userKeyIn[i*4];
+void ChaChaEncryption::createKeyStream() {
+	for(unsigned short i = 0; i < BLOCK_LENGTH; i += 1) {
+		keyStream[(i*4)] = endState[i] & BITMASK;
+		keyStream[(i*4) + 1] = (endState[i] >> 8) & BITMASK;
+		keyStream[(i*4) + 2] = (endState[i] >> 16) & BITMASK;
+		keyStream[(i*4) + 3] = (endState[i] >> 24) & BITMASK;
 	}
-	nonce[0] = (userFixedNonceIn[3] << 24) | (userFixedNonceIn[2] << 16) | (userFixedNonceIn[1] << 8) | userFixedNonceIn[0];
-	peerFixedNonce = (peerFixedNonceIn[3] << 24) | (peerFixedNonceIn[2] << 16) | (peerFixedNonceIn[1] << 8) | peerFixedNonceIn[0];
+}
 
-	return true;
+
+void ChaChaEncryption::createCipherText() {
+	
 }
 
 
 void ChaChaEncryption::encryptMessage() {
 	constructStartState();
 	createEndState();
+	createKeyStream();
+	//createCipherText();
 }
 
 #endif

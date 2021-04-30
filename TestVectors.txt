@@ -1,3 +1,6 @@
+TEST VECTORS WITHOUT CIPHERTEXTS:
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Test Vector #1: [Passed]
   ==============
 
@@ -11,7 +14,7 @@ Test Vector #1: [Passed]
   Nonce:
   000  00 00 00 00 00 00 00 00 00 00 00 00              ............
 
-  MANUAL INPUT NONCE:
+  MANUAL INPUT FIXED NONCE:
   00000000
 
   Block Counter = 0
@@ -44,7 +47,7 @@ Test Vector #1: [Passed]
   Nonce:
   000  00 00 00 00 00 00 00 00 00 00 00 00              ............
 
-  MANUAL INPUT NONCE:
+  MANUAL INPUT FIXED NONCE:
   00000000
 
   Block Counter = 1
@@ -77,7 +80,7 @@ Test Vector #1: [Passed]
   Nonce:
   000  00 00 00 00 00 00 00 00 00 00 00 00              ............
 
-  MANUAL INPUT NONCE:
+  MANUAL INPUT FIXED NONCE:
   00000000
 
   Block Counter = 1
@@ -110,7 +113,7 @@ Test Vector #1: [Passed]
   Nonce:
   000  00 00 00 00 00 00 00 00 00 00 00 00              ............
 
-  MANUAL INPUT NONCE:
+  MANUAL INPUT FIXED NONCE:
   00000000
 
   Block Counter = 2
@@ -143,7 +146,7 @@ Test Vector #1: [Passed]
   Nonce:
   000  00 00 00 00 00 00 00 00 00 00 00 02              ............
 
-  MANUAL INPUT NONCE:
+  MANUAL INPUT FIXED NONCE:
   00000000
 
   Block Counter = 0
@@ -159,3 +162,8 @@ Test Vector #1: [Passed]
   016  1a 8b 22 88 b3 df a4 96 72 ab 76 5b 54 ee 27 c7  ..".....r.v[T.'.
   032  8a 97 0e 0e 95 5c 14 f3 a8 8e 74 1b 97 c2 86 f7  .....\....t.....
   048  5f 8f c2 99 e8 14 83 62 fa 19 8a 39 53 1b ed 6d  _......b...9S..m
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+TEST VECTORS WITH CIPHERTEXTS:
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+

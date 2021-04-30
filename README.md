@@ -46,3 +46,9 @@
 ## Setup:
 
 1. To Do.
+
+## Future plans:
+
+* Automatic key management / exchange.
+* Message authentication (HMAC, Poly1305, etc.).
+* Storage of information such as keys used, nonces used, and number of messages sent, to ensure safety.
