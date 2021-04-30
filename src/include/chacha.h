@@ -150,13 +150,14 @@ private:
 	uint32_t startState[BLOCK_LENGTH];
 	uint32_t endState[BLOCK_LENGTH];
 	char keyStream[STREAM_BYTES];
+	char cipherText[STREAM_BYTES];
 
 	void constructStartState();
 	uint32_t rotL(uint32_t, unsigned short);
 	void quarterRound(uint32_t&, uint32_t&, uint32_t&, uint32_t&);
 	void createEndState();
 	void createKeyStream();
-	void createCipherText();
+	void createCipherText(const char* message, unsigned int bytes);
 public:
 	ChaChaEncryption();
 	~ChaChaEncryption();
@@ -164,8 +165,9 @@ public:
 	bool buildEncryption(char*, char*, char*);
 	uint32_t* getEndState() {return endState;}
 	char* getKeyStream() {return keyStream;}
+	char* getCipherText() {return cipherText;}
 
-	void encryptMessage();
+	void encryptMessage(const char*, unsigned int);
 	void decryptMessage();
 };
 
@@ -253,16 +255,18 @@ void ChaChaEncryption::createKeyStream() {
 }
 
 
-void ChaChaEncryption::createCipherText() {
-	
+void ChaChaEncryption::createCipherText(const char* message, unsigned int bytes) {
+	for(unsigned short i = 0; i < bytes; i += 1) {
+		cipherText[i] = keyStream[i] ^ message[i];
+	}
 }
 
 
-void ChaChaEncryption::encryptMessage() {
+void ChaChaEncryption::encryptMessage(const char* message, unsigned int bytes) {
 	constructStartState();
 	createEndState();
 	createKeyStream();
-	//createCipherText();
+	createCipherText(message, bytes);
 }
 
 #endif

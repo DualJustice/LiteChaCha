@@ -256,20 +256,43 @@ void printKeyStream(char* keyStream) {
 }
 
 
+void printCipherText(char* cipherText) {
+	Serial.print("cipherText: ");
+	for(unsigned short i = 0; i < 64; i += 1) {
+		Serial.print(cipherText[i], HEX);
+	}
+
+	Serial.println('\n');
+}
+
+
 void setup() {
 	Serial.begin(BAUD_RATE);
 	while(!Serial) {
 		delay(250);
 	}
 
+	unsigned int MESSAGE_BYTES = 64;
+	const char message[MESSAGE_BYTES] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+	//static unsigned int MESSAGE_BYTES = sizeof(message) - 1;
+
+	Serial.print("Message length: ");
+	Serial.print(MESSAGE_BYTES);
+	Serial.println('\n');
+
 	if(setupEncryption()) {
 		Serial.println("Encryption successfully set up! \n");
-		cipher.encryptMessage();
+
+		cipher.encryptMessage(message, MESSAGE_BYTES);
+
 		printEndState(cipher.getEndState());
 		printKeyStream(cipher.getKeyStream());
-	}
+		printCipherText(cipher.getCipherText());
 
-	Serial.println("Done \n");
+		Serial.println("Done \n");
+	} else {
+		Serial.println("Encryption setup failed \n");
+	}
 }
 
 void loop() {}
