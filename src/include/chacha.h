@@ -4,6 +4,12 @@
 #include <stdint.h>
 
 
+// REMOVE ME!
+#include "Arduino.h"
+#include "HardwareSerial.h"
+// REMOVE ME!
+
+
 /*
    Note also that the original ChaCha had a 64-bit nonce and 64-bit
    block count.  We have modified this here to be more consistent with
@@ -117,11 +123,11 @@
 */
 
 
-static const constexpr unsigned short ANALOG_PIN_NUM = A0;
 static const constexpr unsigned short ANALOG_RESOLUTION = 32;
+static const constexpr unsigned short ANALOG_PIN_NUM = A0;
 static const constexpr unsigned short DEFAULT_ANALOG_RESOLUTION = 10;
-
 static const constexpr unsigned short MAX_BYTE = 0x100;
+
 static const constexpr unsigned short KEY_BYTES = 32;
 static const constexpr unsigned short MAX_USER_KEY_LENGTH = (KEY_BYTES*2);
 static const constexpr unsigned short FIXED_NONCE_BYTES = 4;
@@ -133,31 +139,42 @@ private:
 	static const constexpr unsigned short CONSTANT_LENGTH = 4;
 	static const constexpr unsigned short KEY_LENGTH = 8;
 	static const constexpr unsigned short BLOCK_COUNTER_LENGTH = 1;
-	static const constexpr unsigned short NONCE_LENGTH = 3;
+	static const constexpr unsigned short NONCE_LENGTH = 4 - BLOCK_COUNTER_LENGTH;
 	static const constexpr unsigned short BLOCK_LENGTH = 16;
+	static const constexpr unsigned short BLOCK_BYTES = BLOCK_LENGTH*4;
 	static const constexpr unsigned short ROUNDS = 20;
 
-	static const constexpr unsigned short STREAM_BYTES = 64;
 	static const constexpr uint32_t BITMASK = 0x000000ff;
 
 	static constexpr uint32_t constant[CONSTANT_LENGTH] = {0x61707865, 0x3320646e, 0x79622d32, 0x6b206574}; // In ASCII: "expand 32-byte k"
 	uint32_t key[KEY_LENGTH] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
+	uint32_t initialBlockCounter[BLOCK_COUNTER_LENGTH] = {0x00000001};
 	uint32_t blockCounter[BLOCK_COUNTER_LENGTH] = {0x00000000};
-	uint32_t nonce[NONCE_LENGTH] = {0x00000000, 0x00000000, 0x00000000};
+	uint32_t nonce[NONCE_LENGTH] = {0x00000000, 0x00000000, 0x02000000};
 
 	uint32_t peerFixedNonce = 0x00000000;
 
 	uint32_t startState[BLOCK_LENGTH];
 	uint32_t endState[BLOCK_LENGTH];
-	char keyStream[STREAM_BYTES];
-	char cipherText[STREAM_BYTES];
+	char keyStream[BLOCK_BYTES];
+	char cipherText[BLOCK_BYTES];
+
+	unsigned short encryptBytes = BLOCK_BYTES;
+	unsigned long long messageBlockCount = 0;
+	unsigned short messageRemainder = 0;
+	unsigned long long blockIndexBytes = 0;
+
+	void initializeEncryption(unsigned int);
 
 	void constructStartState();
 	uint32_t rotL(uint32_t, unsigned short);
 	void quarterRound(uint32_t&, uint32_t&, uint32_t&, uint32_t&);
 	void createEndState();
 	void createKeyStream();
-	void createCipherText(const char* message, unsigned int bytes);
+	void createCipherText(char* message);
+
+	void incrementBlockCounter();
+	void incrementNonceCounter();
 public:
 	ChaChaEncryption();
 	~ChaChaEncryption();
@@ -167,7 +184,7 @@ public:
 	char* getKeyStream() {return keyStream;}
 	char* getCipherText() {return cipherText;}
 
-	void encryptMessage(const char*, unsigned int);
+	void encryptMessage(char*, unsigned int);
 	void decryptMessage();
 };
 
@@ -190,6 +207,17 @@ bool ChaChaEncryption::buildEncryption(char* userKeyIn, char* userFixedNonceIn, 
 	peerFixedNonce = (peerFixedNonceIn[3] << 24) | (peerFixedNonceIn[2] << 16) | (peerFixedNonceIn[1] << 8) | peerFixedNonceIn[0];
 
 	return true;
+}
+
+
+void ChaChaEncryption::initializeEncryption(unsigned int bytes) {
+	for(unsigned short i = 0; i < BLOCK_COUNTER_LENGTH; i += 1) {
+		blockCounter[i] = initialBlockCounter[i];
+	}
+
+	encryptBytes = BLOCK_BYTES;
+	messageBlockCount = (bytes/(BLOCK_BYTES + 1)) + 1;
+	messageRemainder = bytes % BLOCK_BYTES;
 }
 
 
@@ -245,7 +273,7 @@ void ChaChaEncryption::createEndState() {
 }
 
 
-void ChaChaEncryption::createKeyStream() {
+void ChaChaEncryption::createKeyStream() { // Consider using different bitmasks for each index as opposed to shifting endState[i] each time (might save on processing time)?
 	for(unsigned short i = 0; i < BLOCK_LENGTH; i += 1) {
 		keyStream[(i*4)] = endState[i] & BITMASK;
 		keyStream[(i*4) + 1] = (endState[i] >> 8) & BITMASK;
@@ -255,18 +283,79 @@ void ChaChaEncryption::createKeyStream() {
 }
 
 
-void ChaChaEncryption::createCipherText(const char* message, unsigned int bytes) {
-	for(unsigned short i = 0; i < bytes; i += 1) {
-		cipherText[i] = keyStream[i] ^ message[i];
+void ChaChaEncryption::createCipherText(char* message) { // Not generalized for BLOCK_COUNTER_LENGTH > 1.
+	//Serial.print("blockCounter HEX, INT: ");//-------------------------------------------------
+	//Serial.print(blockCounter[0], HEX);//-------------------------------------------------
+	//Serial.print(", ");//-------------------------------------------------
+	//Serial.println((unsigned long)blockCounter[0]);//-------------------------------------------------
+	blockIndexBytes = ((unsigned long)blockCounter[0] - (unsigned long)initialBlockCounter[0])*BLOCK_BYTES;
+	//Serial.print("blockIndexBytes: ");//-------------------------------------------------
+	//Serial.println(blockIndexBytes);//-------------------------------------------------
+
+	for(unsigned short i = 0; i < encryptBytes; i += 1) {
+		//Serial.println("Begin xor with keyStream.");//-------------------------------------------------
+		message[i + blockIndexBytes] ^= keyStream[i];
 	}
 }
 
 
-void ChaChaEncryption::encryptMessage(const char* message, unsigned int bytes) {
-	constructStartState();
-	createEndState();
-	createKeyStream();
-	createCipherText(message, bytes);
+void ChaChaEncryption::incrementBlockCounter() { // Not generalized for BLOCK_COUNTER_LENGTH > 1.
+	if(blockCounter[0] == 0xffffffff) {
+		// Log an error here.
+	}
+		blockCounter[0] += 1;
+}
+
+
+void ChaChaEncryption::incrementNonceCounter() { // Not generalized for BLOCK_COUNTER_LENGTH > 1.
+	if(nonce[1] == 0xffffffff) {
+		// Log an error here.
+	} else if(nonce[2] == 0xffffffff) {
+		nonce[2] = 0x00000000;
+		nonce[1] += 1;
+	} else {
+		nonce[2] += 1;
+	}
+}
+
+
+void ChaChaEncryption::encryptMessage(char* message, unsigned int bytes) {
+	if(bytes > 0) {
+		initializeEncryption(bytes);
+		//Serial.println('a');//-------------------------------------------------
+
+		for(unsigned short i = 0; i < (messageBlockCount - 1); i += 1) {
+			//Serial.println('b');//-------------------------------------------------
+			constructStartState();
+			//Serial.println('c');//-------------------------------------------------
+			createEndState();
+			//Serial.println('d');//-------------------------------------------------
+			createKeyStream();
+			//Serial.println('e');//-------------------------------------------------
+			createCipherText(message);
+			//Serial.println('f');//-------------------------------------------------
+			incrementBlockCounter();
+			//Serial.println('g');//-------------------------------------------------
+		}
+		if(messageRemainder == 0) {
+			constructStartState();
+			createEndState();
+			createKeyStream();
+			//Serial.println('h');//-------------------------------------------------
+			createCipherText(message);
+			//Serial.println('i');//-------------------------------------------------
+		} else {
+			encryptBytes = messageRemainder;
+			constructStartState();
+			createEndState();
+			createKeyStream();
+			//Serial.println('j');//-------------------------------------------------
+			createCipherText(message);
+			//Serial.println('k');//-------------------------------------------------
+		}
+
+		incrementNonceCounter();
+	}
 }
 
 #endif

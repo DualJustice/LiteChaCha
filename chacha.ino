@@ -23,31 +23,25 @@ void printHex(char* data, const unsigned short length) { // Boy do I sure love S
 
 
 bool setupEncryption() {
-	// print some useful messages. [DONE]
-	// generate random nonce and key suggestions. [DONE]
-	// user inputs desired nonce and key. [DONE]
-	// input is verifyied as valid. [DONE]
-	// calls if(cipher.buildEncryption(uint_32& or *?, uint_32& or *));
+	Serial.println("Setting up encryption\n");
 
 	char suggestedKey[KEY_BYTES];
 	char suggestedFixedNonce[FIXED_NONCE_BYTES];
 	unsigned short inputLength = 0;
 
-	Serial.println("Setting up encryption");
-
 	const unsigned long entropyTimeVal = micros();
 	analogReadResolution(ANALOG_RESOLUTION);
 	const unsigned long entropyPinVal = analogRead(ANALOG_PIN_NUM);
-	const unsigned long entropyVal = entropyTimeVal ^ entropyPinVal;
-	srand(entropyVal);													// This could stand to be improved.
 	analogReadResolution(DEFAULT_ANALOG_RESOLUTION);
+	const unsigned long entropyVal = entropyTimeVal ^ entropyPinVal;
+	srand(entropyVal); // This could stand to be improved.
 
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 		suggestedKey[i] = rand() % MAX_BYTE;
 	}
 
 	Serial.println("Please input the shared, 32-Byte, hex private key in the form of the suggested key given below.");
-	Serial.println("This must be the same for both users! \n");
+	Serial.println("This must be the same for both users!\n");
 	Serial.print("Suggested random key:");
 
 	printHex(suggestedKey, KEY_BYTES);
@@ -108,7 +102,7 @@ bool setupEncryption() {
 	}
 
 	Serial.println("Please input your unique, 4-Byte, hex nonce in the form of the suggested nonce given below.");
-	Serial.println("This must be different for both users! \n");
+	Serial.println("This must be different for both users!\n");
 	Serial.print("Suggested random nonce:");
 
 	printHex(suggestedFixedNonce, FIXED_NONCE_BYTES);
@@ -165,7 +159,7 @@ bool setupEncryption() {
 	}
 
 	Serial.println("Please input your glEEpal's unique, 4-Byte, hex nonce in the form of the suggested nonce given above.");
-	Serial.println("This cannot be the same as your nonce! \n");
+	Serial.println("This cannot be the same as your nonce!\n");
 
 	char peerFixedNonceDec[MAX_USER_FIXED_NONCE_LENGTH];
 	while(true) {
@@ -199,9 +193,7 @@ bool setupEncryption() {
 	for(unsigned short i = 0; i < inputLength; i += 1) {
 		if(peerFixedNonceDec[i] != userFixedNonceDec[i]) {
 			break;
-		}
-
-		if(i == (inputLength - 1)) {
+		} else if(i == (inputLength - 1)) {
 			// Log an error here?
 			Serial.println("ERROR: user & peer nonces are equal");
 			return false;
@@ -236,7 +228,7 @@ bool setupEncryption() {
 }
 
 
-void printEndState(uint32_t* endState) {
+void printLastEndState(uint32_t* endState) {
 	Serial.print("endState: ");
 	for(unsigned short i = 0; i < 16; i += 1) {
 		Serial.print(endState[i], HEX);
@@ -246,7 +238,7 @@ void printEndState(uint32_t* endState) {
 }
 
 
-void printKeyStream(char* keyStream) {
+void printLastKeyStream(char* keyStream) {
 	Serial.print("keyStream: ");
 	for(unsigned short i = 0; i < 64; i += 1) {
 		Serial.print(keyStream[i], HEX);
@@ -256,10 +248,20 @@ void printKeyStream(char* keyStream) {
 }
 
 
-void printCipherText(char* cipherText) {
+void printLastCipherText(char* cipherText) {
 	Serial.print("cipherText: ");
 	for(unsigned short i = 0; i < 64; i += 1) {
 		Serial.print(cipherText[i], HEX);
+	}
+
+	Serial.println('\n');
+}
+
+
+void printEncryptedMessage(char* message, unsigned int MESSAGE_BYTES) {
+	Serial.print("encryptedMessage: ");
+	for(unsigned short i = 0; i < MESSAGE_BYTES; i += 1) {
+		Serial.print(message[i], HEX);
 	}
 
 	Serial.println('\n');
@@ -272,26 +274,24 @@ void setup() {
 		delay(250);
 	}
 
-	unsigned int MESSAGE_BYTES = 64;
-	const char message[MESSAGE_BYTES] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-	//static unsigned int MESSAGE_BYTES = sizeof(message) - 1;
-
-	Serial.print("Message length: ");
-	Serial.print(MESSAGE_BYTES);
-	Serial.println('\n');
+	unsigned int MESSAGE_BYTES = 375;
+	char message[MESSAGE_BYTES] = {"Any submission to the IETF intended by the Contributor for publication as all or part of an IETF Internet-Draft or RFC and any statement made within the context of an IETF activity is considered an \"IETF Contribution\". Such statements include oral statements in IETF sessions, as well as written and electronic communications made at any time or place, which are addressed to"};
 
 	if(setupEncryption()) {
-		Serial.println("Encryption successfully set up! \n");
+		Serial.println("Encryption successfully set up!");
+		Serial.println("Encrypting message.");
 
 		cipher.encryptMessage(message, MESSAGE_BYTES);
+		Serial.println("Message successfully encrypted.\n");
 
-		printEndState(cipher.getEndState());
-		printKeyStream(cipher.getKeyStream());
-		printCipherText(cipher.getCipherText());
+		//printLastEndState(cipher.getEndState());
+		//printLastKeyStream(cipher.getKeyStream());
+		//printLastCipherText(cipher.getCipherText());
+		printEncryptedMessage(message, MESSAGE_BYTES);
 
-		Serial.println("Done \n");
+		Serial.println("Done\n");
 	} else {
-		Serial.println("Encryption setup failed \n");
+		Serial.println("Encryption setup failed\n");
 	}
 }
 
