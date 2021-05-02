@@ -4,153 +4,36 @@
 #include <stdint.h>
 
 
-// REMOVE ME!
-#include "Arduino.h"
-#include "HardwareSerial.h"
-// REMOVE ME!
-
-
-/*
-   Note also that the original ChaCha had a 64-bit nonce and 64-bit
-   block count.  We have modified this here to be more consistent with
-   recommendations in Section 3.2 of [RFC5116].  This limits the use of
-   a single (key,nonce) combination to 2^32 blocks, or 256 GB, but that
-   is enough for most uses.  In cases where a single key is used by
-   multiple senders, it is important to make sure that they don't use
-   the same nonces.  This can be assured by partitioning the nonce space
-   so that the first 32 bits are unique per sender, while the other 64
-   bits come from a counter.
-
-   The ChaCha20 state is initialized as follows:
-
-   o  The first four words (0-3) are constants: 0x61707865, 0x3320646e,
-      0x79622d32, 0x6b206574.
-
-   o  The next eight words (4-11) are taken from the 256-bit key by
-      reading the bytes in little-endian order, in 4-byte chunks.
-
-   o  Word 12 is a block counter.  Since each block is 64-byte, a 32-bit
-      word is enough for 256 gigabytes of data.
-
-   o  Words 13-15 are a nonce, which MUST not be repeated for the same
-      key.  The 13th word is the first 32 bits of the input nonce taken
-      as a little-endian integer, while the 15th word is the last 32
-      bits.
-
-       cccccccc  cccccccc  cccccccc  cccccccc
-       kkkkkkkk  kkkkkkkk  kkkkkkkk  kkkkkkkk
-       kkkkkkkk  kkkkkkkk  kkkkkkkk  kkkkkkkk
-       bbbbbbbb  nnnnnnnn  nnnnnnnn  nnnnnnnn
-
-   c=constant k=key b=blockcount n=nonce
-
-========================================================================
-
-   ChaCha20 successively calls the ChaCha20 block function, with the
-   same key and nonce, and with successively increasing block counter
-   parameters.  ChaCha20 then serializes the resulting state by writing
-   the numbers in little-endian order, creating a keystream block.
-   Concatenating the keystream blocks from the successive blocks forms a
-   keystream.  The ChaCha20 function then performs an XOR of this
-   keystream with the plaintext.  Alternatively, each keystream block
-   can be XORed with a plaintext block before proceeding to create the
-   next block, saving some memory.  There is no requirement for the
-   plaintext to be an integral multiple of 512 bits.  If there is extra
-   keystream from the last block, it is discarded.  Specific protocols
-   MAY require that the plaintext and ciphertext have certain length.
-   Such protocols need to specify how the plaintext is padded and how
-   much padding it receives.
-
-   The inputs to ChaCha20 are:
-
-   o  A 256-bit key
-
-   o  A 32-bit initial counter.  This can be set to any number, but will
-      usually be zero or one.  It makes sense to use one if we use the
-      zero block for something else, such as generating a one-time
-      authenticator key as part of an AEAD algorithm.
-
-   o  A 96-bit nonce.  In some protocols, this is known as the
-      Initialization Vector.
-
-   o  An arbitrary-length plaintext
-
-   The output is an encrypted message, or "ciphertext", of the same
-   length.
-
-   Decryption is done in the same way.  The ChaCha20 block function is
-   used to expand the key into a keystream, which is XORed with the
-   ciphertext giving back the plaintext.
-
-========================================================================
-
-3.2.  Recommended Nonce Formation
-
-   The following method to construct nonces is RECOMMENDED.  The nonce
-   is formatted as illustrated in Figure 1, with the initial octets
-   consisting of a Fixed field, and the final octets consisting of a
-   Counter field.  For each fixed key, the length of each of these
-   fields, and thus the length of the nonce, is fixed.  Implementations
-   SHOULD support 12-octet nonces in which the Counter field is four
-   octets long.
-
-       <----- variable ----> <----------- variable ----------->
-      +---------------------+----------------------------------+
-      |        Fixed        |              Counter             |
-      +---------------------+----------------------------------+
-
-                    Figure 1: Recommended nonce format
-
-   The Counter fields of successive nonces form a monotonically
-   increasing sequence, when those fields are regarded as unsigned
-   integers in network byte order.  The length of the Counter field MUST
-   remain constant for all nonces that are generated for a given
-   encryption device.  The Counter part SHOULD be equal to zero for the
-   first nonce, and increment by one for each successive nonce that is
-   generated.  However, any particular Counter value MAY be skipped
-   over, and left out of the sequence of values that are used, if it is
-   convenient.  For example, an application could choose to skip the
-   initial Counter=0 value, and set the Counter field of the initial
-   nonce to 1.  Thus, at most 2^(8*C) nonces can be generated when the
-   Counter field is C octets in length.
-
-   The Fixed field MUST remain constant for all nonces that are
-   generated for a given encryption device.  If different devices are
-   performing encryption with a single key, then each distinct device
-   MUST use a distinct Fixed field, to ensure the uniqueness of the
-   nonces.  Thus, at most 2^(8*F) distinct encrypters can share a key
-   when the Fixed field is F octets in length.
-*/
-
-
 static const constexpr unsigned short ANALOG_RESOLUTION = 32;
 static const constexpr unsigned short ANALOG_PIN_NUM = A0;
 static const constexpr unsigned short DEFAULT_ANALOG_RESOLUTION = 10;
 static const constexpr unsigned short MAX_BYTE = 0x100;
 
 static const constexpr unsigned short KEY_BYTES = 32;
-static const constexpr unsigned short MAX_USER_KEY_LENGTH = (KEY_BYTES*2);
+static const constexpr unsigned short MAX_USER_KEY_BYTES = (KEY_BYTES*2);
 static const constexpr unsigned short FIXED_NONCE_BYTES = 4;
-static const constexpr unsigned short MAX_USER_FIXED_NONCE_LENGTH = (FIXED_NONCE_BYTES*2);
+static const constexpr unsigned short MAX_USER_FIXED_NONCE_BYTES = (FIXED_NONCE_BYTES*2);
 
 
 class ChaChaEncryption {
 private:
 	static const constexpr unsigned short CONSTANT_LENGTH = 4;
 	static const constexpr unsigned short KEY_LENGTH = 8;
-	static const constexpr unsigned short BLOCK_COUNTER_LENGTH = 1;
+	static const constexpr unsigned short BLOCK_COUNTER_LENGTH = 1; // Some implementations use a BLOCK_COUNTER_LENGTH of 2.
 	static const constexpr unsigned short NONCE_LENGTH = 4 - BLOCK_COUNTER_LENGTH;
-	static const constexpr unsigned short BLOCK_LENGTH = 16;
+	static const constexpr unsigned short FIXED_NONCE_LENGTH = 1;
+	static const constexpr unsigned short COUNTER_NONCE_LENGTH = NONCE_LENGTH - FIXED_NONCE_LENGTH;
+	static const constexpr unsigned short BLOCK_LENGTH = CONSTANT_LENGTH + KEY_LENGTH + BLOCK_COUNTER_LENGTH + NONCE_LENGTH; // MUST be equal to 16.
 	static const constexpr unsigned short BLOCK_BYTES = BLOCK_LENGTH*4;
 	static const constexpr unsigned short ROUNDS = 20;
 
 	static const constexpr uint32_t BITMASK = 0x000000ff;
 
-	static constexpr uint32_t constant[CONSTANT_LENGTH] = {0x61707865, 0x3320646e, 0x79622d32, 0x6b206574}; // In ASCII: "expand 32-byte k"
+	static constexpr uint32_t constant[CONSTANT_LENGTH] = {0x61707865, 0x3320646e, 0x79622d32, 0x6b206574}; // In ASCII (little-endian): "expand 32-byte k"
 	uint32_t key[KEY_LENGTH] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
-	uint32_t initialBlockCounter[BLOCK_COUNTER_LENGTH] = {0x00000001};
+	uint32_t initialBlockCounter[BLOCK_COUNTER_LENGTH] = {0x00000000};
 	uint32_t blockCounter[BLOCK_COUNTER_LENGTH] = {0x00000000};
-	uint32_t nonce[NONCE_LENGTH] = {0x00000000, 0x00000000, 0x02000000};
+	uint32_t nonce[NONCE_LENGTH] = {0x00000000, 0x00000000, 0x00000000};
 
 	uint32_t peerFixedNonce = 0x00000000;
 
@@ -166,8 +49,8 @@ private:
 
 	void initializeEncryption(unsigned int);
 
-	void constructStartState();
 	uint32_t rotL(uint32_t, unsigned short);
+	void constructStartState();
 	void quarterRound(uint32_t&, uint32_t&, uint32_t&, uint32_t&);
 	void createEndState();
 	void createKeyStream();
@@ -180,9 +63,9 @@ public:
 	~ChaChaEncryption();
 
 	bool buildEncryption(char*, char*, char*);
-	uint32_t* getEndState() {return endState;}
-	char* getKeyStream() {return keyStream;}
-	char* getCipherText() {return cipherText;}
+	uint32_t* getLastEndState() {return endState;}
+	char* getLastKeyStream() {return keyStream;}
+	char* getLastCipherText() {return cipherText;}
 
 	void encryptMessage(char*, unsigned int);
 	void decryptMessage();
@@ -221,6 +104,11 @@ void ChaChaEncryption::initializeEncryption(unsigned int bytes) {
 }
 
 
+uint32_t ChaChaEncryption::rotL(uint32_t n, unsigned short c) {
+	return (n << c) | (n >> (32 - c));
+}
+
+
 void ChaChaEncryption::constructStartState() {
 	for(unsigned short i = 0; i < CONSTANT_LENGTH; i += 1) {
 		startState[i] = constant[i];
@@ -231,14 +119,12 @@ void ChaChaEncryption::constructStartState() {
 	for(unsigned short i = (KEY_LENGTH + CONSTANT_LENGTH); i < (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
 		startState[i] = blockCounter[i - (KEY_LENGTH + CONSTANT_LENGTH)];
 	}
-	for(unsigned short i = (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < (NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
+	for(unsigned short i = (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < (FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
 		startState[i] = nonce[i - (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH)];
 	}
-}
-
-
-uint32_t ChaChaEncryption::rotL(uint32_t n, unsigned short c) {
-	return (n << c) | (n >> (32 - c));
+	for(unsigned short i = (FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < (COUNTER_NONCE_LENGTH + FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
+		startState[i] = rotL((nonce[i - (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH)]), 24);
+	}
 }
 
 
@@ -284,16 +170,9 @@ void ChaChaEncryption::createKeyStream() { // Consider using different bitmasks 
 
 
 void ChaChaEncryption::createCipherText(char* message) { // Not generalized for BLOCK_COUNTER_LENGTH > 1.
-	//Serial.print("blockCounter HEX, INT: ");//-------------------------------------------------
-	//Serial.print(blockCounter[0], HEX);//-------------------------------------------------
-	//Serial.print(", ");//-------------------------------------------------
-	//Serial.println((unsigned long)blockCounter[0]);//-------------------------------------------------
 	blockIndexBytes = ((unsigned long)blockCounter[0] - (unsigned long)initialBlockCounter[0])*BLOCK_BYTES;
-	//Serial.print("blockIndexBytes: ");//-------------------------------------------------
-	//Serial.println(blockIndexBytes);//-------------------------------------------------
 
 	for(unsigned short i = 0; i < encryptBytes; i += 1) {
-		//Serial.println("Begin xor with keyStream.");//-------------------------------------------------
 		message[i + blockIndexBytes] ^= keyStream[i];
 	}
 }
@@ -322,36 +201,25 @@ void ChaChaEncryption::incrementNonceCounter() { // Not generalized for BLOCK_CO
 void ChaChaEncryption::encryptMessage(char* message, unsigned int bytes) {
 	if(bytes > 0) {
 		initializeEncryption(bytes);
-		//Serial.println('a');//-------------------------------------------------
 
 		for(unsigned short i = 0; i < (messageBlockCount - 1); i += 1) {
-			//Serial.println('b');//-------------------------------------------------
 			constructStartState();
-			//Serial.println('c');//-------------------------------------------------
 			createEndState();
-			//Serial.println('d');//-------------------------------------------------
 			createKeyStream();
-			//Serial.println('e');//-------------------------------------------------
 			createCipherText(message);
-			//Serial.println('f');//-------------------------------------------------
 			incrementBlockCounter();
-			//Serial.println('g');//-------------------------------------------------
 		}
 		if(messageRemainder == 0) {
 			constructStartState();
 			createEndState();
 			createKeyStream();
-			//Serial.println('h');//-------------------------------------------------
 			createCipherText(message);
-			//Serial.println('i');//-------------------------------------------------
 		} else {
 			encryptBytes = messageRemainder;
 			constructStartState();
 			createEndState();
 			createKeyStream();
-			//Serial.println('j');//-------------------------------------------------
 			createCipherText(message);
-			//Serial.println('k');//-------------------------------------------------
 		}
 
 		incrementNonceCounter();

@@ -1,6 +1,8 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 
+#include <stdint.h> // Only needed if printLastEndState() is used.
+
 #include "src/include/chacha.h"
 
 
@@ -46,19 +48,19 @@ bool setupEncryption() {
 
 	printHex(suggestedKey, KEY_BYTES);
 
-	char userKeyDec[MAX_USER_KEY_LENGTH];
+	char userKeyDec[MAX_USER_KEY_BYTES];
 	while(true) {
 		if(Serial.available() > 0) {
-			inputLength = Serial.readBytesUntil('\n', userKeyDec, MAX_USER_KEY_LENGTH + 1);
+			inputLength = Serial.readBytesUntil('\n', userKeyDec, MAX_USER_KEY_BYTES + 1);
 			break;
 		}
 
 		delay(250);
 	}
 
-	if(inputLength != (MAX_USER_KEY_LENGTH)) {
+	if(inputLength != (MAX_USER_KEY_BYTES)) {
 		// Log an error here?
-		Serial.println("ERROR: inputLength != MAX_USER_KEY_LENGTH");
+		Serial.println("ERROR: inputLength != MAX_USER_KEY_BYTES");
 		return false;
 	}
 
@@ -107,19 +109,19 @@ bool setupEncryption() {
 
 	printHex(suggestedFixedNonce, FIXED_NONCE_BYTES);
 
-	char userFixedNonceDec[MAX_USER_FIXED_NONCE_LENGTH];
+	char userFixedNonceDec[MAX_USER_FIXED_NONCE_BYTES];
 	while(true) {
 		if(Serial.available() > 0) {
-			inputLength = Serial.readBytesUntil('\n', userFixedNonceDec, MAX_USER_FIXED_NONCE_LENGTH + 1);
+			inputLength = Serial.readBytesUntil('\n', userFixedNonceDec, MAX_USER_FIXED_NONCE_BYTES + 1);
 			break;
 		}
 
 		delay(250);
 	}
 
-	if(inputLength != (MAX_USER_FIXED_NONCE_LENGTH)) {
+	if(inputLength != (MAX_USER_FIXED_NONCE_BYTES)) {
 		// Log an error here?
-		Serial.println("ERROR: inputLength != MAX_USER_FIXED_NONCE_LENGTH");
+		Serial.println("ERROR: inputLength != MAX_USER_FIXED_NONCE_BYTES");
 		return false;
 	}
 
@@ -161,17 +163,17 @@ bool setupEncryption() {
 	Serial.println("Please input your glEEpal's unique, 4-Byte, hex nonce in the form of the suggested nonce given above.");
 	Serial.println("This cannot be the same as your nonce!\n");
 
-	char peerFixedNonceDec[MAX_USER_FIXED_NONCE_LENGTH];
+	char peerFixedNonceDec[MAX_USER_FIXED_NONCE_BYTES];
 	while(true) {
 		if(Serial.available() > 0) {
-			inputLength = Serial.readBytesUntil('\n', peerFixedNonceDec, MAX_USER_FIXED_NONCE_LENGTH + 1);
+			inputLength = Serial.readBytesUntil('\n', peerFixedNonceDec, MAX_USER_FIXED_NONCE_BYTES + 1);
 			break;
 		}
 
 		delay(250);
 	}
 
-	if(inputLength != (MAX_USER_FIXED_NONCE_LENGTH)) {
+	if(inputLength != (MAX_USER_FIXED_NONCE_BYTES)) {
 		// Log an error here?
 		Serial.println("ERROR: inputLength != MAX_PEER_FIXED_NONCE_LENGTH");
 		return false;
@@ -274,8 +276,8 @@ void setup() {
 		delay(250);
 	}
 
-	unsigned int MESSAGE_BYTES = 375;
-	char message[MESSAGE_BYTES] = {"Any submission to the IETF intended by the Contributor for publication as all or part of an IETF Internet-Draft or RFC and any statement made within the context of an IETF activity is considered an \"IETF Contribution\". Such statements include oral statements in IETF sessions, as well as written and electronic communications made at any time or place, which are addressed to"};
+	unsigned int MESSAGE_BYTES = 0;
+	char message[MESSAGE_BYTES] = {""};
 
 	if(setupEncryption()) {
 		Serial.println("Encryption successfully set up!");
