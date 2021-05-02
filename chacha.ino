@@ -1,7 +1,8 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 
-#include <stdint.h> // Only needed if printLastEndState() is used.
+// Only needed if printLastEndState() is used.
+//#include <stdint.h>
 
 #include "src/include/chacha.h"
 
