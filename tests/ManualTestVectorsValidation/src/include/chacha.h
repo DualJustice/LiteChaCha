@@ -52,7 +52,6 @@ public:
 	~ChaChaEncryption();
 
 	void buildEncryption(char*, char*, char*);
-
 	unsigned long* getLastEndState() {return (unsigned long*)endState;}
 	char* getLastKeyStream() {return keyStream;}
 	char* getLastCipherText() {return cipherText;}

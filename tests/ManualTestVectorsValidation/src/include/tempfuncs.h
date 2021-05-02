@@ -256,7 +256,7 @@ bool setupEncryption() {
 }
 
 
-void printLastEndState(unsigned long* endState) { // Casting to unsigned long might not work as intended.
+void printLastEndState(unsigned long* endState) {
 	Serial.print("endState: ");
 	for(unsigned short i = 0; i < 16; i += 1) {
 		Serial.print(endState[i], HEX);
