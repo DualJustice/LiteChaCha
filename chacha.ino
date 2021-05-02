@@ -1,13 +1,16 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 
-// Only needed if printLastEndState() is used.
+// Needed if printLastEndState() is used.
 //#include <stdint.h>
 
+#include "src/include/tempfuncs.h"
 #include "src/include/chacha.h"
 
 
 static const unsigned short BAUD_RATE = 9600;
+
+
 static ChaChaEncryption& cipher = *new ChaChaEncryption();
 
 
