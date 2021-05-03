@@ -15,7 +15,7 @@ void setup() {
 	unsigned int MESSAGE_BYTES = 0;
 	char message[MESSAGE_BYTES] = {""};
 
-	if(setupEncryption()) { // Only run once per session.
+	if(setupEncryption()) { // Preferably only run once per session.
 		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session.
 		cipher.encryptMessage(message, MESSAGE_BYTES);
 		printEncryptedMessage(message, MESSAGE_BYTES);
