@@ -10,9 +10,9 @@ EXAMPLE OF LAST TEST VECTOR IN TestVectors.txt:
 
 2. Change the MESSAGE_BYTES below to 127
 
-3. In chacha.h (tests\src\include), change initialBlockCounter to {0x0000002a} (42 in HEX)
+3. Change the startBlock below to 42
 
-4. In chacha.h (tests\src\include), change nonce to {0x00000000, 0x00000000, 0x00000002}
+4. Change the nonceIncrement below to 2;
 
 5. Run the program on an Arduino.
 
@@ -26,8 +26,6 @@ EXAMPLE OF LAST TEST VECTOR IN TestVectors.txt:
 00000001
 
 9. Validate that the ciphertexts match.
-
-10. Change initialBlockCounter & nonce in chacha.h back to {0x00000000} & {0x00000000, 0x00000000, 0x00000000} respectively.
 */
 
 
@@ -40,19 +38,23 @@ void setup() {
 		delay(250);
 	}
 
-	// Input message and the number of bytes in message:
-	unsigned int MESSAGE_BYTES = 127;
-	char message[MESSAGE_BYTES] = {"'Twas brillig, and the slithy toves.Did gyre and gimble in the wabe:.All mimsy were the borogoves,.And the mome raths outgrabe."};
+	// User inputs:
+	unsigned long long MESSAGE_BYTES = 0;
+	char message[MESSAGE_BYTES] = {""};
+	unsigned long startBlock = 0;
+	unsigned short nonceIncrement = 0;
 
-	if(setupEncryption()) { // Only run once per session.
-		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session.
-		cipher.encryptMessage(message, MESSAGE_BYTES);
+	if(setupEncryption()) { // Preferably only run once per session.
+		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after setupEncryption().
 
-		//printLastEndState(cipher.getLastEndState());
-		//printLastKeyStream(cipher.getLastKeyStream());
-		//printLastCipherText(cipher.getLastCipherText());
+		for(unsigned short i = 0; i < nonceIncrement; i += 1) {
+			cipher.incrementNonceCounter();
+		}
+
+		cipher.encryptMessage(message, MESSAGE_BYTES, startBlock); // startBlock is an optional parameter. Its default value is 0.
 		printEncryptedMessage(message, MESSAGE_BYTES);
 	}
 }
+
 
 void loop() {}

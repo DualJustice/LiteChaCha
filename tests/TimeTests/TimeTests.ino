@@ -15,8 +15,9 @@ void setup() {
 	}
 
 	// Input message and the number of bytes in message:
-	unsigned int MESSAGE_BYTES = 256;
+	unsigned long long MESSAGE_BYTES = 256;
 	char message[MESSAGE_BYTES] = {"42"};
+	unsigned long startBlock = 0;
 
 	Serial.print("Message bytes: ");
 	Serial.print(MESSAGE_BYTES);
@@ -29,9 +30,9 @@ void setup() {
 	unsigned long timeStamp = 0;
 	unsigned long duration = 0;
 
-	if(setupEncryption()) { // Only run once per session.
+	if(setupEncryption()) { // Preferably only run once per session.
 		timeStamp = millis();
-		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session.
+		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after setupEncryption().
 		duration = millis() - timeStamp;
 		Serial.print("buildEncryption time approx. = ");
 		Serial.print(duration);
@@ -47,5 +48,6 @@ void setup() {
 		//printEncryptedMessage(message, MESSAGE_BYTES);
 	}
 }
+
 
 void loop() {}

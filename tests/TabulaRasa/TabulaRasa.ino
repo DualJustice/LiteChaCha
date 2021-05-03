@@ -27,20 +27,26 @@ void setup() {
 	}
 
 	// Input message and the number of bytes in message:
-	unsigned int MESSAGE1_BYTES = 1;
+	unsigned long long MESSAGE1_BYTES = 1;
 	char message1[MESSAGE1_BYTES] = {"b"};
-	unsigned int MESSAGE2_BYTES = 2;
+	unsigned long long MESSAGE2_BYTES = 2;
 	char message2[MESSAGE2_BYTES] = {"cc"};
-	unsigned int MESSAGE3_BYTES = 439;
+	unsigned long long MESSAGE3_BYTES = 439;
 	char message3[MESSAGE3_BYTES] = {"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAny submission to the IETF intended by the Contributor for publication as all or part of an IETF Internet-Draft or RFC and any statement made within the context of an IETF activity is considered an \"IETF Contribution\". Such statements include oral statements in IETF sessions, as well as written and electronic communications made at any time or place, which are addressed to"};
+	unsigned long startBlock = 0;
 
-	if(setupEncryption()) { // Only run once per session.
-		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session.
+	if(setupEncryption()) { // Preferably only run once per session.
+		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after setupEncryption().
+
+		cipher.incrementNonceCounter();
+		cipher.decrementNonceCounter();
+
 		cipher.encryptMessage(message1, MESSAGE1_BYTES);
 		cipher.encryptMessage(message2, MESSAGE2_BYTES);
 		cipher.encryptMessage(message3, MESSAGE3_BYTES);
 		printEncryptedMessage(message3, MESSAGE3_BYTES);
 	}
 }
+
 
 void loop() {}
