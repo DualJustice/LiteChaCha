@@ -46,6 +46,9 @@ private:
 	void createCipherText(char* message);
 
 	void incrementBlockCounter();
+
+	void incrementNonceCounter();
+	void decrementNonceCounter(); // Use carefully (always follow-up with an incrementNonceCounter())!
 public:
 	ChaChaEncryption();
 	~ChaChaEncryption();
@@ -55,10 +58,6 @@ public:
 	unsigned long* getLastEndState() {return (unsigned long*)endState;}
 	char* getLastKeyStream() {return keyStream;}
 	char* getLastCipherText() {return cipherText;}
-
-	void incrementNonceCounter();
-	void decrementNonceCounter(); // Use carefully (always follow-up with an incrementNonceCounter())!
-	unsigned long long getNonceCounter() {return (nonce[1] << 32) | nonce[2];}
 
 	void encryptMessage(char*, unsigned long long, unsigned long);
 	void decryptMessage();

@@ -14,11 +14,10 @@ void setup() {
 	// Input message and the number of bytes in message:
 	unsigned long long MESSAGE_BYTES = 0;
 	char message[MESSAGE_BYTES] = {""};
-	unsigned long startBlock = 0;
 
 	if(setupEncryption()) { // Preferably only run once per session.
 		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after setupEncryption().
-		cipher.encryptMessage(message, MESSAGE_BYTES, startBlock = 0);
+		cipher.encryptMessage(message, MESSAGE_BYTES);
 		printEncryptedMessage(message, MESSAGE_BYTES);
 	}
 }
