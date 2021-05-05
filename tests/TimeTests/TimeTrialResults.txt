@@ -1,0 +1,25 @@
+Original Unoptimized Results:
+
+Message bytes: 4096
+Test: 0
+buildEncryption time approx. = 10 us
+encryptMessage time approx. = 12555 us
+decryptMessage time approx. = 12631 us
+Test: 1
+buildEncryption time approx. = 9 us
+encryptMessage time approx. = 12555 us
+decryptMessage time approx. = 12640 us
+Test: 2
+buildEncryption time approx. = 9 us
+encryptMessage time approx. = 12555 us
+decryptMessage time approx. = 12640 us
+Test: 3
+buildEncryption time approx. = 9 us
+encryptMessage time approx. = 12563 us
+decryptMessage time approx. = 12639 us
+Test: 4
+buildEncryption time approx. = 9 us
+encryptMessage time approx. = 12563 us
+decryptMessage time approx. = 12639 us
+totalEncryptionTime: 62791
+totalDecryptionTime: 63189
