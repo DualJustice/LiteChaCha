@@ -21,27 +21,40 @@ void setup() {
 		message[i] = 'a';
 	}
 
-	Serial.print("Message bytes: ");
-	Serial.print(MESSAGE_BYTES);
-	Serial.println('\n');
+	unsigned long long messageCount = 0;
 
 	unsigned long timeStamp = 0;
 	unsigned long duration = 0;
 
 	if(setupEncryption()) { // Preferably only run once per session.
+		Serial.print("Message bytes: ");
+		Serial.println(MESSAGE_BYTES);
+
 		timeStamp = micros();
 		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after setupEncryption().
 		duration = micros() - timeStamp;
 		Serial.print("buildEncryption time approx. = ");
 		Serial.print(duration);
-		Serial.println(" us\n");
+		Serial.println(" us");
 
 		timeStamp = micros();
+		messageCount = cipher.getNonceCounter();
 		cipher.encryptMessage(message, MESSAGE_BYTES);
 		duration = micros() - timeStamp;
 		Serial.print("encryptMessage time approx. = ");
 		Serial.print(duration);
-		Serial.println(" us\n");
+		Serial.println(" us");
+
+		for(unsigned short i = 0; i < 50; i += 1) { // Done to simulate something of a worst-case scenario.
+			cipher.incrementNonceCounter();
+		}
+
+		timeStamp = micros();
+		cipher.decryptMessage(message, MESSAGE_BYTES, messageCount);
+		duration = micros() - timeStamp;
+		Serial.print("decryptMessage time approx. = ");
+		Serial.print(duration);
+		Serial.println(" us");
 	}
 }
 

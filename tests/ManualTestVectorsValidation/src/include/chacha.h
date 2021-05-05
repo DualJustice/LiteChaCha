@@ -51,11 +51,13 @@ private:
 
 	unsigned long long currentNonceCounter = 0;
 	unsigned long long nonceDelta = 0;
-	void incrementNonceCounter();
+//	void incrementNonceCounter();
 	void decrementNonceCounter(); // Use carefully (always follow-up with an incrementNonceCounter())!
 public:
 	ChaChaEncryption();
 	~ChaChaEncryption();
+
+	const unsigned short getNonceCounterBytes() {return COUNTER_NONCE_LENGTH*4;} // Used to specify the length the the prepended Counter Nonce variable.
 
 	void buildEncryption(char*, char*, char*);
 
@@ -64,6 +66,7 @@ public:
 	char* getLastCipherText() {return cipherText;}
 
 	unsigned long long getNonceCounter() {return (nonce[1] << 32) | nonce[2];}
+	void incrementNonceCounter(); // Should not typically be public!
 
 	void encryptMessage(char*, unsigned long long, unsigned long);
 	void decryptMessage(char*, unsigned long long, unsigned long long, unsigned long);
@@ -115,7 +118,7 @@ uint32_t ChaChaEncryption::rotL(uint32_t n, unsigned short c) {
 
 
 void ChaChaEncryption::updateStartState() {
-	for(unsigned short i = (KEY_LENGTH + CONSTANT_LENGTH); i < (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) { // This would require rotL to make the blockCounter word of startState little-endian, if the implementation of ChaCha in the document used to construct LiteChaCha was changed to do so.
+	for(unsigned short i = (KEY_LENGTH + CONSTANT_LENGTH); i < (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
 		startState[i] = blockCounter[i - (KEY_LENGTH + CONSTANT_LENGTH)];
 	}
 	for(unsigned short i = (FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < BLOCK_LENGTH; i += 1) {
@@ -142,7 +145,7 @@ void ChaChaEncryption::createEndState() {
 			endState[i] = startState[i];
 		}
 		for(unsigned short i = (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < (FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
-			endState[i] = peerFixedNonce[i - (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH)];
+			endState[i] = nonce[i - (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH)];
 		}
 		for(unsigned short i = (FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < BLOCK_LENGTH; i += 1) {
 			endState[i] = startState[i];
@@ -228,6 +231,7 @@ void ChaChaEncryption::decrementNonceCounter() { // Not generalized for BLOCK_CO
 
 void ChaChaEncryption::encryptMessage(char* message, unsigned long long bytes, unsigned long startBlock = 0) {
 	if(bytes > 0) {
+		decrypt = false;
 		initializeEncryption(bytes, startBlock);
 
 		for(unsigned short i = 0; i < (messageBlockCount - 1); i += 1) {
@@ -288,8 +292,6 @@ void ChaChaEncryption::decryptMessage(char* messageDecrypt, unsigned long long b
 			incrementNonceCounter();
 		}
 	}
-
-	decrypt = false;
 }
 
 #endif

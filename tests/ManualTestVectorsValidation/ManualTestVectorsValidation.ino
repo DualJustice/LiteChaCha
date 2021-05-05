@@ -52,7 +52,7 @@ void setup() {
 		}
 
 		cipher.encryptMessage(message, MESSAGE_BYTES, startBlock); // startBlock is an optional parameter. Its default value is 0.
-		printEncryptedMessage(message, MESSAGE_BYTES);
+		printMessage(message, MESSAGE_BYTES);
 	}
 }
 

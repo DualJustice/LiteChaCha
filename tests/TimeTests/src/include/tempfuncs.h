@@ -286,7 +286,7 @@ void printLastCipherText(char* cipherText) {
 }
 
 
-void printEncryptedMessage(char* message, unsigned int MESSAGE_BYTES) {
+void printMessage(char* message, unsigned int MESSAGE_BYTES) {
 	Serial.print("encryptedMessage: ");
 	for(unsigned short i = 0; i < MESSAGE_BYTES; i += 1) {
 		Serial.print(message[i], HEX);
