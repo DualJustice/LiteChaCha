@@ -28,7 +28,7 @@
 
    * The **nonce** used for that session **must *not* match** for both users.
 
-   * Because no key management is currently included with LiteChaCha, these values must manually be shared between users.
+   * Because no key management is currently included with LiteChaCha, these values must be manually shared between users.
 
    * It is absolutely vital that **no two messages, whether from the same user or two different users, ever be sent using the same key & nonce pair**! The nonce used in LiteChaCha includes a counter that increments with every message sent to help mitigate this. But, it is initialized at zero at the start of every session. As such:
 
