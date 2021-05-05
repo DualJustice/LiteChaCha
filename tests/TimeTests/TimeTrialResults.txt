@@ -23,3 +23,6 @@ encryptMessage time approx. = 12563 us
 decryptMessage time approx. = 12639 us
 totalEncryptionTime: 62791
 totalDecryptionTime: 63189
+
+averageEncryptionTime: 12558.2
+averageDecryptionTime: 12637.8
