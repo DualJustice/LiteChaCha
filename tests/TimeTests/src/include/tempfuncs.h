@@ -12,11 +12,11 @@ static const unsigned short MAX_USER_KEY_BYTES = (KEY_BYTES*2);
 static const unsigned short FIXED_NONCE_BYTES = 4;
 static const unsigned short MAX_USER_FIXED_NONCE_BYTES = (FIXED_NONCE_BYTES*2);
 
-static char userKeyHex[KEY_BYTES];
-static char userFixedNonceHex[FIXED_NONCE_BYTES];
-static char peerFixedNonceHex[FIXED_NONCE_BYTES];
+static char userKeyHex[KEY_BYTES] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+static char userFixedNonceHex[FIXED_NONCE_BYTES] = {0x00, 0x00, 0x00, 0x00};
+static char peerFixedNonceHex[FIXED_NONCE_BYTES] = {0x00, 0x00, 0x00, 0x01};
 
-
+/*
 void printHex(char* data, const unsigned short length) { // Boy do I sure love Serial.print!
 	for(unsigned short i = 0; i < length; i += 1) {
 		if(data[i] > 0x0f) {
@@ -29,10 +29,10 @@ void printHex(char* data, const unsigned short length) { // Boy do I sure love S
 
 	Serial.println('\n');
 }
-
+*/
 
 bool setupEncryption() {
-/*	Serial.println("Setting up encryption\n");*/
+/*	Serial.println("Setting up encryption\n");
 
 	const unsigned short ANALOG_RESOLUTION = 32;
 	const unsigned short ANALOG_PIN_NUM = A0;
@@ -60,7 +60,7 @@ bool setupEncryption() {
 	}
 
 // Print instructions and generated random suggested key in HEX:
-/*	Serial.println("Please input the shared, 32-Byte, hex private key in the form of the suggested key given below.");
+	Serial.println("Please input the shared, 32-Byte, hex private key in the form of the suggested key given below.");
 	Serial.println("This must be the same for both users!\n");
 	Serial.print("Suggested random key:");
 	printHex(suggestedKey, KEY_BYTES);
@@ -116,13 +116,7 @@ bool setupEncryption() {
 			userKeyDec[(i*2) + 1] -= 87;
 		}
 		userKeyHex[i] |= userKeyDec[(i*2) + 1];
-	}*/
-
-	// ----------NEW----------
-	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
-		userKeyHex[i] = suggestedKey[i];
 	}
-	// ----------NEW----------
 
 // Generate random suggested fixed nonce:
 	for(unsigned short i = 0; i < FIXED_NONCE_BYTES; i += 1){
@@ -130,7 +124,7 @@ bool setupEncryption() {
 	}
 
 // Print instructions and generated random suggested fixed nonce in HEX:
-/*	Serial.println("Please input your unique, 4-Byte, hex nonce in the form of the suggested nonce given below.");
+	Serial.println("Please input your unique, 4-Byte, hex nonce in the form of the suggested nonce given below.");
 	Serial.println("This must be different for both users!\n");
 	Serial.print("Suggested random nonce:");
 	printHex(suggestedFixedNonce, FIXED_NONCE_BYTES);
@@ -186,16 +180,10 @@ bool setupEncryption() {
 			userFixedNonceDec[(i*2) + 1] -= 87;
 		}
 		userFixedNonceHex[i] |= userFixedNonceDec[(i*2) + 1];
-	}*/
-
-	// ----------NEW----------
-	for(unsigned short i = 0; i < FIXED_NONCE_BYTES; i += 1) {
-		userFixedNonceHex[i] = suggestedFixedNonce[i];
 	}
-	// ----------NEW----------
 
 // Print instructions:
-/*	Serial.println("Please input your glEEpal's unique, 4-Byte, hex nonce in the form of the suggested nonce given above.");
+	Serial.println("Please input your glEEpal's unique, 4-Byte, hex nonce in the form of the suggested nonce given above.");
 	Serial.println("This cannot be the same as your nonce!\n");
 
 // Read in peer's fixed nonce:
@@ -262,14 +250,8 @@ bool setupEncryption() {
 		peerFixedNonceHex[i] |= peerFixedNonceDec[(i*2) + 1];
 	}
 
-	Serial.println("Encryption successfully set up!");*/
-
-	// ----------NEW----------
-	for(unsigned short i = 0; i < FIXED_NONCE_BYTES; i += 1) {
-		peerFixedNonceHex[i] = 0;
-	}
-	// ----------NEW----------
-
+	Serial.println("Encryption successfully set up!");
+*/
 	return true;
 }
 

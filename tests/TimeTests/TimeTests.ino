@@ -14,12 +14,15 @@ void setup() {
 		delay(250);
 	}
 
-	// Input message and the number of bytes in message:
-	unsigned long long MESSAGE_BYTES = 4096;
-	char message[MESSAGE_BYTES];
-	for(unsigned short i = 0; i < MESSAGE_BYTES; i += 1) {
-		message[i] = 'a';
+	for(unsigned short i = 0; i < 2; i += 1) {
+		cipher.incrementNonceCounter();
 	}
+
+	unsigned long initialBlock = 1;
+
+	// Input message and the number of bytes in message:
+	unsigned long long MESSAGE_BYTES = 375;
+	char message[MESSAGE_BYTES] = {"Any submission to the IETF intended by the Contributor for publication as all or part of an IETF Internet-Draft or RFC and any statement made within the context of an IETF activity is considered an \"IETF Contribution\". Such statements include oral statements in IETF sessions, as well as written and electronic communications made at any time or place, which are addressed to"};
 
 	unsigned long long messageCount = 0;
 
@@ -38,7 +41,7 @@ void setup() {
 			Serial.println(i);
 
 			timeStamp = micros();
-			cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after setupEncryption().
+			cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after 	setupEncryption().
 			duration = micros() - timeStamp;
 			Serial.print("buildEncryption time approx. = ");
 			Serial.print(duration);
@@ -46,24 +49,30 @@ void setup() {
 
 			timeStamp = micros();
 			messageCount = cipher.getNonceCounter();
-			cipher.encryptMessage(message, MESSAGE_BYTES);
+			cipher.encryptMessage(message, MESSAGE_BYTES, initialBlock);
 			duration = micros() - timeStamp;
 			totalEncryptionTime += duration;
 			Serial.print("encryptMessage time approx. = ");
 			Serial.print(duration);
 			Serial.println(" us");
 
+			Serial.print("Encrypted ");
+			printMessage(message, MESSAGE_BYTES);
+
 			for(unsigned short i = 0; i < 50; i += 1) { // Done to simulate something of a worst-case scenario.
 				cipher.incrementNonceCounter();
 			}
 
 			timeStamp = micros();
-			cipher.decryptMessage(message, MESSAGE_BYTES, messageCount);
+			cipher.decryptMessage(message, MESSAGE_BYTES, messageCount, initialBlock);
 			duration = micros() - timeStamp;
 			totalDecryptionTime += duration;
 			Serial.print("decryptMessage time approx. = ");
 			Serial.print(duration);
 			Serial.println(" us");
+
+			Serial.print("Decrypted ");
+			printMessage(message, MESSAGE_BYTES);
 		}
 
 		Serial.print("totalEncryptionTime: ");
