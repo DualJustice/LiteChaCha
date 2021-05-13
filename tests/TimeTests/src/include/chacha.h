@@ -83,7 +83,7 @@ ChaChaEncryption::~ChaChaEncryption() {
 }
 
 
-void ChaChaEncryption::buildEncryption(char* userKeyIn, char* userFixedNonceIn, char* peerFixedNonceIn) {
+void ChaChaEncryption::buildEncryption(char* userKeyIn, char* userFixedNonceIn, char* peerFixedNonceIn) { // Assumes fixed portion of nonce is 32 bits.
 	for(unsigned short i = 0; i < KEY_LENGTH; i += 1) {
 		key[i] = (userKeyIn[(i*4) + 3] << 24) | (userKeyIn[(i*4) + 2] << 16) | (userKeyIn[(i*4) + 1] << 8) | userKeyIn[i*4];
 	}
@@ -95,9 +95,6 @@ void ChaChaEncryption::buildEncryption(char* userKeyIn, char* userFixedNonceIn, 
 	}
 	for(unsigned short i = CONSTANT_LENGTH; i < (KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
 		startState[i] = key[i - CONSTANT_LENGTH];
-	}
-	for(unsigned short i = (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < (FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
-		startState[i] = nonce[i - (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH)];
 	}
 }
 
@@ -121,6 +118,15 @@ void ChaChaEncryption::updateStartState() {
 	for(unsigned short i = (KEY_LENGTH + CONSTANT_LENGTH); i < (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
 		startState[i] = blockCounter[i - (KEY_LENGTH + CONSTANT_LENGTH)];
 	}
+	if(!decrypt) {
+		for(unsigned short i = (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < (FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
+			startState[i] = nonce[i - (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH)];
+		}
+	} else {
+		for(unsigned short i = (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < (FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
+			startState[i] = nonce[i - (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH)];
+		}
+	}
 	for(unsigned short i = (FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < BLOCK_LENGTH; i += 1) {
 		startState[i] = rotL((nonce[i - (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH)]), 24);
 	}
@@ -136,20 +142,8 @@ void ChaChaEncryption::quarterRound(uint32_t& a, uint32_t& b, uint32_t& c, uint3
 
 
 void ChaChaEncryption::createEndState() {
-	if(!decrypt) {
-		for(unsigned short i = 0; i < BLOCK_LENGTH; i += 1) {
-			endState[i] = startState[i];
-		}
-	} else {
-		for(unsigned short i = 0; i < (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
-			endState[i] = startState[i];
-		}
-		for(unsigned short i = (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < (FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i += 1) {
-			endState[i] = nonce[i - (BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH)];
-		}
-		for(unsigned short i = (FIXED_NONCE_LENGTH + BLOCK_COUNTER_LENGTH + KEY_LENGTH + CONSTANT_LENGTH); i < BLOCK_LENGTH; i += 1) {
-			endState[i] = startState[i];
-		}
+	for(unsigned short i = 0; i < BLOCK_LENGTH; i += 1) {
+		endState[i] = startState[i];
 	}
 
 	for(unsigned short i = 0; i < ROUNDS; i += 2) {
