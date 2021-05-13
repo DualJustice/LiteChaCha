@@ -56,7 +56,7 @@ public:
 	ChaChaEncryption();
 	~ChaChaEncryption();
 
-	const unsigned short getNonceCounterBytes() {return COUNTER_NONCE_LENGTH*4;} // Used to specify the length the the prepended Counter Nonce variable.
+	const unsigned short getNonceCounterBytes() {return COUNTER_NONCE_LENGTH*4;} // Used to specify the length of the prepended Counter Nonce variable.
 
 	void buildEncryption(char*, char*, char*);
 
