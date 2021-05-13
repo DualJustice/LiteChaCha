@@ -276,16 +276,6 @@ void printLastKeyStream(char* keyStream) {
 }
 
 
-void printLastCipherText(char* cipherText) {
-	Serial.print("cipherText: ");
-	for(unsigned short i = 0; i < 64; i += 1) {
-		Serial.print(cipherText[i], HEX);
-	}
-
-	Serial.println('\n');
-}
-
-
 void printMessage(char* message, unsigned int MESSAGE_BYTES) {
 	Serial.print("message: ");
 	for(unsigned short i = 0; i < MESSAGE_BYTES; i += 1) {

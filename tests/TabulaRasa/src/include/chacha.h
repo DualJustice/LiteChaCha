@@ -29,7 +29,6 @@ private:
 	uint32_t startState[BLOCK_LENGTH];
 	uint32_t endState[BLOCK_LENGTH];
 	char keyStream[BLOCK_BYTES];
-	char cipherText[BLOCK_BYTES];
 
 	unsigned short encryptBytes = BLOCK_BYTES;
 	unsigned long long messageBlockCount = 0;
@@ -63,7 +62,6 @@ public:
 
 	unsigned long* getLastEndState() {return (unsigned long*)endState;}
 	char* getLastKeyStream() {return keyStream;}
-	char* getLastCipherText() {return cipherText;}
 
 	unsigned long long getNonceCounter() {return (nonce[1] << 32) | nonce[2];}
 

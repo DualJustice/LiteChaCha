@@ -18,7 +18,7 @@ void setup() {
 	if(setupEncryption()) { // Preferably only run once per session.
 		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after setupEncryption().
 		cipher.encryptMessage(message, MESSAGE_BYTES);
-		printEncryptedMessage(message, MESSAGE_BYTES);
+		printMessage(message, MESSAGE_BYTES);
 	}
 }
 

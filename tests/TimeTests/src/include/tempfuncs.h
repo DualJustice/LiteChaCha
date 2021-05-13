@@ -8,9 +8,9 @@
 static const unsigned short BAUD_RATE = 9600;
 
 static const unsigned short KEY_BYTES = 32;
-static const unsigned short MAX_USER_KEY_BYTES = (KEY_BYTES*2);
+//static const unsigned short MAX_USER_KEY_BYTES = (KEY_BYTES*2);
 static const unsigned short FIXED_NONCE_BYTES = 4;
-static const unsigned short MAX_USER_FIXED_NONCE_BYTES = (FIXED_NONCE_BYTES*2);
+//static const unsigned short MAX_USER_FIXED_NONCE_BYTES = (FIXED_NONCE_BYTES*2);
 
 static char userKeyHex[KEY_BYTES] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
 static char userFixedNonceHex[FIXED_NONCE_BYTES] = {0x00, 0x00, 0x00, 0x00};
@@ -270,16 +270,6 @@ void printLastKeyStream(char* keyStream) {
 	Serial.print("keyStream: ");
 	for(unsigned short i = 0; i < 64; i += 1) {
 		Serial.print(keyStream[i], HEX);
-	}
-
-	Serial.println('\n');
-}
-
-
-void printLastCipherText(char* cipherText) {
-	Serial.print("cipherText: ");
-	for(unsigned short i = 0; i < 64; i += 1) {
-		Serial.print(cipherText[i], HEX);
 	}
 
 	Serial.println('\n');
