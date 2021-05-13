@@ -292,7 +292,7 @@ void printMessage(char* message, unsigned int MESSAGE_BYTES) {
 		Serial.print(message[i], HEX);
 	}
 
-	Serial.println('\n');
+	Serial.print('\n');
 }
 
 #endif
