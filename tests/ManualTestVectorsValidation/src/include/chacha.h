@@ -231,7 +231,6 @@ void ChaChaEncryption::decrementNonceCounter() { // Not generalized for BLOCK_CO
 
 void ChaChaEncryption::encryptMessage(char* message, unsigned long long bytes, unsigned long startBlock = 0) {
 	if(bytes > 0) {
-		decrypt = false;
 		initializeEncryption(bytes, startBlock);
 
 		for(unsigned short i = 0; i < (messageBlockCount - 1); i += 1) {
@@ -292,6 +291,8 @@ void ChaChaEncryption::decryptMessage(char* messageDecrypt, unsigned long long b
 			incrementNonceCounter();
 		}
 	}
+
+	decrypt = false;
 }
 
 #endif
