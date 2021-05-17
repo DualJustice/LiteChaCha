@@ -1,8 +1,8 @@
 #ifndef TEMPFUNCS_H
 #define TEMPFUNCS_H
 
-#include "Arduino.h"
-#include "HardwareSerial.h"
+//#include "Arduino.h"
+//#include "HardwareSerial.h"
 
 
 static const unsigned short BAUD_RATE = 9600;
