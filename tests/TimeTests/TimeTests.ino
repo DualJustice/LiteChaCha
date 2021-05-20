@@ -2,10 +2,12 @@
 #include "HardwareSerial.h"
 
 #include "src/include/tempfuncs.h"
+#include "src/include/X25519.h"
 #include "src/include/chacha.h"
 
 
 static ChaChaEncryption& cipher = *new ChaChaEncryption();
+static X25519KeyManagement& ecdhe = *new X25519KeyManagement();
 
 
 void setup() {

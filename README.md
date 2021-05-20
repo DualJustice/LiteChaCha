@@ -6,6 +6,8 @@
 
 * LiteChaCha is a basic implementation of the ChaCha20 stream-cipher, written for Arduino. I am not an authority with regards to cryptography. I would strongly advise you use a mature and well-tested library such as OpenSSL, LibSodium, or the Crypto library for Arduino if possible, particularly if the application is of any importance.
 
+  * Lite ChaCha is not guaranteed to be performant, and is very likely susceptible to attacks such as side-channel attacks. It is also not guaranteed to be updated. Frankly, it was made for fun, so **USE AT YOUR OWN PERIL**!
+
   * It should be noted that there is currently no one-time authenticator (such as Poly1305) or key management included with LiteChaCha. These are expected to be added in a later version. Because LiteChaCha does not yet use any form of message authentication it is **NOT SAFE TO USE** in any network application other than purely hobbyist applications.
 
 * LiteChaCha was constructed using the method laid out in [Daniel J. Bernstein's paper](https://cr.yp.to/chacha/chacha-20080128.pdf) on the cipher, as well as in the [IRTF's document](https://tools.ietf.org/html/rfc8439) on ChaCha20. It was tested against the test vectors provided [here](https://tools.ietf.org/html/rfc8439#appendix-A.1) in the IRTF document.
@@ -36,6 +38,7 @@
 
 ## Future plans:
 
-* Message authentication (HMAC, Poly1305, etc.).
+* Automatic key management / exchange (X25519).
+* Message authentication (Poly1305).
 * Storage of information such as keys used, nonces used, and number of messages sent, to ensure safety.
-* Automatic key management / exchange.
+  * Encryption of above storage.
