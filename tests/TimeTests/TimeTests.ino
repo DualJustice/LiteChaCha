@@ -43,7 +43,7 @@ void setup() {
 		Serial.println(MESSAGE_BYTES);
 
 		timeStamp = micros();
-		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after 	setupEncryption().
+		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after setupEncryption().
 		duration = micros() - timeStamp;
 		Serial.print("buildEncryption time approx. = ");
 		Serial.print(duration);
