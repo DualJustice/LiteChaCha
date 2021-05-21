@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "BigNumber.h"
+//#include "BigNumber.h"
 
 
 //https://datatracker.ietf.org/doc/html/rfc7748
@@ -12,10 +12,12 @@
 
 class X25519KeyManagement {
 private:
-	const unsigned long long p = 2^55 - 19; // p = 57896044618658097711785492504343953926634992332820282019728792003956564819949. Unsigned long long is not long enough!
+	//BigNumber p = "57896044618658097711785492504343953926634992332820282019728792003956564819949"; // (2^255) - 19
 public:
 	X25519KeyManagement();
 	~X25519KeyManagement();
+
+	//void startBigNum();
 };
 
 
@@ -27,6 +29,15 @@ X25519KeyManagement::X25519KeyManagement() {
 X25519KeyManagement::~X25519KeyManagement() {
 
 }
+
+
+/*
+void X25519KeyManagement::startBigNum() {
+	BigNumber::begin();
+
+	BigNumber p = "57896044618658097711785492504343953926634992332820282019728792003956564819949";
+}
+*?
 
 
 /*
