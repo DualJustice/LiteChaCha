@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "BigNumber.h"
+
 
 //https://datatracker.ietf.org/doc/html/rfc7748
 //https://cr.yp.to/ecdh/curve25519-20060209.pdf
