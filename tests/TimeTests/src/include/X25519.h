@@ -3,11 +3,12 @@
 
 #include <stdint.h>
 
-//#include "BigNumber.h"
+#include "BigNumber.h"
 
 
 //https://datatracker.ietf.org/doc/html/rfc7748
 //https://cr.yp.to/ecdh/curve25519-20060209.pdf
+//https://www.gammon.com.au/forum/?id=11519
 
 
 class X25519KeyManagement {
@@ -17,7 +18,9 @@ public:
 	X25519KeyManagement();
 	~X25519KeyManagement();
 
-	//void startBigNum();
+	void startBigNum();
+
+	void createPubKey(char*);
 };
 
 
@@ -31,29 +34,30 @@ X25519KeyManagement::~X25519KeyManagement() {
 }
 
 
-/*
 void X25519KeyManagement::startBigNum() {
 	BigNumber::begin();
-
-	BigNumber p = "57896044618658097711785492504343953926634992332820282019728792003956564819949";
 }
-*?
+
+
+void X25519KeyManagement::createPubKey(char* k) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
+	
+}
 
 
 /*
 Here, the "bits" parameter should be set to 255 for X25519.
 
-	def decodeLittleEndian(b, bits):
+	def decodeLittleEndian(b, bits):											THIS READS BYTES IN LITTLE ENDIAN, RETURNS A 32 BYTE NUMBER (NOT AN ARRAY)
 		return sum([b[i] << 8*i for i in range((bits+7)/8)])
 
-	def decodeUCoordinate(u, bits):
+	def decodeUCoordinate(u, bits):												THIS TAKES AN X COORD, SHORTENS IT IF POSSIBLE, AND READS IT IN LITTLE ENDIAN
 		u_list = [ord(b) for b in u]
 		# Ignore any unused bits.
 		if bits % 8:
 			u_list[-1] &= (1<<(bits%8))-1
 		return decodeLittleEndian(u_list, bits)
 
-	def encodeUCoordinate(u, bits):
+	def encodeUCoordinate(u, bits):												TAKES X COORD, MODULOS IT WITH P, AND WRITES IT IN LITTLE ENDIAN
 		u = u % p
 		return ''.join([chr((u >> 8*i) & 0xff) for i in range((bits+7)/8)])
 
@@ -66,7 +70,7 @@ byte to 1 and, finally, decode as little-endian.  This means that the
 resulting integer is of the form 2^254 plus eight times a value
 between 0 and 2^251 - 1 (inclusive).
 
-def decodeScalar25519(k):
+def decodeScalar25519(k):														DOES FANCY STUFF TO RANDOM SCALAR, THEN MAKES IT INTO LITTLE ENDIAN 32 BYTE NUMBER
 	k_list = [ord(b) for b in k]
 	k_list[0] &= 248
 	k_list[31] &= 127
@@ -80,16 +84,16 @@ perform the following procedure, which is taken from [curve25519] and
 based on formulas from [montgomery].  All calculations are performed
 in GF(p), i.e., they are performed modulo p.  The constant a24 is
 (486662 - 2) / 4 = 121665 for curve25519/X25519.
+																				I GUESS JUST MAKE EVERYTHING (ALL # AND MORE) BIG NUMS FOR NOW
+	x_1 = u																		X_1 IS A # AND IS (CONST) EQUAL TO 9
+	x_2 = 1																		X_2 IS A #
+	z_2 = 0																		Z_2 IS A #
+	x_3 = u																		X_3 IS A # AND IS INITIALLY EQUAL TO 9
+	z_3 = 1																		Z_3 IS A #
+	swap = 0																	SWAP IS A #
 
-	x_1 = u
-	x_2 = 1
-	z_2 = 0
-	x_3 = u
-	z_3 = 1
-	swap = 0
-
-	For t = bits-1 down to 0:
-		k_t = (k >> t) & 1
+	For t = bits-1 down to 0:													FOR T = 254 TO 0 {
+		k_t = (k >> t) & 1														K_T IS A #, K IS AN ARRAY OF 32 BYTES WHICH WILL BE MANIPULATED TO FIND THE T'TH (?) BIT
 		swap ^= k_t
 		// Conditional swap; see text below.
 		(x_2, x_3) = cswap(swap, x_2, x_3)
