@@ -16,6 +16,7 @@ void setup() {
 		delay(250);
 	}
 
+/*
 	for(unsigned short i = 0; i < 2; i += 1) {
 		cipher.incrementNonceCounter();
 	}
@@ -130,6 +131,11 @@ void setup() {
 		Serial.println("averageEncryptionTime: ");
 		Serial.println("averageDecryptionTime: ");
 	}
+*/
+
+	ecdhe.startBigNum();
+
+	ecdhe.createPubKey(userKeyHex);
 }
 
 

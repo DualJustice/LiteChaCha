@@ -13,7 +13,29 @@
 
 class X25519KeyManagement {
 private:
-	//BigNumber p = "57896044618658097711785492504343953926634992332820282019728792003956564819949"; // (2^255) - 19
+	BigNumber x_1;
+	BigNumber x_2;
+	BigNumber z_2;
+	BigNumber x_3;
+	BigNumber z_3;
+	char swap;
+	char k_t;
+	BigNumber A;
+	BigNumber AA;
+	BigNumber B;
+	BigNumber BB;
+	BigNumber E;
+	BigNumber C;
+	BigNumber D;
+	BigNumber DA;
+	BigNumber CB;
+	static const constexpr unsigned long a24 = 121665; // (486662 - 2)/4
+	BigNumber p = "57896044618658097711785492504343953926634992332820282019728792003956564819949"; // (2^255) - 19
+
+	char* bytesLittleEndian(char*, unsigned short);
+	char* transformScalar(char*);
+	BigNumber makeInt(char*, unsigned short c);
+	BigNumber curve25519(BigNumber, char*, BigNumber);
 public:
 	X25519KeyManagement();
 	~X25519KeyManagement();
@@ -39,8 +61,64 @@ void X25519KeyManagement::startBigNum() {
 }
 
 
+char* X25519KeyManagement::bytesLittleEndian(char* b, unsigned short c) { // Can optimize in the future by removing unnecessary copies.
+	char* bLE = new char[c];
+
+	for(unsigned short i = 0; i < c; i += 1) {
+		bLE[i] = b[c - i];
+	}
+	for(unsigned short i = 0; i < c; i += 1) {
+		b[i] = bLE[i];
+	}
+
+	delete[] bLE;
+	return b;
+}
+
+
+char* X25519KeyManagement::transformScalar(char* k) {
+	k[0] &= 0xf8;
+	k[31] &= 0x7f;
+	k[31] |= 0x40;
+
+	k = bytesLittleEndian(k, 32);
+
+	return k;
+}
+
+
+BigNumber X25519KeyManagement::makeInt(char* b, unsigned short c) {
+	BigNumber i; // Potential memory leak?
+
+	for(unsigned short j = 0; j < c; j += 1) {
+		i += (b[j])*(256^j);
+	}
+
+	return i;
+}
+
+
+BigNumber X25519KeyManagement::curve25519(BigNumber kInt, char* k, BigNumber uInit) {
+	x_1 = uInit;
+	x_2 = 1;
+	z_2 = 0;
+	x_3 = uInit;
+	z_3 = 1;
+	swap = 0;
+
+	for(unsigned short i = 254; i == 0; i -= 1) {
+		k_t = (k[i/8] >> (i % 8)) & 0x01;
+		swap ^= k_t;
+	}
+}
+
+
 void X25519KeyManagement::createPubKey(char* k) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
-	
+	unsigned short uInit = 9;
+
+	k = transformScalar(k);
+	BigNumber kInt = makeInt(k, 32);
+	BigNumber u = curve25519(kInt, k, uInit);
 }
 
 
@@ -90,7 +168,7 @@ in GF(p), i.e., they are performed modulo p.  The constant a24 is
 	z_2 = 0																		Z_2 IS A #
 	x_3 = u																		X_3 IS A # AND IS INITIALLY EQUAL TO 9
 	z_3 = 1																		Z_3 IS A #
-	swap = 0																	SWAP IS A #
+	swap = 0																	SWAP IS NOT A BIG NUM!
 
 	For t = bits-1 down to 0:													FOR T = 254 TO 0 {
 		k_t = (k >> t) & 1														K_T IS A #, K IS AN ARRAY OF 32 BYTES WHICH WILL BE MANIPULATED TO FIND THE T'TH (?) BIT
