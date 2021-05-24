@@ -8,6 +8,9 @@
 
 //https://datatracker.ietf.org/doc/html/rfc7748
 //https://cr.yp.to/ecdh/curve25519-20060209.pdf
+//https://tches.iacr.org/index.php/TCHES/article/view/8681/8240
+//https://eprint.iacr.org/eprint-bin/getfile.pl?entry=2019/1410&version=20191205:080951&file=1410.pdf <----------------------- This is maybe worth looking into.
+//https://www.researchgate.net/publication/277940984_High-speed_Curve25519_on_8-bit_16-bit_and_32-bit_microcontrollers
 //https://www.gammon.com.au/forum/?id=11519
 
 
