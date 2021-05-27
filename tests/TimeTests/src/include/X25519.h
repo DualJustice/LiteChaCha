@@ -1,7 +1,10 @@
 #ifndef X25519_H
 #define X25519_H
 
-#include <stdint.h>
+#include "Arduino.h" // DELETE ME!
+#include "HardwareSerial.h" // DELETE ME!
+
+//#include <stdint.h>
 
 #include "BigNumber.h"
 
@@ -17,28 +20,30 @@
 
 class X25519KeyManagement {
 private:
-	BigNumber x_1;
-	BigNumber x_2;
-	BigNumber z_2;
-	BigNumber x_3;
-	BigNumber z_3;
-	char swap;
-	char k_t;
-	BigNumber A;
-	BigNumber AA;
-	BigNumber B;
-	BigNumber BB;
-	BigNumber E;
-	BigNumber C;
-	BigNumber D;
-	BigNumber DA;
-	BigNumber CB;
-	static const constexpr unsigned long a24 = 121665; // (486662 - 2)/4
+	BigNumber T1;
+	BigNumber T2;
+	BigNumber T3;
+	BigNumber T4;
+	BigNumber T5;
+	BigNumber T6;
+	BigNumber X1;
+	BigNumber X3;
+	BigNumber Z3;
+	BigNumber X2;
+	BigNumber Z2;
+
+	char bit;
+
+	BigNumber U[4] = {X2, Z2, X3, Z3};
+	BigNumber V[4] = {X3, Z3, X2, Z2};
+
+	static const constexpr unsigned long A24 = 121665; // (486662 - 2)/4
 	BigNumber p = "57896044618658097711785492504343953926634992332820282019728792003956564819949"; // (2^255) - 19
 
 	char* bytesLittleEndian(char*, unsigned short);
 	char* transformScalar(char*);
-	BigNumber makeInt(char*, unsigned short c);
+	BigNumber makeInt(char*, unsigned short);
+	void ladderStep(BigNumber, BigNumber*);
 	BigNumber curve25519(BigNumber, char*, BigNumber);
 public:
 	X25519KeyManagement();
@@ -80,49 +85,105 @@ char* X25519KeyManagement::bytesLittleEndian(char* b, unsigned short c) { // Can
 }
 
 
-char* X25519KeyManagement::transformScalar(char* k) {
-	k[0] &= 0xf8;
-	k[31] &= 0x7f;
-	k[31] |= 0x40;
+char* X25519KeyManagement::transformScalar(char* n) {
+	n[0] &= 0xf8;
+	n[31] &= 0x7f;
+	n[31] |= 0x40;
 
-	k = bytesLittleEndian(k, 32);
+	n = bytesLittleEndian(n, 32);
 
-	return k;
+	return n;
 }
 
 
 BigNumber X25519KeyManagement::makeInt(char* b, unsigned short c) {
-	BigNumber i; // Potential memory leak?
+	BigNumber bigInt; // Potential memory leak?
 
-	for(unsigned short j = 0; j < c; j += 1) {
-		i += (b[j])*(256^j);
+	for(unsigned short i = 0; i < c; i += 1) {
+		bigInt += (b[i])*(256^i);
 	}
 
-	return i;
+	return bigInt;
 }
 
 
-BigNumber X25519KeyManagement::curve25519(BigNumber kInt, char* k, BigNumber uInit) {
-	x_1 = uInit;
-	x_2 = 1;
-	z_2 = 0;
-	x_3 = uInit;
-	z_3 = 1;
-	swap = 0;
+void X25519KeyManagement::ladderStep(BigNumber X1, BigNumber* UV) {
+/*
+X2 = UV[0]
+Z2 = UV[1]
+X3 = UV[2]
+Z3 = UV[3]
+*/
+	T1 = UV[0] + UV[1];	// 1
+	T2 = UV[0] - UV[1];	// 2
+	T3 = UV[2] + UV[3];	// 3
+	T4 = UV[2] - UV[3];	// 4
+	T5 = T1^2;			// 5
+	T6 = T2^2;			// 6
+	T2 *= T3;			// 7
+	T1 *= T4;			// 8
+	T1 += T2;			// 9
+	T2 = T1 - T2;		// 10
+	UV[2] = T1^2;		// 11
+	T2 = T2^2;			// 12
+	UV[3] = T2*X1;		// 13
+	UV[0] = T5*T6;		// 14
+	T5 -= T6;			// 15
+	T1 = A24*T5;		// 16
+	T6 += T1;			// 17
+	UV[1] = T5*T6;		// 18
+}
+
+
+BigNumber X25519KeyManagement::curve25519(BigNumber nInt, char* n, BigNumber xInit) {
+	X1 = xInit;
+	X2 = 1;
+	Z2 = 0;
+	X3 = xInit;
+	Z3 = 1;
+
+	Serial.println(X1);
+	Serial.println(X2);
+	Serial.println(Z2);
+	Serial.println(X3);
+	Serial.println(Z3);
+	Serial.println();
+
+//	U = {X2, Z2, X3, Z3};
+//	V = {X3, Z3, X2, Z2};
+
+	Serial.print(U[0]);
+	Serial.print(U[1]);
+	Serial.print(U[2]);
+	Serial.println(U[3]);
+	Serial.print(V[0]);
+	Serial.print(V[1]);
+	Serial.print(V[2]);
+	Serial.println(V[3]);
 
 	for(unsigned short i = 254; i == 0; i -= 1) {
-		k_t = (k[i/8] >> (i % 8)) & 0x01;
-		swap ^= k_t;
+		bit = (n[i/8] >> (i % 8)) & 0x01;
+
+		if(bit) {
+			ladderStep(X1, V);
+		} else {
+			ladderStep(X1, U);
+		}
 	}
+
+	return X2/Z2;
 }
 
 
-void X25519KeyManagement::createPubKey(char* k) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
-	unsigned short uInit = 9;
+void X25519KeyManagement::createPubKey(char* n) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
+	unsigned short xInit = 9;
 
-	k = transformScalar(k);
-	BigNumber kInt = makeInt(k, 32);
-	BigNumber u = curve25519(kInt, k, uInit);
+	n = transformScalar(n);
+	BigNumber nInt = makeInt(n, 32);
+	BigNumber x = curve25519(nInt, n, xInit);
+	x = x % p;
+
+	Serial.println(x);
 }
 
 
