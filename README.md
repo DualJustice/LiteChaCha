@@ -14,7 +14,9 @@
 
 * The test vectors used to validate LiteChaCha are provided in a text file included in this repository. If you would like to test LiteChaCha yourself, there is a `ManualTestVectorsValidation.ino` example file included. It should have enough information to help you get started.
 
-* LiteChaCha was made to be run on the Arduino Nano 33 IoT. It may work on other microcontrollers, but it should be noted that the Arduino Nano 33 IoT uses a 32Bit processor. Microcontrollers that are unable to handle 32 Bits or more at a time will run far less efficiently due to the fact that the ChaCha20 steam-cipher primarily handles data in 32 Bit words.
+   * Also included is a `TimeTests.ino` file which will help provide the encryption and decryption time of any message.
+
+* LiteChaCha was made to be run on the Arduino Nano 33 IoT. It may work on other microcontrollers, but it should be noted that the Arduino Nano 33 IoT uses a 32Bit processor. Microcontrollers that are unable to handle 32 Bits or more at a time are very likely to run far less efficiently due to the fact that the ChaCha20 steam-cipher primarily handles data in 32 Bit words.
 
 * LiteChaCha is in the public domain for all to use freely.
 

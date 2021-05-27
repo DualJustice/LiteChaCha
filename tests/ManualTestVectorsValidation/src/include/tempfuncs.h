@@ -216,7 +216,7 @@ bool setupEncryption() {
 			}
 		}
 	}
-
+/*
 // Check that peer and user fixed nonces are different:
 	for(unsigned short i = 0; i < inputLength; i += 1) {
 		if(peerFixedNonceDec[i] != userFixedNonceDec[i]) {
@@ -227,7 +227,7 @@ bool setupEncryption() {
 			return false;
 		}
 	}
-
+*/
 // Convert peer's fixed nonce to equivalent HEX values and concatenate into bytes:
 	for(unsigned short i = 0; i < FIXED_NONCE_BYTES; i += 1) {
 		if(48 <= peerFixedNonceDec[i*2] && peerFixedNonceDec[i*2] <= 57) {

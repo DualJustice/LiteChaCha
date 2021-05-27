@@ -22,8 +22,8 @@ EXAMPLE OF LAST TEST VECTOR IN TestVectors.txt:
 7. For your unique nonce, input:
 00000000
 
-8. For the other user's unique nonce, input any four-byte, HEX value that is differnt than your unique nonce. Such as:
-00000001
+8. For the other user's unique nonce, input the same nonce used as your unique nonce (normally this would need to be a different value than your unique nonce):
+00000000
 
 9. Validate that the ciphertexts match.
 */
@@ -39,10 +39,12 @@ void setup() {
 	}
 
 	// User inputs:
-	unsigned long long MESSAGE_BYTES = 0;
-	char message[MESSAGE_BYTES] = {""};
-	unsigned long startBlock = 0;
-	unsigned short nonceIncrement = 0;
+	unsigned long long MESSAGE_BYTES = 127;
+	char message[MESSAGE_BYTES] = {"'Twas brillig, and the slithy toves.Did gyre and gimble in the wabe:.All mimsy were the borogoves,.And the mome raths outgrabe."};
+	unsigned long startBlock = 42;
+	unsigned short nonceIncrement = 2;
+
+	unsigned long long messageCount = 0; // Used to increment a nonce for each new message sent.
 
 	if(setupEncryption()) { // Preferably only run once per session.
 		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after setupEncryption().
@@ -51,7 +53,11 @@ void setup() {
 			cipher.incrementNonceCounter();
 		}
 
+		messageCount = cipher.getNonceCounter(); // getNonceCounter() will typically need to be called before every encryptMessage() in order to get the nonce needed to decrypt the message. It does not need to be secret.
 		cipher.encryptMessage(message, MESSAGE_BYTES, startBlock); // startBlock is an optional parameter. Its default value is 0.
+		printMessage(message, MESSAGE_BYTES);
+
+		cipher.decryptMessage(message, MESSAGE_BYTES, messageCount, startBlock);
 		printMessage(message, MESSAGE_BYTES);
 	}
 }
