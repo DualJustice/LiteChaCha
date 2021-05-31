@@ -10,6 +10,7 @@
 
 
 //https://datatracker.ietf.org/doc/html/rfc7748
+//https://datatracker.ietf.org/doc/html/rfc8031
 //https://cr.yp.to/ecdh/curve25519-20060209.pdf
 //https://eprint.iacr.org/2017/293.pdf Basics of the Montgomery Ladder.
 //https://tches.iacr.org/index.php/TCHES/article/view/8681/8240 <-------------------------------------------------- I don't believe this is applicable. I think curve25519 is a Montgomery curve, not a Weierstrass curve.
