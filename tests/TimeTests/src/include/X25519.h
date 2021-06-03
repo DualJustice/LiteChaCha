@@ -32,6 +32,7 @@ private:
 	BigNumber p = "57896044618658097711785492504343953926634992332820282019728792003956564819949"; // (2^255) - 19
 
 	char* decodeBytesLittleEndian(char*, unsigned short);
+	char* maskAndDecodeXCoord(char*);
 	char* clampAndDecodeScalar(char*);
 	BigNumber makeDec(char*, unsigned short);
 	void ladderStep(BigNumber, BigNumber&, BigNumber&, BigNumber&, BigNumber&);
@@ -42,7 +43,7 @@ public:
 
 	void startBigNum();
 
-	void createPubKey(char*);
+	void createPubKey(char*, char[32]);
 };
 
 
@@ -76,6 +77,13 @@ char* X25519KeyManagement::decodeBytesLittleEndian(char* b, unsigned short c) { 
 }
 
 
+char* X25519KeyManagement::maskAndDecodeXCoord(char* x) {
+	x[31] &= 0x7f;
+
+	x = decodeBytesLittleEndian(x, 32);
+}
+
+
 char* X25519KeyManagement::clampAndDecodeScalar(char* n) {
 	n[0] &= 0xf8;
 	n[31] &= 0x7f;
@@ -95,7 +103,7 @@ BigNumber X25519KeyManagement::makeDec(char* b, unsigned short c) {
 	for(unsigned short i = 0; i < c; i += 1) {
 		significand = b[i];
 		bigDec += significand*(base.pow((c - 1) - i));
-		Serial.println(bigDec);
+//		Serial.println(bigDec);
 	}
 
 	return bigDec;
@@ -196,7 +204,7 @@ BigNumber X25519KeyManagement::curve25519(BigNumber nInt, char* n, BigNumber xIn
 */
 	Serial.println("Pre for loop.");
 
-	for(unsigned short i = 254; i > 0; i -= 1) {
+	for(unsigned short i = 254; i = 0; i -= 1) {
 		bit = (n[i/8] >> (i % 8)) & 0x01;
 
 //		Serial.print("bit: ");
@@ -235,9 +243,7 @@ BigNumber X25519KeyManagement::curve25519(BigNumber nInt, char* n, BigNumber xIn
 }
 
 
-void X25519KeyManagement::createPubKey(char* n) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
-	BigNumber xInit = "34426434033919594451155107781188821651316167215306631574996226621102155684838";
-
+void X25519KeyManagement::createPubKey(char* n, char* xp) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
 	n = clampAndDecodeScalar(n);
 
 	Serial.print("Clamped and decoded scalar: ");
@@ -247,13 +253,28 @@ void X25519KeyManagement::createPubKey(char* n) { // k is the independent, unifo
 	}
 	Serial.println('\n');
 
-	BigNumber nInt = makeDec(n, 32);
+	BigNumber nInt = makeDec(n, 32); // Potential memory leak?
 
 	Serial.print("Input scalar as decimal: ");
 	Serial.println(nInt);
 	Serial.println();
 
-//	BigNumber x = curve25519(nInt, n, xInit);
+	xp = maskAndDecodeXCoord(xp);
+
+	Serial.print("Masked and decoded x-coord: ");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(xp[i], HEX);
+		Serial.print(' ');
+	}
+	Serial.println('\n');
+
+	BigNumber xInit = makeDec(xp, 32); // Potential memory leak?
+
+	Serial.print("Input x-coord as decimal: ");
+	Serial.println(xInit);
+	Serial.println();
+
+	BigNumber x = curve25519(nInt, n, xInit); // Potential memory leak?
 //	x = x % p;
 
 //	Serial.println(x);
