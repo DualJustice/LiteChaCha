@@ -1,8 +1,8 @@
 RESEARCH:
 
 https://datatracker.ietf.org/doc/html/rfc7748																			(Primary paper)
-https://cr.yp.to/ecdh/curve25519-20060209.pdf																			(Bernstein's initial paper)
 https://eprint.iacr.org/eprint-bin/getfile.pl?entry=2019/1410&version=20191205:080951&file=1410.pdf						(The relevant Montgomery information)
+https://cr.yp.to/ecdh/curve25519-20060209.pdf																			(Bernstein's initial paper)
 https://datatracker.ietf.org/doc/html/rfc8031																			(Secondary paper)
 https://www.researchgate.net/publication/277940984_High-speed_Curve25519_on_8-bit_16-bit_and_32-bit_microcontrollers	(Potential future optimizations)
 

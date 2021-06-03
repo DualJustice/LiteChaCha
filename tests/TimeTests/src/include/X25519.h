@@ -117,58 +117,58 @@ Z2 = UV[1]
 X3 = UV[2]
 Z3 = UV[3]
 */
-	T1 = UV0 + UV1;			// 1
+	T1 = (UV0 + UV1);			// 1
 //	Serial.print("T1: ");
 //	Serial.println(T1);
-	T2 = UV0 - UV1;			// 2
+	T2 = (UV0 - UV1);			// 2
 //	Serial.print("T2: ");
 //	Serial.println(T2);
-	T3 = UV2 + UV3;			// 3
+	T3 = (UV2 + UV3);			// 3
 //	Serial.print("T3: ");
 //	Serial.println(T3);
-	T4 = UV2 - UV3;			// 4
+	T4 = (UV2 - UV3);			// 4
 //	Serial.print("T4: ");
 //	Serial.println(T4);
-	T5 = T1.pow(2);			// 5
+	T5 = (T1.pow(2));			// 5
 //	Serial.print("T5: ");
 //	Serial.println(T5);
-	T6 = T2.pow(2);			// 6
+	T6 = (T2.pow(2));			// 6
 //	Serial.print("T6: ");
 //	Serial.println(T6);
-	T2 *= T3;				// 7
+	T2 = (T2*T3);				// 7
 //	Serial.print("T2: ");
 //	Serial.println(T2);
-	T1 *= T4;				// 8
+	T1 = (T1*T4);				// 8
 //	Serial.print("T1: ");
 //	Serial.println(T1);
-	T1 += T2;				// 9
+	T1 = (T1 + T2);				// 9
 //	Serial.print("T1: ");
 //	Serial.println(T1);
-	T2 = T1 - T2;			// 10
+	T2 = (T1 - T2);				// 10
 //	Serial.print("T2: ");
 //	Serial.println(T2);
-	UV2 = (T1.pow(2)) % p;	// 11
+	UV2 = (T1.pow(2)) % p;			// 11
 //	Serial.print("UV2: ");
 //	Serial.println(UV2);
-	T2 = T2.pow(2);			// 12
+	T2 = (T2.pow(2));			// 12
 //	Serial.print("T2: ");
 //	Serial.println(T2);
-	UV3 = (T2*X1) % p;		// 13
+	UV3 = (T2*X1) % p;				// 13
 //	Serial.print("UV3: ");
 //	Serial.println(UV3);
-	UV0 = (T5*T6) % p;		// 14
+	UV0 = (T5*T6) % p;				// 14
 //	Serial.print("UV0: ");
 //	Serial.println(UV0);
-	T5 -= T6;				// 15
+	T5 = (T5 - T6);				// 15
 //	Serial.print("T5: ");
 //	Serial.println(T5);
-	T1 = A24*T5;			// 16
+	T1 = (A24*T5);				// 16
 //	Serial.print("T1: ");
 //	Serial.println(T1);
-	T6 += T1;				// 17
+	T6 = (T6 + T1);				// 17
 //	Serial.print("T6: ");
 //	Serial.println(T6);
-	UV1 = (T5*T6) % p;		// 18
+	UV1 = (T5*T6) % p;				// 18
 //	Serial.print("UV1: ");
 //	Serial.println(UV1);
 }
@@ -204,11 +204,11 @@ BigNumber X25519KeyManagement::curve25519(BigNumber nInt, char* n, BigNumber xIn
 */
 	Serial.println("Pre for loop.");
 
-	for(unsigned short i = 254; i = 0; i -= 1) {
-		bit = (n[i/8] >> (i % 8)) & 0x01;
+	for(unsigned short i = 254; i < 255; i -= 1) { // Sould run 255 times. There are a total of 256 bits, so I suppose we don't care about the first bit.
+		bit = ((n[(255 - i)/8]) >> (i % 8)) & 0x01;
 
-//		Serial.print("bit: ");
-//		Serial.println(bit);
+		Serial.print("bit: ");
+		Serial.println(bit, HEX);
 
 		if(bit) {
 			ladderStep(X1, X3, Z3, X2, Z2);
@@ -238,6 +238,11 @@ BigNumber X25519KeyManagement::curve25519(BigNumber nInt, char* n, BigNumber xIn
 	}
 
 	Serial.println("post for loop.");
+
+	BigNumber daNumberTwo = 2;
+	BigNumber daFinalNumber = (X2*(Z2.pow(p - daNumberTwo))) % p;
+	Serial.print("Da big boi: ");
+	Serial.println(daFinalNumber);
 
 	return X2/Z2;
 }
