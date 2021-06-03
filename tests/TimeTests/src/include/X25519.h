@@ -31,9 +31,9 @@ private:
 	static const constexpr unsigned long A24 = 121665; // (486662 - 2)/4
 	BigNumber p = "57896044618658097711785492504343953926634992332820282019728792003956564819949"; // (2^255) - 19
 
-	char* bytesLittleEndian(char*, unsigned short);
-	char* transformScalar(char*);
-	BigNumber makeInt(char*, unsigned short);
+	char* decodeBytesLittleEndian(char*, unsigned short);
+	char* clampAndDecodeScalar(char*);
+	BigNumber makeDec(char*, unsigned short);
 	void ladderStep(BigNumber, BigNumber&, BigNumber&, BigNumber&, BigNumber&);
 	BigNumber curve25519(BigNumber, char*, BigNumber);
 public:
@@ -61,11 +61,11 @@ void X25519KeyManagement::startBigNum() {
 }
 
 
-char* X25519KeyManagement::bytesLittleEndian(char* b, unsigned short c) { // Can optimize in the future by removing unnecessary copies.
+char* X25519KeyManagement::decodeBytesLittleEndian(char* b, unsigned short c) { // Can optimize in the future by removing unnecessary copies.
 	char* bLE = new char[c];
 
 	for(unsigned short i = 0; i < c; i += 1) {
-		bLE[i] = b[c - i];
+		bLE[i] = b[(c - 1) - i];
 	}
 	for(unsigned short i = 0; i < c; i += 1) {
 		b[i] = bLE[i];
@@ -76,25 +76,29 @@ char* X25519KeyManagement::bytesLittleEndian(char* b, unsigned short c) { // Can
 }
 
 
-char* X25519KeyManagement::transformScalar(char* n) {
+char* X25519KeyManagement::clampAndDecodeScalar(char* n) {
 	n[0] &= 0xf8;
 	n[31] &= 0x7f;
 	n[31] |= 0x40;
 
-	n = bytesLittleEndian(n, 32);
+	n = decodeBytesLittleEndian(n, 32);
 
 	return n;
 }
 
 
-BigNumber X25519KeyManagement::makeInt(char* b, unsigned short c) {
-	BigNumber bigInt; // Potential memory leak?
+BigNumber X25519KeyManagement::makeDec(char* b, unsigned short c) {
+	BigNumber bigDec = 0; // Potential memory leak?
+	BigNumber significand = 0; // Potential memory leak?
+	BigNumber base = 256; // Potential memory leak?
 
 	for(unsigned short i = 0; i < c; i += 1) {
-		bigInt += (b[i])*(256^i);
+		significand = b[i];
+		bigDec += significand*(base.pow((c - 1) - i));
+		Serial.println(bigDec);
 	}
 
-	return bigInt;
+	return bigDec;
 }
 
 
@@ -234,12 +238,25 @@ BigNumber X25519KeyManagement::curve25519(BigNumber nInt, char* n, BigNumber xIn
 void X25519KeyManagement::createPubKey(char* n) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
 	BigNumber xInit = "34426434033919594451155107781188821651316167215306631574996226621102155684838";
 
-	n = transformScalar(n);
-	BigNumber nInt = makeInt(n, 32);
-	BigNumber x = curve25519(nInt, n, xInit);
-	x = x % p;
+	n = clampAndDecodeScalar(n);
 
-	Serial.println(x);
+	Serial.print("Clamped and decoded scalar: ");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(n[i], HEX);
+		Serial.print(' ');
+	}
+	Serial.println('\n');
+
+	BigNumber nInt = makeDec(n, 32);
+
+	Serial.print("Input scalar as decimal: ");
+	Serial.println(nInt);
+	Serial.println();
+
+//	BigNumber x = curve25519(nInt, n, xInit);
+//	x = x % p;
+
+//	Serial.println(x);
 }
 
 #endif
