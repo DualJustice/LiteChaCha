@@ -253,6 +253,7 @@ void X25519KeyManagement::montgomeryLadder(BigNumber nInt, char* n, BigNumber xI
 //		We are getting the bytes at index 0 to index 254 respectively.
 //		Because we decoded in bytes and not in binary, it is possible that the 1410.pdf version requires us to...
 //		... pull the bits at the END of the bytes first as opposed to at the beginning.
+//		Maybe, just MAYBE, you might need to pull bits in the reverse order, from the end to the beginning.
 
 		if(bit) {
 			ladderStep(X1, X3, Z3, X2, Z2);
