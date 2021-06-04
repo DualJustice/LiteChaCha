@@ -31,13 +31,30 @@ private:
 	static const constexpr unsigned long A24 = 121665; // (486662 - 2)/4
 	BigNumber p = "57896044618658097711785492504343953926634992332820282019728792003956564819949"; // (2^255) - 19
 
+	BigNumber ZS;
+	BigNumber Z9;
+	BigNumber Z11;
+	BigNumber Z2_5_0;
+	BigNumber Z2_10_0;
+	BigNumber Z2_20_0;
+	BigNumber Z2_50_0;
+	BigNumber Z2_100_0;
+	BigNumber T7;
+	BigNumber T8;
+
+	BigNumber daFinalNumber;
+	BigNumber DABEEEEGBOI;
+
+	char DAFINALANSWER[32];
+
 	char* decodeBytesLittleEndian(char*, unsigned short);
 	char* maskAndDecodeXCoord(char*);
-	char* encodeXCoord(BigNumber);
+	void encodeXCoord(BigNumber);
 	char* clampAndDecodeScalar(char*);
 	BigNumber makeDec(char*, unsigned short);
 	void ladderStep(BigNumber, BigNumber&, BigNumber&, BigNumber&, BigNumber&);
-	void montLadder(BigNumber, char*, BigNumber);
+	void montgomeryLadder(BigNumber, char*, BigNumber);
+	void reciprocal();
 public:
 	X25519KeyManagement();
 	~X25519KeyManagement();
@@ -82,11 +99,25 @@ char* X25519KeyManagement::maskAndDecodeXCoord(char* x) {
 	x[31] &= 0x7f;
 
 	x = decodeBytesLittleEndian(x, 32);
+
+	return x;
 }
 
 
-char* X25519KeyManagement::encodeXCoord(BigNumber x) {
+void X25519KeyManagement::encodeXCoord(BigNumber x) {
+	unsigned short i = 0;
+	BigNumber quotient = 1;
+	BigNumber remainder = 0;
+	BigNumber stuff = 256;
 
+	while(quotient != 0) {
+		quotient = x/stuff; // CHECK TO SEE IF THIS CHANGES x!!!!!
+		remainder = x % stuff;
+		x = quotient;
+
+		DAFINALANSWER[i] = remainder;
+		i += 1;
+	}
 }
 
 
@@ -141,22 +172,22 @@ Z3 = UV[3]
 	T6 = (T2.pow(2));			// 6
 //	Serial.print("T6: ");
 //	Serial.println(T6);
-	T2 = (T2*T3);				// 7
+	T2 = (T2*T3);				// 7 POTENTIAL PROBLEM!!!!!
 //	Serial.print("T2: ");
 //	Serial.println(T2);
-	T1 = (T1*T4);				// 8
+	T1 = (T1*T4);				// 8 POTENTIAL PROBLEM!!!!!
 //	Serial.print("T1: ");
 //	Serial.println(T1);
-	T1 = (T1 + T2);				// 9
+	T1 = (T1 + T2);				// 9 POTENTIAL PROBLEM!!!!!
 //	Serial.print("T1: ");
 //	Serial.println(T1);
-	T2 = (T1 - T2);				// 10
+	T2 = (T1 - T2);				// 10 POTENTIAL PROBLEM!!!!!
 //	Serial.print("T2: ");
 //	Serial.println(T2);
 	UV2 = (T1.pow(2)) % p;			// 11
 //	Serial.print("UV2: ");
 //	Serial.println(UV2);
-	T2 = (T2.pow(2));			// 12
+	T2 = (T2.pow(2));			// 12 POTENTIAL PROBLEM!!!!!
 //	Serial.print("T2: ");
 //	Serial.println(T2);
 	UV3 = (T2*X1) % p;				// 13
@@ -165,13 +196,13 @@ Z3 = UV[3]
 	UV0 = (T5*T6) % p;				// 14
 //	Serial.print("UV0: ");
 //	Serial.println(UV0);
-	T5 = (T5 - T6);				// 15
+	T5 = (T5 - T6);				// 15 POTENTIAL PROBLEM!!!!!
 //	Serial.print("T5: ");
 //	Serial.println(T5);
 	T1 = (A24*T5);				// 16
 //	Serial.print("T1: ");
 //	Serial.println(T1);
-	T6 = (T6 + T1);				// 17
+	T6 = (T6 + T1);				// 17 POTENTIAL PROBLEM!!!!!
 //	Serial.print("T6: ");
 //	Serial.println(T6);
 	UV1 = (T5*T6) % p;				// 18
@@ -180,7 +211,7 @@ Z3 = UV[3]
 }
 
 
-void X25519KeyManagement::montLadder(BigNumber nInt, char* n, BigNumber xInit) {
+void X25519KeyManagement::montgomeryLadder(BigNumber nInt, char* n, BigNumber xInit) {
 	X1 = xInit;
 	X2 = 1;
 	Z2 = 0;
@@ -259,6 +290,86 @@ void X25519KeyManagement::montLadder(BigNumber nInt, char* n, BigNumber xInit) {
 }
 
 
+void X25519KeyManagement::reciprocal() {
+	ZS = (Z2.pow(2)) % p;
+	T8 = (ZS.pow(2)) % p;
+	T7 = (T8.pow(2)) % p;
+	Z9 = (T7*Z2) % p;
+	Z11 = (Z9*ZS) % p;
+	T7 = (Z11.pow(2)) % p;
+	Z2_5_0 = (T7*Z9) % p;
+
+	T7 = (Z2_5_0.pow(2)) % p;
+	T8 = (T7.pow(2)) % p;
+	T7 = (T8.pow(2)) % p;
+	T8 = (T7.pow(2)) % p;
+	T7 = (T8.pow(2)) % p;
+	Z2_10_0 = (T7*Z2_5_0) % p;
+
+	T7 = (Z2_10_0.pow(2)) % p;
+	T8 = (T7.pow(2)) % p;
+	for(unsigned short i = 2; i < 10; i += 2) {
+		T7 = (T8.pow(2)) % p;
+		T8 = (T7.pow(2)) % p;
+	}
+	Z2_20_0 = (T8*Z2_10_0) % p;
+
+	T7 = (Z2_20_0.pow(2)) % p;
+	T8 = (T7.pow(2)) % p;
+	for(unsigned short i = 2; i < 20; i += 2) {
+		T7 = (T8.pow(2)) % p;
+		T8 = (T7.pow(2)) % p;
+	}
+	T7 = (T8*Z2_20_0) % p;
+
+	T8 = (T7.pow(2)) % p;
+	T7 = (T8.pow(2)) % p;
+	for(unsigned short i = 2; i < 10; i += 2) {
+		T8 = (T7.pow(2)) % p;
+		T7 = (T8.pow(2)) % p;
+	}
+	Z2_50_0 = (T7*Z2_10_0) % p;
+
+	T7 = (Z2_50_0.pow(2)) % p;
+	T8 = (T7.pow(2)) % p;
+	for(unsigned short i = 2; i < 50; i += 2) {
+		T7 = (T8.pow(2)) % p;
+		T8 = (T7.pow(2)) % p;
+	}
+	Z2_100_0 = (T8*Z2_50_0) % p;
+
+	T8 = (Z2_100_0.pow(2)) % p;
+	T7 = (T8.pow(2)) % p;
+	for(unsigned short i = 2; i < 100; i += 2) {
+		T8 = (T7.pow(2)) % p;
+		T7 = (T8.pow(2)) % p;
+	}
+	T8 = (T7*Z2_100_0) % p;
+
+	T7 = (T8.pow(2)) % p;
+	T8 = (T7.pow(2)) % p;
+	for(unsigned short i = 2; i < 50; i += 2) {
+		T7 = (T8.pow(2)) % p;
+		T8 = (T7.pow(2)) % p;
+	}
+	T7 = (T8*Z2_50_0) % p;
+
+	T8 = (T7.pow(2)) % p;
+	T7 = (T8.pow(2)) % p;
+	T8 = (T7.pow(2)) % p;
+	T7 = (T8.pow(2)) % p;
+	T8 = (T7.pow(2)) % p;
+	daFinalNumber = (T8*Z11) % p;
+
+	DABEEEEGBOI = (X2*daFinalNumber) % p;
+
+	Serial.print("Da big boi: ");
+	Serial.println(DABEEEEGBOI);
+
+	encodeXCoord(DABEEEEGBOI);
+}
+
+
 void X25519KeyManagement::curve25519(char* n, char* xp) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
 	n = clampAndDecodeScalar(n);
 
@@ -286,11 +397,20 @@ void X25519KeyManagement::curve25519(char* n, char* xp) { // k is the independen
 
 	BigNumber xInit = makeDec(xp, 32); // Potential memory leak?
 
+/*	encodeXCoord(xInit);
+	Serial.print("encoded x-coord: ");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(DAFINALANSWER[i], HEX);
+	}
+	Serial.println('\n');*/
+
 	Serial.print("Input x-coord as decimal: ");
 	Serial.println(xInit);
 	Serial.println();
 
-	montLadder(nInt, n, xInit);
+	montgomeryLadder(nInt, n, xInit);
+
+	reciprocal();
 //	x = x % p;
 
 //	Serial.println(x);
