@@ -29,7 +29,7 @@ private:
 //	BigNumber V[4] = {X3, Z3, X2, Z2};
 
 	static const constexpr unsigned long A24 = 121665; // (486662 - 2)/4
-	BigNumber p = "57896044618658097711785492504343953926634992332820282019728792003956564819949"; // (2^255) - 19
+	BigNumber p = "57896044618658097711785492504343953926634992332820282019728792003956564819949"; // = (2^255) - 19, which is a 255 bit number.
 
 	BigNumber ZS;
 	BigNumber Z9;
@@ -111,7 +111,7 @@ void X25519KeyManagement::encodeXCoord(BigNumber x) {
 	BigNumber stuff = 256;
 
 	while(quotient != 0) {
-		quotient = x/stuff; // CHECK TO SEE IF THIS CHANGES x!!!!!
+		quotient = x/stuff;
 		remainder = x % stuff;
 		x = quotient;
 
@@ -154,40 +154,40 @@ Z2 = UV[1]
 X3 = UV[2]
 Z3 = UV[3]
 */
-	T1 = (UV0 + UV1);			// 1
+	T1 = (UV0 + UV1) % p;			// 1
 //	Serial.print("T1: ");
 //	Serial.println(T1);
-	T2 = (UV0 - UV1);			// 2
+	T2 = (UV0 - UV1) % p;			// 2
 //	Serial.print("T2: ");
 //	Serial.println(T2);
-	T3 = (UV2 + UV3);			// 3
+	T3 = (UV2 + UV3) % p;			// 3
 //	Serial.print("T3: ");
 //	Serial.println(T3);
-	T4 = (UV2 - UV3);			// 4
+	T4 = (UV2 - UV3) % p;			// 4
 //	Serial.print("T4: ");
 //	Serial.println(T4);
-	T5 = (T1.pow(2));			// 5
+	T5 = (T1.pow(2)) % p;			// 5
 //	Serial.print("T5: ");
 //	Serial.println(T5);
-	T6 = (T2.pow(2));			// 6
+	T6 = (T2.pow(2)) % p;			// 6
 //	Serial.print("T6: ");
 //	Serial.println(T6);
-	T2 = (T2*T3);				// 7 POTENTIAL PROBLEM!!!!!
+	T2 = (T2*T3) % p;				// 7
 //	Serial.print("T2: ");
 //	Serial.println(T2);
-	T1 = (T1*T4);				// 8 POTENTIAL PROBLEM!!!!!
+	T1 = (T1*T4) % p;				// 8
 //	Serial.print("T1: ");
 //	Serial.println(T1);
-	T1 = (T1 + T2);				// 9 POTENTIAL PROBLEM!!!!!
+	T1 = (T1 + T2) % p;				// 9
 //	Serial.print("T1: ");
 //	Serial.println(T1);
-	T2 = (T1 - T2);				// 10 POTENTIAL PROBLEM!!!!!
+	T2 = (T1 - T2) % p;				// 10
 //	Serial.print("T2: ");
 //	Serial.println(T2);
 	UV2 = (T1.pow(2)) % p;			// 11
 //	Serial.print("UV2: ");
 //	Serial.println(UV2);
-	T2 = (T2.pow(2));			// 12 POTENTIAL PROBLEM!!!!!
+	T2 = (T2.pow(2)) % p;			// 12
 //	Serial.print("T2: ");
 //	Serial.println(T2);
 	UV3 = (T2*X1) % p;				// 13
@@ -196,13 +196,13 @@ Z3 = UV[3]
 	UV0 = (T5*T6) % p;				// 14
 //	Serial.print("UV0: ");
 //	Serial.println(UV0);
-	T5 = (T5 - T6);				// 15 POTENTIAL PROBLEM!!!!!
+	T5 = (T5 - T6) % p;				// 15
 //	Serial.print("T5: ");
 //	Serial.println(T5);
-	T1 = (A24*T5);				// 16
+	T1 = (A24*T5) % p;				// 16
 //	Serial.print("T1: ");
 //	Serial.println(T1);
-	T6 = (T6 + T1);				// 17 POTENTIAL PROBLEM!!!!!
+	T6 = (T6 + T1) % p;				// 17
 //	Serial.print("T6: ");
 //	Serial.println(T6);
 	UV1 = (T5*T6) % p;				// 18
@@ -241,11 +241,18 @@ void X25519KeyManagement::montgomeryLadder(BigNumber nInt, char* n, BigNumber xI
 */
 	Serial.println("Pre for loop.");
 
-	for(unsigned short i = 254; i < 255; i -= 1) { // Sould run 255 times. There are a total of 256 bits, so I suppose we don't care about the first bit.
-		bit = ((n[(255 - i)/8]) >> (i % 8)) & 0x01;
+	Serial.println("bit should be: 100010010011010010001001011101001000100001000100110101001010000000110000101101011111100110000010000101001001100000101000110001011011101010111100100011010000010010010110001010100010110001110111001110101111100010100101111000001101011111000110100011010100000");
+	Serial.print("bit:           ");
 
-		Serial.print("bit: ");
-		Serial.println(bit, HEX);
+	for(unsigned short i = 254; i < 255; i -= 1) { // Sould run 255 times. There are a total of 255 bits.
+		bit = ((n[(255 - i)/8]) >> (i % 8)) & 0x01; // n is also a 255 bit number. I believe the indexing of this for loop is GOOD (for rfc7748).
+
+//		Serial.print("bit: ");
+		Serial.print(bit, HEX); // This seems to be pumping out the correct bits (at least definitely according to rfc7748).
+//		How this is done might be different between rfc7748 & 1410.pdf.
+//		We are getting the bytes at index 0 to index 254 respectively.
+//		Because we decoded in bytes and not in binary, it is possible that the 1410.pdf version requires us to...
+//		... pull the bits at the END of the bytes first as opposed to at the beginning.
 
 		if(bit) {
 			ladderStep(X1, X3, Z3, X2, Z2);
@@ -274,6 +281,7 @@ void X25519KeyManagement::montgomeryLadder(BigNumber nInt, char* n, BigNumber xI
 		}
 	}
 
+	Serial.println();
 	Serial.println("post for loop.");
 
 /*	BigNumber daFinalNumber = Z2;
@@ -378,6 +386,11 @@ void X25519KeyManagement::curve25519(char* n, char* xp) { // k is the independen
 		Serial.print(n[i], HEX);
 		Serial.print(' ');
 	}
+	Serial.println();
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(n[i], BIN);
+		Serial.print(' ');
+	}
 	Serial.println('\n');
 
 	BigNumber nInt = makeDec(n, 32); // Potential memory leak?
@@ -411,6 +424,11 @@ void X25519KeyManagement::curve25519(char* n, char* xp) { // k is the independen
 	montgomeryLadder(nInt, n, xInit);
 
 	reciprocal();
+
+	Serial.print("encoded final x-coord: ");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(DAFINALANSWER[i], HEX);
+	}
 //	x = x % p;
 
 //	Serial.println(x);
