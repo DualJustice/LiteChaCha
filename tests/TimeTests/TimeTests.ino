@@ -135,7 +135,7 @@ void setup() {
 
 	ecdhe.startBigNum();
 
-	ecdhe.createPubKey(privateKey, initXCoord);
+	ecdhe.curve25519(privateKey, initXCoord);
 }
 
 

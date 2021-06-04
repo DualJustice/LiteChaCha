@@ -33,17 +33,18 @@ private:
 
 	char* decodeBytesLittleEndian(char*, unsigned short);
 	char* maskAndDecodeXCoord(char*);
+	char* encodeXCoord(BigNumber);
 	char* clampAndDecodeScalar(char*);
 	BigNumber makeDec(char*, unsigned short);
 	void ladderStep(BigNumber, BigNumber&, BigNumber&, BigNumber&, BigNumber&);
-	BigNumber curve25519(BigNumber, char*, BigNumber);
+	void montLadder(BigNumber, char*, BigNumber);
 public:
 	X25519KeyManagement();
 	~X25519KeyManagement();
 
 	void startBigNum();
 
-	void createPubKey(char*, char[32]);
+	void curve25519(char*, char[32]);
 };
 
 
@@ -81,6 +82,11 @@ char* X25519KeyManagement::maskAndDecodeXCoord(char* x) {
 	x[31] &= 0x7f;
 
 	x = decodeBytesLittleEndian(x, 32);
+}
+
+
+char* X25519KeyManagement::encodeXCoord(BigNumber x) {
+
 }
 
 
@@ -174,7 +180,7 @@ Z3 = UV[3]
 }
 
 
-BigNumber X25519KeyManagement::curve25519(BigNumber nInt, char* n, BigNumber xInit) {
+void X25519KeyManagement::montLadder(BigNumber nInt, char* n, BigNumber xInit) {
 	X1 = xInit;
 	X2 = 1;
 	Z2 = 0;
@@ -214,41 +220,46 @@ BigNumber X25519KeyManagement::curve25519(BigNumber nInt, char* n, BigNumber xIn
 			ladderStep(X1, X3, Z3, X2, Z2);
 //			Serial.print("X1: ");
 //			Serial.println(X1);
-			Serial.print("V: ");
-			Serial.print(X3);
-			Serial.print(", ");
-			Serial.print(Z3);
-			Serial.print(", ");
-			Serial.print(X2);
-			Serial.print(", ");
-			Serial.println(Z2);
+//			Serial.print("V: ");
+//			Serial.print(X3);
+//			Serial.print(", ");
+//			Serial.print(Z3);
+//			Serial.print(", ");
+//			Serial.print(X2);
+//			Serial.print(", ");
+//			Serial.println(Z2);
 		} else {
 			ladderStep(X1, X2, Z2, X3, Z3);
 //			Serial.print("X1: ");
 //			Serial.println(X1);
-			Serial.print("U: ");
-			Serial.print(X2);
-			Serial.print(", ");
-			Serial.print(Z2);
-			Serial.print(", ");
-			Serial.print(X3);
-			Serial.print(", ");
-			Serial.println(Z3);
+//			Serial.print("U: ");
+//			Serial.print(X2);
+//			Serial.print(", ");
+//			Serial.print(Z2);
+//			Serial.print(", ");
+//			Serial.print(X3);
+//			Serial.print(", ");
+//			Serial.println(Z3);
 		}
 	}
 
 	Serial.println("post for loop.");
 
-	BigNumber daNumberTwo = 2;
-	BigNumber daFinalNumber = (X2*(Z2.pow(p - daNumberTwo))) % p;
-	Serial.print("Da big boi: ");
+/*	BigNumber daFinalNumber = Z2;
+	for(unsigned short i = 0; i < 255; i += 1) {
+		daFinalNumber = (daFinalNumber.pow(2)) % p;
+		Serial.println(daFinalNumber);
+	}
+	Serial.println("Done with squarings loop.");
+	daFinalNumber = daFinalNumber/((Z2.pow(21)) % p);
 	Serial.println(daFinalNumber);
-
-	return X2/Z2;
+	daFinalNumber = (daFinalNumber*X2) % p;
+	Serial.print("Da big boi: ");
+	Serial.println(daFinalNumber);*/
 }
 
 
-void X25519KeyManagement::createPubKey(char* n, char* xp) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
+void X25519KeyManagement::curve25519(char* n, char* xp) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
 	n = clampAndDecodeScalar(n);
 
 	Serial.print("Clamped and decoded scalar: ");
@@ -279,7 +290,7 @@ void X25519KeyManagement::createPubKey(char* n, char* xp) { // k is the independ
 	Serial.println(xInit);
 	Serial.println();
 
-	BigNumber x = curve25519(nInt, n, xInit); // Potential memory leak?
+	montLadder(nInt, n, xInit);
 //	x = x % p;
 
 //	Serial.println(x);
