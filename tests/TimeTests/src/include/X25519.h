@@ -52,7 +52,8 @@ private:
 	void encodeXCoord(BigNumber);
 	char* clampAndDecodeScalar(char*);
 	BigNumber makeDec(char*, unsigned short);
-	void ladderStep(BigNumber, BigNumber&, BigNumber&, BigNumber&, BigNumber&);
+//	void ladderStep(BigNumber, BigNumber&, BigNumber&, BigNumber&, BigNumber&);
+	void ladderStep(BigNumber, BigNumber, BigNumber, BigNumber, BigNumber, char);
 	void montgomeryLadder(BigNumber, char*, BigNumber);
 	void reciprocal();
 public:
@@ -147,7 +148,8 @@ BigNumber X25519KeyManagement::makeDec(char* b, unsigned short c) {
 }
 
 
-void X25519KeyManagement::ladderStep(BigNumber X1, BigNumber& UV0, BigNumber& UV1, BigNumber& UV2, BigNumber& UV3) {
+//void X25519KeyManagement::ladderStep(BigNumber X1, BigNumber& UV0, BigNumber& UV1, BigNumber& UV2, BigNumber& UV3) {
+void X25519KeyManagement::ladderStep(BigNumber X1, BigNumber UV0, BigNumber UV1, BigNumber UV2, BigNumber UV3, char bit) {
 /*
 X2 = UV[0]
 Z2 = UV[1]
@@ -277,6 +279,18 @@ Z3 = UV[3]
 //	Serial.print("UV1: ");
 //	Serial.println(UV1);
 */
+
+	if(bit) {
+		X3 = UV0;
+		Z3 = UV1;
+		X2 = UV2;
+		Z2 = UV3;
+	} else {
+		X2 = UV0;
+		Z2 = UV1;
+		X3 = UV2;
+		Z3 = UV3;
+	}
 }
 
 
@@ -345,7 +359,8 @@ void X25519KeyManagement::montgomeryLadder(BigNumber nInt, char* n, BigNumber xI
 			Serial.print(' ');
 			Serial.print("Z2: ");
 			Serial.println(Z2);*/
-			ladderStep(X1, X3, Z3, X2, Z2);
+//			ladderStep(X1, X3, Z3, X2, Z2);
+			ladderStep(X1, X3, Z3, X2, Z2, bit);
 /*			Serial.println("values after: ");
 //			Serial.print("X1: ");
 //			Serial.print(X1);
@@ -378,7 +393,8 @@ void X25519KeyManagement::montgomeryLadder(BigNumber nInt, char* n, BigNumber xI
 			Serial.print(' ');
 			Serial.print("Z3: ");
 			Serial.println(Z3);*/
-			ladderStep(X1, X2, Z2, X3, Z3);
+//			ladderStep(X1, X2, Z2, X3, Z3);
+			ladderStep(X1, X2, Z2, X3, Z3, bit);
 /*			Serial.println("values after: ");
 //			Serial.print("X1: ");
 //			Serial.print(X1);
