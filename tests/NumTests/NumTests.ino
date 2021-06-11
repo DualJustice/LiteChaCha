@@ -24,24 +24,22 @@ void setup() {
 	timestamp = micros();
 	for(unsigned short t = 0; t < 500; t += 1) {
 		carry = 0x00;
-		for(unsigned short j = 0; j < 8; j += 1) {
-			B[j] = 0x00000001;
-			C[j] = 0xffffffff;
-		}
+
+		B[0] = 0x08080808; B[1] = 0x00000000; B[2] = 0x00000000; B[3] = 0xffffffff; B[4] = 0xffffffff; B[5] = 0x00000000; B[6] = 0x00000000; B[7] = 0xffffffff;
+		C[0] = 0x09090910; C[1] = 0x00000000; C[2] = 0x00000000; C[3] = 0x00000000; C[4] = 0xffffffff; C[5] = 0x00000000; C[6] = 0xffffffff; C[7] = 0xffffffff;
+
 
 		for(unsigned short i = 7; i < 8; i -= 1) {
 			temp = B[i];
-			A[i] = B[i] + C[i];
+			A[i] = B[i] + C[i] + carry;
 
-			if(carry == 0x00) {
-				A[i] += carry; // Necessary for constant time?
+			if(carry == 0x00) { // Necessary for the all 0's case.
 				if(A[i] < temp) {
 					carry = 0x01;
 				} else {
 					carry = 0x00;
 				}
-			} else {
-				A[i] += carry;
+			} else { // Means we added at least 1.
 				if(A[i] <= temp) {
 					carry = 0x01;
 				} else {
