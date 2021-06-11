@@ -1,6 +1,71 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 
+#include "stdint.h"
+
+
+void setup() {
+	Serial.begin(9600);
+	while(!Serial) {
+		delay(250);
+	}
+
+	uint32_t A[8];
+	uint32_t B[8];
+	uint32_t C[8];
+	uint32_t p[8];
+
+	uint32_t temp;
+	char carry;
+
+	unsigned long timestamp = 0;
+
+//	A = (B + C) % p;
+	timestamp = micros();
+	for(unsigned short t = 0; t < 500; t += 1) {
+		carry = 0x00;
+		for(unsigned short j = 0; j < 8; j += 1) {
+			B[j] = 0x00000001;
+			C[j] = 0xffffffff;
+		}
+
+		for(unsigned short i = 7; i < 8; i -= 1) {
+			temp = B[i];
+			A[i] = B[i] + C[i];
+
+			if(carry == 0x00) {
+				A[i] += carry; // Necessary for constant time?
+				if(A[i] < temp) {
+					carry = 0x01;
+				} else {
+					carry = 0x00;
+				}
+			} else {
+				A[i] += carry;
+				if(A[i] <= temp) {
+					carry = 0x01;
+				} else {
+					carry = 0x00;
+				}
+			}
+		}
+	}
+	timestamp = micros() - timestamp;
+
+	Serial.print("micros: ");
+	Serial.print(timestamp);
+	Serial.println('\n');
+
+	Serial.print(carry, HEX);
+	Serial.print(' ');
+	for(unsigned short i = 0; i < 8; i += 1) {
+		Serial.print(A[i], HEX);
+		Serial.print(' ');
+	}
+}
+
+
+/*
 #include "BigNumber.h"
 
 
@@ -92,6 +157,7 @@ void setup() {
 	Serial.print("c (should be 94): ");
 	Serial.println(c);
 }
+*/
 
 
 void loop() {}

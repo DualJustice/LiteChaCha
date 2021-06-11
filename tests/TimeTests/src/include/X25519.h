@@ -11,15 +11,44 @@ class X25519KeyManagement {
 private:
 	static const constexpr unsigned short BYTELEN = 32;
 	static const constexpr unsigned short INTLEN = 8;
+	static const constexpr unsigned short BITS = 255;
 
 	uint32_t nInt[INTLEN];
 	uint32_t xInt[INTLEN];
+
+	uint32_t X1[INTLEN];
+	uint32_t X2[INTLEN];
+	uint32_t Z2[INTLEN];
+	uint32_t X3[INTLEN];
+	uint32_t Z3[INTLEN];
+
+	uint32_t swap;
+	uint32_t mask;
+
+	uint32_t A[INTLEN];
+	uint32_t AA[INTLEN];
+	uint32_t B[INTLEN];
+	uint32_t BB[INTLEN];
+	uint32_t E[INTLEN];
+	uint32_t C[INTLEN];
+	uint32_t D[INTLEN];
+	uint32_t DA[INTLEN];
+	uint32_t CB[INTLEN];
+
+	char s;
+	char bit;
+
+	char carry;
 
 	char* decodeBytesLittleEndian(char*);
 	char* clampAndDecodeScalar(char*);
 	void toUInt(uint32_t*, char*);
 	char* maskAndDecodeXCoord(char*);
+
 	void ladderStep();
+	void cSwap(char);
+	void montgomeryLadder();
+
 //	void ladderStep(BigNumber, BigNumber, BigNumber, BigNumber, BigNumber, char);
 //	void montgomeryLadder(BigNumber, char*, BigNumber);
 //	void reciprocal();
@@ -68,7 +97,6 @@ char* X25519KeyManagement::clampAndDecodeScalar(char* n) {
 void X25519KeyManagement::toUInt(uint32_t* outInt, char* b) {
 	for(unsigned short i = 0; i < INTLEN; i += 1) {
 		outInt[i] = (b[i*4] << 24) | (b[i*4 + 1] << 16) | (b[i*4 + 2] << 8) | b[i*4 + 3];
-//		outInt[i] = (b[i*4 + 3] << 24) | (b[i*4 + 2] << 16) | (b[i*4 + 1] << 8) | b[i*4];
 	}
 }
 
@@ -83,7 +111,71 @@ char* X25519KeyManagement::maskAndDecodeXCoord(char* x) {
 
 
 void X25519KeyManagement::ladderStep() {
+//	A = (X2 + Z2) % p;
+	uint32_t temp;
+	carry = 0x00;
 
+	for(unsigned short i = (INTLEN - 1); i < INTLEN; i -= 1) {
+		temp = A[i];
+		A[i] = X2[i] + Z2[i] + carry;
+
+		if(A[i] < temp) {
+			carry = 0x01;
+		} else {
+			carry = 0x00;
+		}
+	}
+}
+
+
+void X25519KeyManagement::cSwap(char s) {
+	mask = 0x00000000;
+	mask -= s;
+
+	for(unsigned short i = 0; i < INTLEN; i += 1) {
+		swap = mask & (X2[i] ^ X3[i]);
+		X2[i] ^= swap;
+		X3[i] ^= swap;
+	}
+
+	for(unsigned short i = 0; i < INTLEN; i += 1) {
+		swap = mask & (Z2[i] ^ Z3[i]);
+		Z2[i] ^= swap;
+		Z3[i] ^= swap;
+	}
+}
+
+
+void X25519KeyManagement::montgomeryLadder() {
+	for(unsigned short i = 0; i < INTLEN; i += 1) {
+		X1[i] = xInt[i];
+	}
+	for(unsigned short i = 0; i < (INTLEN - 1); i += 1) {
+		X2[i] = 0x00000000;
+	}
+	X2[INTLEN - 1] = 0x00000001;
+	for(unsigned short i = 0; i < INTLEN; i += 1) {
+		Z2[i] = 0x00000000;
+	}
+	for(unsigned short i = 0; i < INTLEN; i += 1) {
+		X3[i] = xInt[i];
+	}
+	for(unsigned short i = 0; i < (INTLEN - 1); i += 1) {
+		Z3[i] = 0x00000000;
+	}
+	Z3[INTLEN - 1] = 0x00000001;
+	s = 0x00;
+
+	for(unsigned short i = (BITS - 1); i < BITS; i -= 1) {
+		bit = ((nInt[(BITS - i)/32]) >> (i % 32)) & 0x01;
+		s ^= bit;
+		cSwap(s);
+		s = bit;
+
+		ladderStep();
+
+		cSwap(s);
+	}
 }
 
 
@@ -313,7 +405,7 @@ void X25519KeyManagement::curve25519(char* n, char* xp) { // k is the independen
 
 	toUInt(xInt, xp);
 
-//	montgomeryLadder(nInt, n, xInit);
+	montgomeryLadder();
 
 //	reciprocal();
 
