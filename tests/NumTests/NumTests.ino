@@ -33,18 +33,10 @@ void setup() {
 			temp = B[i];
 			A[i] = B[i] + C[i] + carry;
 
-			if(carry == 0x00) { // Necessary for the all 0's case.
-				if(A[i] < temp) {
-					carry = 0x01;
-				} else {
-					carry = 0x00;
-				}
-			} else { // Means we added at least 1.
-				if(A[i] <= temp) {
-					carry = 0x01;
-				} else {
-					carry = 0x00;
-				}
+			if(((carry == 0x00) && (A[i] < temp)) || ((carry == 0x01) && (A[i] <= temp))) { // Carry check necessary for all 0's case and all f's case.
+				carry = 0x01;
+			} else {
+				carry = 0x00;
 			}
 		}
 	}
