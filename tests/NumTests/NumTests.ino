@@ -9,7 +9,6 @@
 // 1 ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff fffffffe is the largest expected (HEX) sum.
 // 0 7fffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffed is p (255 bits, because 7fffffff HEX is 01111111111111111111111111111111 BIN).
 // 0 ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffda is p*2.
-// If A > (2*p), A = (A - (2*p)), else, A = (A - p).
 
 
 void setup() {
@@ -17,6 +16,7 @@ void setup() {
 	while(!Serial) {
 		delay(250);
 	}
+
 
 	uint32_t A[8];
 	uint32_t B[8];
@@ -33,58 +33,8 @@ void setup() {
 
 	unsigned long timestamp = 0;
 
-/*
-// C++ implementation to Divide two
-// integers without using multiplication,
-// division and mod operator
-#include <bits/stdc++.h>
-using namespace std;
- 
-// Function to divide a by b and
-// return floor value it
-int divide(long long dividend, long long divisor) {
- 
-  // Calculate sign of divisor i.e.,
-  // sign will be negative only iff
-  // either one of them is negative
-  // otherwise it will be positive
-  int sign = ((dividend < 0) ^
-              (divisor < 0)) ? -1 : 1;
- 
-  // remove sign of operands
-  dividend = abs(dividend);
-  divisor = abs(divisor);
- 
-  // Initialize the quotient
-  long long quotient = 0, temp = 0;
- 
-  // test down from the highest bit and
-  // accumulate the tentative value for
-  // valid bit
-  for (int i = 31; i >= 0; --i) {
- 
-    if (temp + (divisor << i) <= dividend) {
-      temp += divisor << i;
-      quotient |= 1LL << i;
-    }
-  }
- 
-  return sign * quotient;
-}
- 
-// Driver code
-int main() {
-  int a = 10, b = 3;
-  cout << divide(a, b) << "\n";
- 
-  a = 43, b = -8;
-  cout << divide(a, b);
- 
-  return 0;
-}
-*/
 
-// -------------------- A = (B + C) % p -------------------- Can build mod directly into addition, or can create an external function. It is internal below.
+// -------------------- A = (B + C) % p --------------------
 	timestamp = micros();
 	for(unsigned short t = 0; t < 500; t += 1) {
 		A[0] = 0x00000000; A[1] = 0x00000000; A[2] = 0x00000000; A[3] = 0x00000000; A[4] = 0x00000000; A[5] = 0x00000000; A[6] = 0x00000000; A[7] = 0x00000000;
@@ -104,8 +54,8 @@ int main() {
 			}
 		}
 
-		if((carry == 0x01) || (A[0] > p[0])) { // A > p.
-
+		if((carry != 0x00) || isGreaterThan(A, p)) {
+			
 		}
 	}
 
@@ -122,6 +72,7 @@ int main() {
 		Serial.print(A[i], HEX);
 		Serial.print(' ');
 	}
+	Serial.println('\n');
 }
 
 
