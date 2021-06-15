@@ -10,8 +10,15 @@
 // 0 7fffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffed is p (255 bits, because 7fffffff HEX is 01111111111111111111111111111111 BIN).
 // 0 ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffda is p*2.
 
+// 2 7fffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffeb is the largest expected sum + p.
+
 // 80000000 = 10000000000000000000000000000000
 // 7fffffff = 01111111111111111111111111111111
+
+// p (BIN):
+// 111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111101101
+// two's complement of p (BIN):
+// 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010011
 
 
 bool isGreaterThan(uint32_t* A, uint32_t* p) {
@@ -46,60 +53,45 @@ void setup() {
 		delay(250);
 	}
 
-
-	uint32_t A[8];
-	uint32_t B[8];
-	uint32_t C[8];
 	uint32_t p[8];
+	uint32_t np[8];
+
+	uint32_t a[8];
+	uint32_t b[8];
 
 	uint32_t temp;
 	char carry;
 
-//	B[0] = 0x08080808; B[1] = 0x00000000; B[2] = 0x00000000; B[3] = 0xffffffff; B[4] = 0xffffffff; B[5] = 0x00000000; B[6] = 0x00000000; B[7] = 0xffffffff;
-//	C[0] = 0x09090910; C[1] = 0x00000000; C[2] = 0x00000000; C[3] = 0x00000000; C[4] = 0xffffffff; C[5] = 0x00000000; C[6] = 0xffffffff; C[7] = 0xffffffff;
-
-//	B[0] = 0x00000000; B[1] = 0x00000000; B[2] = 0x00000000; B[3] = 0x00000000; B[4] = 0x00000000; B[5] = 0x00000000; B[6] = 0x00000000; B[7] = 0x00000000;
-//	C[0] = 0x7fffffff; C[1] = 0xffffffff; C[2] = 0xffffffff; C[3] = 0xffffffff; C[4] = 0xffffffff; C[5] = 0xffffffff; C[6] = 0xffffffff; C[7] = 0xffffffed;
-
-//	B[0] = 0x00000000; B[1] = 0x00000000; B[2] = 0x00000000; B[3] = 0x00000000; B[4] = 0x00000000; B[5] = 0x00000000; B[6] = 0x00000000; B[7] = 0x00000001;
-//	C[0] = 0xffffffff; C[1] = 0xffffffff; C[2] = 0xffffffff; C[3] = 0xffffffff; C[4] = 0xffffffff; C[5] = 0xffffffff; C[6] = 0xffffffff; C[7] = 0xffffffda;
-
-	B[0] = 0x00000000; B[1] = 0x00000000; B[2] = 0x00000000; B[3] = 0x00000000; B[4] = 0x00000000; B[5] = 0x00000000; B[6] = 0x00000000; B[7] = 0x00000000;
-//       0   7fffffff           ffffffff           ffffffff           ffffffff           ffffffff           ffffffff           ffffffff           ffffffed is p
-	C[0] = 0x80000000; C[1] = 0x00000000; C[2] = 0x00000000; C[3] = 0x00000000; C[4] = 0x00000000; C[5] = 0x00000000; C[6] = 0x00000000; C[7] = 0x00000000;
-
-// 0xed = 11101101
-// 0x01 = 00000001
-
-// 0xee = 11101110
-
 	p[0] = 0x7fffffff; p[1] = 0xffffffff; p[2] = 0xffffffff; p[3] = 0xffffffff; p[4] = 0xffffffff; p[5] = 0xffffffff; p[6] = 0xffffffff; p[7] = 0xffffffed;
+	np[0] = 0x00000000; np[1] = 0x00000000; np[2] = 0x00000000; np[3] = 0x00000000; np[4] = 0x00000000; np[5] = 0x00000000; np[6] = 0x00000000; np[7] = 0x00000013;
+
 
 	unsigned long timestamp = 0;
 
 
-// -------------------- A = (B + C) % p --------------------
+// -------------------- (a + b) --------------------
 	timestamp = micros();
 	for(unsigned short t = 0; t < 500; t += 1) {
-		A[0] = 0x00000000; A[1] = 0x00000000; A[2] = 0x00000000; A[3] = 0x00000000; A[4] = 0x00000000; A[5] = 0x00000000; A[6] = 0x00000000; A[7] = 0x00000000;
+		a[0] = 0x08080808; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0xffffffff;
+		b[0] = 0x09090910; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0xffffffff; b[5] = 0x00000000; b[6] = 0xffffffff; b[7] = 0xffffffff;
 
 // -------------------- RELEVANT --------------------
 
 		carry = 0x00;
 
 		for(unsigned short i = 7; i < 8; i -= 1) {
-			temp = B[i];
-			A[i] = B[i] + C[i] + carry;
+			temp = b[i];
+			a[i] += (b[i] + carry);
 
-			if(((carry == 0x00) && (A[i] < temp)) || ((carry == 0x01) && (A[i] <= temp))) { // Carry check necessary for all 0's case and all f's case.
+			if(((carry == 0x00) && (a[i] < temp)) || ((carry == 0x01) && (a[i] <= temp))) { // Carry check necessary for all 0's case and all f's case. Might not be constant time!
 				carry = 0x01;
 			} else {
 				carry = 0x00;
 			}
 		}
 
-		if((carry != 0x00) || isGreaterThan(A, p)) { // Everything below assumes that p includes a leading 0! I don't think that polynomial division can be used in place of normal modulus.
-			// Do mod:
+		if((carry != 0x00) || isGreaterThan(A, p)) {
+/*			Do mod:
 			if(carry == 0x01) {
 				temp = (A[7] & 0x00000003);
 				for(unsigned short i = 7; i > 0; i -= 1) {
@@ -149,7 +141,7 @@ void setup() {
 				for(unsigned short i = 0; i < 8; i += 1) {
 					A[i] ^= p[i];
 				}
-			}
+			}*/
 		} else if(isEqualTo(A, p)) {
 			for(unsigned short i = 0; i < 8; i += 1) {
 				A[i] = 0x00000000;
