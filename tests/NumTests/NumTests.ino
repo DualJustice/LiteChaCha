@@ -21,28 +21,113 @@
 // 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010011
 
 
-bool isGreaterThan(uint32_t* A, uint32_t* p) {
-	if(A[0] > p[0]) {
+uint32_t p[8];
+uint32_t np[8];
+
+uint32_t a[8];
+uint32_t b[8];
+
+uint32_t temp;
+char carry;
+uint32_t shiftTemp;
+char shiftCarry;
+char shiftCount;
+
+
+void add() { // Will want to check all functions for constant time!
+	carry = 0x00;
+
+	for(unsigned short i = 7; i < 8; i -= 1) {
+		temp = b[i];
+		a[i] += (b[i] + carry);
+
+		if(((carry == 0x00) && (a[i] < temp)) || ((carry == 0x01) && (a[i] <= temp))) { // Carry check necessary for all 0's case and all f's case.
+			carry = 0x01;
+		} else {
+			carry = 0x00;
+		}
+	}
+}
+
+
+bool greaterThan() {
+	if(a[0] > p[0]) {
 		return true;
 	}
 	for(unsigned short i = 1; i < 7; i += 1) {
-		if(A[i] != p[i]) {
+		if(a[i] != p[i]) {
 			return false;
 		}
 	}
-	if(A[7] > p[7]) {
+	if(a[7] > p[7]) {
 		return true;
 	}
+
 	return false;
 }
 
 
-bool isEqualTo(uint32_t* A, uint32_t* p) {
+void rShift() {
+	shiftCount = 0x00;
+	shiftTemp = 0x00000000;
+
+	if(carry == 0x01) {
+		shiftCount = 0x02;
+	} else if((a[0] & 0x80000000) == 0x80000000) {
+		shiftCount = 0x01;
+	} else {
+		shiftCount = 0x00;
+	}
+
+	for(char i = shiftCount; i > 0x01; i -= 0x01) {
+		shiftTemp |= (a[7] & 0x00000001) << 31;
+		shiftTemp >>= 1;
+
+		for(unsigned short i = 7; i > 0; i -= 1) {
+			shiftCarry = a[i - 1] & 0x00000001;
+			a[i] = (a[i] >> 1) | (shiftCarry << 31);
+		}
+		a[0] = (a[0] >> 1) | (carry << 31);
+		carry >>= 1;
+	}
+
+	shiftTemp <<= 1;
+}
+
+
+void nAdd() {
+	carry = 0x00;
+
+	for(unsigned short i = 7; i < 8; i -= 1) {
+		temp = np[i];
+		a[i] += (np[i] + carry);
+
+		if(((carry == 0x00) && (a[i] < temp)) || ((carry == 0x01) && (a[i] <= temp))) { // Carry check necessary for all 0's case and all f's case.
+			carry = 0x01;
+		} else {
+			carry = 0x00;
+		}
+	}
+}
+
+
+void lShift() {
+	for(unsigned short i = 0; i < 7; i += 1) {
+		shiftCarry = (a[i + 1] & 0x80000000) >> 31;
+		a[i] = (a[i] << 1) | shiftCarry;
+	}
+	a[0] = (a[0] << 1) | (shiftTemp >> 31);
+	shiftTemp <<= 1;
+}
+
+
+bool equalTo() {
 	for(unsigned short i = 0; i < 8; i += 1) {
-		if(A[i] != p[i]) {
+		if(a[i] != p[i]) {
 			return false;
 		}
 	}
+
 	return true;
 }
 
@@ -53,45 +138,49 @@ void setup() {
 		delay(250);
 	}
 
-	uint32_t p[8];
-	uint32_t np[8];
-
-	uint32_t a[8];
-	uint32_t b[8];
-
-	uint32_t temp;
-	char carry;
-
 	p[0] = 0x7fffffff; p[1] = 0xffffffff; p[2] = 0xffffffff; p[3] = 0xffffffff; p[4] = 0xffffffff; p[5] = 0xffffffff; p[6] = 0xffffffff; p[7] = 0xffffffed;
 	np[0] = 0x00000000; np[1] = 0x00000000; np[2] = 0x00000000; np[3] = 0x00000000; np[4] = 0x00000000; np[5] = 0x00000000; np[6] = 0x00000000; np[7] = 0x00000013;
-
 
 	unsigned long timestamp = 0;
 
 
-// -------------------- (a + b) --------------------
 	timestamp = micros();
 	for(unsigned short t = 0; t < 500; t += 1) {
-		a[0] = 0x08080808; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0xffffffff;
-		b[0] = 0x09090910; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0xffffffff; b[5] = 0x00000000; b[6] = 0xffffffff; b[7] = 0xffffffff;
+//		a[0] = 0x08080808; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0xffffffff;
+//		b[0] = 0x09090910; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0xffffffff; b[5] = 0x00000000; b[6] = 0xffffffff; b[7] = 0xffffffff;
 
-// -------------------- RELEVANT --------------------
+		a[0] = 0x80000000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
+		b[0] = 0x7fffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffed;
 
-		carry = 0x00;
+		add(); // Adds a and b.
+		if(carry == 0x01 || greaterThan()) { // a > p?
+			rShift(); // Shifts a to correct index for binary long division. THIS IS INCORRECT! IT SHIFTS a TO CORRECT INDEX FOR BINARY LONG DIVISION ASSUMING p WON'T FIT INTO a! FIX ME!
 
-		for(unsigned short i = 7; i < 8; i -= 1) {
-			temp = b[i];
-			a[i] += (b[i] + carry);
-
-			if(((carry == 0x00) && (a[i] < temp)) || ((carry == 0x01) && (a[i] <= temp))) { // Carry check necessary for all 0's case and all f's case. Might not be constant time!
-				carry = 0x01;
+			if(shiftCount == 0x00) {
+				for(unsigned short i = 0; i < 8; i += 1) {
+					a[i] -= p[i];
+				}
 			} else {
-				carry = 0x00;
+				nAdd();
+
+				if(shiftCount == 0x02) {
+					lShift();
+					nAdd();
+				}
+			}
+
+			a[0] &= 0x7fffffff;
+
+		} else if(equalTo()) {
+			for(unsigned short i = 0; i < 8; i += 1) {
+				a[i] = 0x00000000;
 			}
 		}
 
-		if((carry != 0x00) || isGreaterThan(A, p)) {
-/*			Do mod:
+/*		if((carry != 0x00) || isGreaterThan(A, p)) {
+			Do mod:
+
+
 			if(carry == 0x01) {
 				temp = (A[7] & 0x00000003);
 				for(unsigned short i = 7; i > 0; i -= 1) {
@@ -141,16 +230,15 @@ void setup() {
 				for(unsigned short i = 0; i < 8; i += 1) {
 					A[i] ^= p[i];
 				}
-			}*/
+			}
 		} else if(isEqualTo(A, p)) {
 			for(unsigned short i = 0; i < 8; i += 1) {
 				A[i] = 0x00000000;
 			}
-		}
+		}*/
 	}
-
-// -------------------- RELEVANT --------------------
 	timestamp = micros() - timestamp;
+
 
 	Serial.print("micros: ");
 	Serial.print(timestamp);
@@ -159,7 +247,7 @@ void setup() {
 	Serial.print(carry, HEX);
 	Serial.print(' ');
 	for(unsigned short i = 0; i < 8; i += 1) {
-		Serial.print(A[i], HEX);
+		Serial.print(a[i], HEX);
 		Serial.print(' ');
 	}
 	Serial.println('\n');
