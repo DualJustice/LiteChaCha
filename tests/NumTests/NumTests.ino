@@ -149,7 +149,7 @@ void setup() {
 //		a[0] = 0x08080808; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0xffffffff;
 //		b[0] = 0x09090910; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0xffffffff; b[5] = 0x00000000; b[6] = 0xffffffff; b[7] = 0xffffffff;
 
-		a[0] = 0x80000000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
+		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
 		b[0] = 0x7fffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffed;
 
 		add(); // Adds a and b.
@@ -160,8 +160,16 @@ void setup() {
 				for(unsigned short i = 0; i < 8; i += 1) {
 					a[i] -= p[i];
 				}
-			} else if() { // Check if a > p. If so, subtract p. If not shift and nadd np.
-
+			} else if(greaterThan()) { // Check if a > p. If so, subtract p. If not shift and nadd np.
+				for(unsigned short i = 0; i < 8; i += 1) {
+					a[i] -= p[i];
+				}
+				lShift();
+				if(greaterThan()) {
+					for(unsigned short i = 0; i < 8; i += 1) {
+						a[i] -= p[i];
+					}
+				}
 
 //				nAdd();
 
@@ -169,9 +177,20 @@ void setup() {
 //					lShift();
 //					nAdd();
 //				}
+			} else {
+				lShift();
+				nAdd();
+			}
+			if(shiftCount == 0x02) {
+				lShift();
+				if(greaterThan()) {
+					for(unsigned short i = 0; i < 8; i += 1) {
+						a[i] -= p[i];
+					}
+				}
 			}
 
-			a[0] &= 0x7fffffff;
+//			a[0] &= 0x7fffffff;
 
 		} else if(equalTo()) {
 			for(unsigned short i = 0; i < 8; i += 1) {
