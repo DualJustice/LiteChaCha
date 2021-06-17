@@ -79,7 +79,7 @@ void rShift() {
 		shiftCount = 0x00;
 	}
 
-	for(char i = shiftCount; i > 0x01; i -= 0x01) {
+	for(char i = shiftCount; i > 0x00; i -= 0x01) {
 		shiftTemp |= (a[7] & 0x00000001) << 31;
 		shiftTemp >>= 1;
 
@@ -154,19 +154,21 @@ void setup() {
 
 		add(); // Adds a and b.
 		if(carry == 0x01 || greaterThan()) { // a > p?
-			rShift(); // Shifts a to correct index for binary long division. THIS IS INCORRECT! IT SHIFTS a TO CORRECT INDEX FOR BINARY LONG DIVISION ASSUMING p WON'T FIT INTO a! FIX ME!
+			rShift(); // Shifts a to correct index for binary long division.
 
 			if(shiftCount == 0x00) {
 				for(unsigned short i = 0; i < 8; i += 1) {
 					a[i] -= p[i];
 				}
-			} else {
-				nAdd();
+			} else if() { // Check if a > p. If so, subtract p. If not shift and nadd np.
 
-				if(shiftCount == 0x02) {
-					lShift();
-					nAdd();
-				}
+
+//				nAdd();
+
+//				if(shiftCount == 0x02) {
+//					lShift();
+//					nAdd();
+//				}
 			}
 
 			a[0] &= 0x7fffffff;
