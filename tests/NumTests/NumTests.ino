@@ -25,14 +25,48 @@ two's complement of p (BIN):
 */
 
 
+uint32_t u[8];
+uint32_t v[8];
+
+char carry;
+
+uint32_t p[8];
+
+
 void setup() {
 	Serial.begin(9600);
 	while(!Serial) {
 		delay(250);
 	}
 
+	u[0] = 0x00000000; u[1] = 0x00000000; u[2] = 0x00000000; u[3] = 0x00000000; u[4] = 0x00000000; u[5] = 0x00000000; u[6] = 0x00000000; u[7] = 0x00000000;
+	v[0] = 0x00000000; v[1] = 0x00000000; v[2] = 0x00000000; v[3] = 0x00000000; v[4] = 0x00000000; v[5] = 0x00000000; v[6] = 0x00000000; v[7] = 0x00000000;
 
+	p[0] = 0x7fffffff; p[1] = 0xffffffff; p[2] = 0xffffffff; p[3] = 0xffffffff; p[4] = 0xffffffff; p[5] = 0xffffffff; p[6] = 0xffffffff; p[7] = 0xffffffed;
+
+// ---------- Addition Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm A ----------
+	carry = 0x00;
+
+	for(unsigned short i = 7; i < 8; i -= 1) {
+		u[i] += (v[i] + carry);
+		carry = u[i]/v[i];
+	}
 }
+/*
+void add() { // Will want to check all functions for constant time!
+	carry = 0x00;
 
+	for(unsigned short i = 7; i < 8; i -= 1) {
+		temp = b[i];
+		a[i] += (b[i] + carry);
+
+		if(((carry == 0x00) && (a[i] < temp)) || ((carry == 0x01) && (a[i] <= temp))) { // Carry check necessary for all 0's case and all f's case.
+			carry = 0x01;
+		} else {
+			carry = 0x00;
+		}
+	}
+}
+*/
 
 void loop() {}
