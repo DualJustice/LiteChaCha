@@ -19,8 +19,8 @@ uint32_t b[8];
 static const constexpr uint32_t p[16] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed};
 static const constexpr uint32_t p2[16] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda};
 
-uint32_t u[18]; // u[0] is used for u[m + n], u[1] is used for carry.
-uint32_t v[17]; // v[0] is used for carry.
+uint32_t u[18]; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
+uint32_t v[17]; // v[0] is used for carry / borrow.
 
 char carry;
 static const constexpr uint32_t base = 0x00010000;
@@ -31,6 +31,7 @@ static const constexpr unsigned short n = 16;
 unsigned short m;
 uint32_t qHat;
 uint32_t rHat;
+char borrow;
 
 unsigned long timeStamp;
 unsigned long duration;
@@ -50,7 +51,7 @@ void base32_16() {
 
 
 // ---------- Modulus Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm D ----------
-void base16Mod() {
+void base16Mod() { // Won't currently work post multiplication!
 	for(unsigned short i = 1; i < (n + m + 1); i += 1) { // D1.
 		v[i - 1] = u[i];
 	}
@@ -82,7 +83,14 @@ void base16Mod() {
 			}
 		}
 
-	
+		for(unsigned short j = 15; j < 16; j -= 1) { // D4. Things are getting REAL dicy right about now...
+			v[j + 1] = qHat*p2[j]; // Assuming a carry won't be necessary here!
+		}
+		borrow = 0x00;
+		for(unsigned short j = 17; j > 0; j -= 1) {
+
+		}
+
 	}
 }
 
