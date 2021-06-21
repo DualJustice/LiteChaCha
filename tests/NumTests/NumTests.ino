@@ -5,63 +5,85 @@
 
 
 /*
-p[0] = 0x7fffffff; p[1] = 0xffffffff; p[2] = 0xffffffff; p[3] = 0xffffffff; p[4] = 0xffffffff; p[5] = 0xffffffff; p[6] = 0xffffffff; p[7] = 0xffffffed;
-np[0] = 0x00000000; np[1] = 0x00000000; np[2] = 0x00000000; np[3] = 0x00000000; np[4] = 0x00000000; np[5] = 0x00000000; np[6] = 0x00000000; np[7] = 0x00000013;
+0 7fffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffed is p (255 bits).
 
-0 7fffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffed is p (255 bits, because 7fffffff HEX is 01111111111111111111111111111111 BIN).
+1 ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff fffffffe is the largest expected sum (257 bits).
+0 ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff fffffffe 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001 is the largest expected value (512 bits): (ffffffff ... )^2.
+
 0 ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffda is p*2.
-
-1 ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff fffffffe is the largest expected (HEX) sum (257 bits).
-2 7fffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffeb is the largest expected sum + p.
-fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0000000000000000000000000000000000000000000000000000000000000001 is the largest expected (HEX) value. (0xffffffff ...)^2
-
-80000000 = 10000000000000000000000000000000
-7fffffff = 01111111111111111111111111111111
-
-p (BIN):
-111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111101101
-two's complement of p (BIN):
-000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010011
 */
 
 
-uint32_t p[8]; // Might need to be 16 long?
+uint32_t p[16]; // These might need to be of a much larger size to account for the carry bit of addition, and the additional bits caused by multiplication.
 
 uint32_t a[8];
 uint32_t b[8];
 
-uint32_t u[16];
-uint32_t v[16];
+uint32_t u[18];
+uint32_t v[18];
 
 char carry;
+
+uint32_t qHat;
+uint32_t rHat;
+
+unsigned long timeStamp;
+unsigned long duration;
 
 
 void base32_16() {
 	for(unsigned short i = 0; i < 8; i += 1) {
-		u[i*2] = a[i] >> 16;
-		v[i*2] = b[i] >> 16;
-		u[(i*2) + 1] = a[i] & 0x0000ffff;
-		v[(i*2) + 1] = b[i] & 0x0000ffff;
+		u[0] = 0x00000000;
+		v[0] = 0x00000000;
+		u[1] = 0x00000000;
+		v[1] = 0x00000000;
+		u[(i*2) + 2] = a[i] >> 16;
+		v[(i*2) + 2] = b[i] >> 16;
+		u[(i*2) + 3] = a[i] & 0x0000ffff;
+		v[(i*2) + 3] = b[i] & 0x0000ffff;
+	}
+}
+
+
+// ---------- Modulus Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm D ----------
+void addMod() {
+	for(unsigned short i = 0; i < 18; i += 1) { // D1
+		v[i] = u[i];
+	}
+	base16Add();
+
+	for(unsigned short i = 0; i < 2; i += 1) { // D2 { D3 - D7 }
+		qHat = ((2*u[i]) + u[i + 1])/0x0000ffff;
+		rHat = ((2*u[i]) + u[i + 1]) % 0x0000ffff;
+
+		if((qHat == 0x00000002) || ((qHat*v[1]) > (2*rHat + u[2]))) {
+			qHat -= 1;
+			rHat += 0x0000ffff;
+			while(rHat < 0x00010000) {
+
+			} // Uh... come back to this.
+		}
 	}
 }
 
 
 // ---------- Addition Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm A ----------
-void base16Add() { // Check for constant time. Might be able to optimize by combining some steps?
+void base16Add() { // Check for constant time. Might be able to optimize by combining some steps? Addition could be done with 9 31-bit numbers, which would be an optimization, but it would require extra conversions for multiplication. It might be worth an attempt in the future.
 	carry = 0x00;
 
-	for(unsigned short i = 15; i < 16; i -= 1) {
+	for(unsigned short i = 17; i > 1; i -= 1) {
 		u[i] += (v[i] + carry);
 		carry = u[i]/0x00010000;
 		u[i] %= 0x00010000;
 	}
+
+	u[1] += carry;
 }
 
 
 void base16_32() {
 	for(unsigned short i = 0; i < 8; i += 1) {
-		a[i] = (u[i*2] << 16) | u[(i*2) + 1];
-		b[i] = (v[i*2] << 16) | v[(i*2) + 1];
+		a[i] = (u[(i*2) + 2] << 16) | u[(i*2) + 3];
 	}
 }
 
@@ -74,15 +96,25 @@ void setup() {
 
 	p[0] = 0x7fffffff; p[1] = 0xffffffff; p[2] = 0xffffffff; p[3] = 0xffffffff; p[4] = 0xffffffff; p[5] = 0xffffffff; p[6] = 0xffffffff; p[7] = 0xffffffed;
 
-	a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffff;
-	b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffff;
+	duration = 0;
+	for(unsigned short t = 0; t < 500; t += 1) {
+		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
+		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
 
-	base32_16();
-	base16Add();
-	base16_32();
+		base32_16();
 
+		timeStamp = micros();
+		base16Add();
+		duration += (micros() - timeStamp);
 
-	Serial.print(carry, HEX);
+		base16_32();
+	}
+
+	Serial.print("micros: ");
+	Serial.print(duration);
+	Serial.println('\n');
+
+	Serial.print(u[1], HEX);
 	Serial.print(' ');
 	for(unsigned short i = 0; i < 8; i += 1) {
 		Serial.print(a[i], HEX);
@@ -91,21 +123,5 @@ void setup() {
 	Serial.println('\n');
 }
 
-/*
-void add() { // Will want to check all functions for constant time!
-	carry = 0x00;
-
-	for(unsigned short i = 7; i < 8; i -= 1) {
-		temp = b[i];
-		a[i] += (b[i] + carry);
-
-		if(((carry == 0x00) && (a[i] < temp)) || ((carry == 0x01) && (a[i] <= temp))) { // Carry check necessary for all 0's case and all f's case.
-			carry = 0x01;
-		} else {
-			carry = 0x00;
-		}
-	}
-}
-*/
 
 void loop() {}
