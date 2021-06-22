@@ -26,12 +26,13 @@ uint32_t carry;
 static const constexpr uint32_t base = 0x00010000;
 
 // Modulus variables:
-static const constexpr char d = 0x02; // DELETE ME?
+static const constexpr char d = 0x02;
 static const constexpr unsigned short n = 16;
 unsigned short m;
 uint32_t qHat;
 uint32_t rHat;
 char borrow; // DELETE ME?
+uint32_t q[18];
 
 unsigned long timeStamp;
 unsigned long duration;
@@ -63,7 +64,7 @@ void base16Mod() { // Won't currently work post multiplication!
 	}
 	u[0] = 0x00000000;
 
-	for(unsigned short i = 0; i < (m + 1); i += 1) { // D2.
+	for(unsigned short i = 0; i < (m + 1); i += 1) { // D2 & D7.
 
 		qHat = ((base*u[i]) + u[i + 1])/p2[0]; // D3.
 		rHat = ((base*u[i]) + u[i + 1]) % p2[0];
@@ -83,19 +84,43 @@ void base16Mod() { // Won't currently work post multiplication!
 			}
 		}
 
-		carry = 0x00000000;
-		for(unsigned short j = 15; j < 16; j -= 1) { // D4.
+		carry = 0x00000000; // D4.
+		for(unsigned short j = 15; j < 16; j -= 1) {
 			v[j + 1] = (qHat*p2[j]) + carry; // Using a temporary value (as t) might be faster?
-			carry = v[j + 1]/base;
+			carry = v[j + 1]/base; // Carry is being used flexibly here (as a "super" carry).
 			v[j + 1] %= base;
 		}
 		v[0] = carry;
-		// u -= v.
-		for(unsigned short i = 17; i > 0; i -= 1) { // This won't yet quite work! u[0] and u[1] should flip? Indexing is wrong as well!
-			u[i] -= (v[i - 1] + carry);
-			carry = (u[i] & base)/base;
-			u[i] = (u[i] & 0x0001ffff) % base;
+		for(unsigned short j = 17; j > 0; j -= 1) {
+			u[j - (m - i)] -= (v[j - 1] + carry); // Carry is used as a borrow here.
+			carry = (u[j - (m - i)] & base)/base;
+			u[j - (m - i)] = (u[j + (m - i)] & 0x0001ffff) % base;
 		}
+
+		q[i] = qHat; // D5.
+		if(carry) {
+
+			Serial.println("Negative!"); // D6.
+			q[i] -= 0x00000001;
+			carry = 0x00000000;
+			for(unsigned short j = 15; j < 16; j -= 1) {
+				u[(j + 2) - (m - i)] += (p2[j] + carry); // Using a temp might be faster?
+				carry = u[(j + 2) - (m - i)]/base;
+				u[(j + 2) - (m - i)] %= base;
+			}
+			u[i] = carry % base;
+			carry /= base; // FOR TROUBLESHOOTING PURPOSES ONLY! DELETE ME!
+			Serial.print("Carry (should be > 0): "); // FOR TROUBLESHOOTING PURPOSES ONLY! DELETE ME!
+			Serial.print(carry, HEX); // FOR TROUBLESHOOTING PURPOSES ONLY! DELETE ME!
+			Serial.println('\n');
+		}
+	}
+
+	carry = 0x00000000; // D8.
+	for(unsigned short i = 2; i < 18; i += 1) {
+		u[i] += (carry*base); // Carry is used as a remainder here.
+		carry = u[i] % d;
+		u[i] /= d;
 	}
 }
 
@@ -111,7 +136,7 @@ void base16Add() { // Check for constant time. Might be able to optimize by comb
 	}
 
 	m = 1;
-//	base16Mod();
+	base16Mod();
 }
 
 
@@ -120,7 +145,7 @@ void base16Sub() { // Produces the signed two's compliment of the difference if 
 	carry = 0x00000000;
 
 	for(unsigned short i = 17; i > 0; i -= 1) {
-		u[i] -= (v[i - 1] + carry);
+		u[i] -= (v[i - 1] + carry); // Carry is being used as a borrow here.
 		carry = (u[i] & base)/base;
 		u[i] = (u[i] & 0x0001ffff) % base;
 	}
@@ -142,8 +167,12 @@ void setup() {
 
 	duration = 0;
 	for(unsigned short t = 0; t < 500; t += 1) {
-		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
-		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
+//		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
+//		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
+//               57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C
+
+		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
+		b[0] = 0x00000000; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
 
 		base32_16();
 
