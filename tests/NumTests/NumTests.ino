@@ -22,16 +22,16 @@ static const constexpr uint32_t p2[16] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x
 uint32_t u[18]; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
 uint32_t v[17]; // v[0] is used for carry / borrow.
 
-char carry;
+uint32_t carry;
 static const constexpr uint32_t base = 0x00010000;
 
 // Modulus variables:
-static const constexpr char d = 0x02;
+static const constexpr char d = 0x02; // DELETE ME?
 static const constexpr unsigned short n = 16;
 unsigned short m;
 uint32_t qHat;
 uint32_t rHat;
-char borrow;
+char borrow; // DELETE ME?
 
 unsigned long timeStamp;
 unsigned long duration;
@@ -55,9 +55,9 @@ void base16Mod() { // Won't currently work post multiplication!
 	for(unsigned short i = 1; i < (n + m + 1); i += 1) { // D1.
 		v[i - 1] = u[i];
 	}
-	carry = 0x00;
+	carry = 0x00000000;
 	for(unsigned short i = 17; i > 0; i -= 1) {
-		u[i] += (v[i - 1] + carry);
+		u[i] += (v[i - 1] + carry); // Using a temp might be faster?
 		carry = u[i]/base;
 		u[i] %= base;
 	}
@@ -83,30 +83,47 @@ void base16Mod() { // Won't currently work post multiplication!
 			}
 		}
 
-		for(unsigned short j = 15; j < 16; j -= 1) { // D4. Things are getting REAL dicy right about now...
-			v[j + 1] = qHat*p2[j]; // Assuming a carry won't be necessary here!
+		carry = 0x00000000;
+		for(unsigned short j = 15; j < 16; j -= 1) { // D4.
+			v[j + 1] = (qHat*p2[j]) + carry; // Using a temporary value (as t) might be faster?
+			carry = v[j + 1]/base;
+			v[j + 1] %= base;
 		}
-		borrow = 0x00;
-		for(unsigned short j = 17; j > 0; j -= 1) {
-
+		v[0] = carry;
+		// u -= v.
+		for(unsigned short i = 17; i > 0; i -= 1) { // This won't yet quite work! u[0] and u[1] should flip? Indexing is wrong as well!
+			u[i] -= (v[i - 1] + carry);
+			carry = (u[i] & base)/base;
+			u[i] = (u[i] & 0x0001ffff) % base;
 		}
-
 	}
 }
 
 
 // ---------- Addition Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm A ----------
 void base16Add() { // Check for constant time. Might be able to optimize by combining some steps? Addition could be done with 9 31-bit numbers, which would be an optimization, but it would require extra conversions for multiplication. It might be worth an attempt in the future.
-	carry = 0x00;
+	carry = 0x00000000;
 
 	for(unsigned short i = 17; i > 0; i -= 1) {
-		u[i] += (v[i - 1] + carry);
+		u[i] += (v[i - 1] + carry); // Using a temp might be faster?
 		carry = u[i]/base;
 		u[i] %= base;
 	}
 
 	m = 1;
 //	base16Mod();
+}
+
+
+// ---------- Subtraction Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm S ----------
+void base16Sub() { // Produces the signed two's compliment of the difference if it is negative. u[1] (the sign) will equal ffff if u is negative.
+	carry = 0x00000000;
+
+	for(unsigned short i = 17; i > 0; i -= 1) {
+		u[i] -= (v[i - 1] + carry);
+		carry = (u[i] & base)/base;
+		u[i] = (u[i] & 0x0001ffff) % base;
+	}
 }
 
 
