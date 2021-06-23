@@ -64,7 +64,18 @@ void base16Mod() { // Won't currently work post multiplication!
 	}
 	u[0] = 0x00000000;
 
+	Serial.print("D1: ");
+	for(unsigned short i = 0; i < 18; i += 1) {
+		Serial.print(u[i], HEX);
+		Serial.print(' ');
+	}
+	Serial.println('\n');
+
 	for(unsigned short i = 0; i < (m + 1); i += 1) { // D2 & D7.
+
+		Serial.print("D2 & D7: ");
+		Serial.print(i);
+		Serial.println('\n');
 
 		qHat = ((base*u[i]) + u[i + 1])/p2[0]; // D3.
 		rHat = ((base*u[i]) + u[i + 1]) % p2[0];
@@ -84,18 +95,42 @@ void base16Mod() { // Won't currently work post multiplication!
 			}
 		}
 
+		Serial.print("D3: ");
+		Serial.print("qHat: ");
+		Serial.print(qHat, HEX);
+		Serial.print(' ');
+		Serial.print("rHat: ");
+		Serial.print(rHat, HEX);
+		Serial.println('\n');
+
 		carry = 0x00000000; // D4.
 		for(unsigned short j = 15; j < 16; j -= 1) {
-			v[j + 1] = (qHat*p2[j]) + carry; // Using a temporary value (as t) might be faster?
-			carry = v[j + 1]/base; // Carry is being used flexibly here (as a "super" carry).
+			v[j + 1] = (qHat*p2[j]) + carry; // Using a temporary value (as t) might be faster? Carry is being used flexibly here (as a "super" carry).
+			carry = v[j + 1]/base;
 			v[j + 1] %= base;
 		}
 		v[0] = carry;
+
+		Serial.print("D4 post mul: ");
+		for(unsigned short j = 0; j < 17; j += 1) {
+			Serial.print(v[i], HEX);
+			Serial.print(' ');
+		}
+		Serial.println('\n');
+
+		carry = 0x00000000;
 		for(unsigned short j = 17; j > 0; j -= 1) {
 			u[j - (m - i)] -= (v[j - 1] + carry); // Carry is used as a borrow here.
 			carry = (u[j - (m - i)] & base)/base;
-			u[j - (m - i)] = (u[j + (m - i)] & 0x0001ffff) % base;
+			u[j - (m - i)] = (u[j - (m - i)] & 0x0001ffff) % base;
 		}
+
+		Serial.print("D4 post sub: ");
+		for(unsigned short j = 0; j < 18; j += 1) {
+			Serial.print(u[j], HEX);
+			Serial.print(' ');
+		}
+		Serial.println('\n');
 
 		q[i] = qHat; // D5.
 		if(carry) {
@@ -122,6 +157,13 @@ void base16Mod() { // Won't currently work post multiplication!
 		carry = u[i] % d;
 		u[i] /= d;
 	}
+
+	Serial.print("D8: ");
+	for(unsigned short i = 0; i < 18; i += 1) {
+		Serial.print(u[i], HEX);
+		Serial.print(' ');
+	}
+	Serial.println('\n');
 }
 
 
@@ -134,6 +176,13 @@ void base16Add() { // Check for constant time. Might be able to optimize by comb
 		carry = u[i]/base;
 		u[i] %= base;
 	}
+
+	Serial.print("base16Add: ");
+	for(unsigned short i = 1; i < 18; i += 1) {
+		Serial.print(u[i], HEX);
+		Serial.print(' ');
+	}
+	Serial.println('\n');
 
 	m = 1;
 	base16Mod();
@@ -165,27 +214,28 @@ void setup() {
 		delay(250);
 	}
 
-	duration = 0;
-	for(unsigned short t = 0; t < 500; t += 1) {
-//		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
-//		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
-//               57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C
+//	duration = 0;
+//	for(unsigned short t = 0; t < 500; t += 1) {
+		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
+		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
+//               57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C = (a + b) % p.
 
-		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
-		b[0] = 0x00000000; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
+//		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
+//		a[0] = 0x80000000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
+//		b[0] = 0x7fffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffed;
 
 		base32_16();
 
-		timeStamp = micros();
+//		timeStamp = micros();
 		base16Add();
-		duration += (micros() - timeStamp);
+//		duration += (micros() - timeStamp);
 
 		base16_32();
-	}
+//	}
 
-	Serial.print("micros: ");
-	Serial.print(duration);
-	Serial.println('\n');
+//	Serial.print("micros: ");
+//	Serial.print(duration);
+//	Serial.println('\n');
 
 	Serial.print(u[1], HEX);
 	Serial.print(' ');
