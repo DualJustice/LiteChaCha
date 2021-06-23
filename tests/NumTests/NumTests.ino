@@ -13,10 +13,17 @@
 */
 
 
+// 0 ffffc000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 <--- D3 / D5 killer?
+// 1 ffff8000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 <--- ^ x2.
+// 0 7FFF8000 00000000 00000000 00000000 00000000 00000000 00000000 00000039
+
+//    2 FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFF8E
+
+
 uint32_t a[8];
 uint32_t b[8];
 
-static const constexpr uint32_t p[16] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed};
+static const constexpr uint32_t p[16] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // DELETE ME?
 static const constexpr uint32_t p2[16] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda};
 
 uint32_t u[18]; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
@@ -31,8 +38,7 @@ static const constexpr unsigned short n = 16;
 unsigned short m;
 uint32_t qHat;
 uint32_t rHat;
-char borrow; // DELETE ME?
-uint32_t q[18];
+uint32_t q[18]; // DELETE ME?
 
 unsigned long timeStamp;
 unsigned long duration;
@@ -80,6 +86,8 @@ void base16Mod() { // Won't currently work post multiplication!
 		qHat = ((base*u[i]) + u[i + 1])/p2[0]; // D3.
 		rHat = ((base*u[i]) + u[i + 1]) % p2[0];
 		if((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2]))) {
+			Serial.print("D3 Flag!");
+			Serial.println('\n');
 			qHat -= 0x01;
 			rHat += p2[0];
 			if(rHat < base) {
@@ -87,7 +95,7 @@ void base16Mod() { // Won't currently work post multiplication!
 					qHat -= 0x01;
 					rHat += p2[0];
 					if(rHat < base) {
-						Serial.print("ERROR!");
+						Serial.print("D3 Error!");
 						Serial.println('\n');
 						abort();
 					}
@@ -113,7 +121,7 @@ void base16Mod() { // Won't currently work post multiplication!
 
 		Serial.print("D4 post mul: ");
 		for(unsigned short j = 0; j < 17; j += 1) {
-			Serial.print(v[i], HEX);
+			Serial.print(v[j], HEX);
 			Serial.print(' ');
 		}
 		Serial.println('\n');
@@ -135,7 +143,7 @@ void base16Mod() { // Won't currently work post multiplication!
 		q[i] = qHat; // D5.
 		if(carry) {
 
-			Serial.println("Negative!"); // D6.
+			Serial.println("D5 Negative!"); // D6.
 			q[i] -= 0x00000001;
 			carry = 0x00000000;
 			for(unsigned short j = 15; j < 16; j -= 1) {
@@ -216,13 +224,13 @@ void setup() {
 
 //	duration = 0;
 //	for(unsigned short t = 0; t < 500; t += 1) {
-		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
-		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
+//		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
+//		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
 //               57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C = (a + b) % p.
 
 //		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
-//		a[0] = 0x80000000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
-//		b[0] = 0x7fffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffed;
+		a[0] = 0xffffc000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
+		b[0] = 0xffffc000; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
 
 		base32_16();
 
