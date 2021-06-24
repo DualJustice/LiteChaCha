@@ -10,14 +10,9 @@
 
 1 ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff fffffffe is the largest expected sum (257 bits).
 0 ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff fffffffe 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001 is the largest expected value (512 bits): (ffffffff ... )^2.
+
+0 ffffffff 00000000 00000000 00000000 00000000 00000000 00000000 00000000 = a & b: (a + b) % p is a D5 negative condition! It works as intended.
 */
-
-
-// 0 ffffc000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 <--- D3 / D5 killer?
-// 1 ffff8000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 <--- ^ x2.
-// 0 7FFF8000 00000000 00000000 00000000 00000000 00000000 00000000 00000039
-
-//    2 FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFF8E
 
 
 uint32_t a[8];
@@ -85,14 +80,20 @@ void base16Mod() { // Won't currently work post multiplication!
 
 		qHat = ((base*u[i]) + u[i + 1])/p2[0]; // D3.
 		rHat = ((base*u[i]) + u[i + 1]) % p2[0];
+		Serial.print("D3: ");
+		Serial.print("qHat: ");
+		Serial.print(qHat, HEX);
+		Serial.print(' ');
+		Serial.print("rHat: ");
+		Serial.println(rHat, HEX);
 		if((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2]))) {
 			Serial.print("D3 Flag!");
 			Serial.println('\n');
-			qHat -= 0x01;
+			qHat -= 0x00000001;
 			rHat += p2[0];
 			if(rHat < base) {
 				if((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2]))) {
-					qHat -= 0x01;
+					qHat -= 0x00000001;
 					rHat += p2[0];
 					if(rHat < base) {
 						Serial.print("D3 Error!");
@@ -140,11 +141,11 @@ void base16Mod() { // Won't currently work post multiplication!
 		}
 		Serial.println('\n');
 
-		q[i] = qHat; // D5.
+		q[i] = qHat; // D5. DELETE ME?
 		if(carry) {
 
 			Serial.println("D5 Negative!"); // D6.
-			q[i] -= 0x00000001;
+			q[i] -= 0x00000001; // DELETE ME?
 			carry = 0x00000000;
 			for(unsigned short j = 15; j < 16; j -= 1) {
 				u[(j + 2) - (m - i)] += (p2[j] + carry); // Using a temp might be faster?
@@ -229,8 +230,10 @@ void setup() {
 //               57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C = (a + b) % p.
 
 //		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
-		a[0] = 0xffffc000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
-		b[0] = 0xffffc000; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
+//		a[0] = 0xffffc000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
+//		b[0] = 0xffffc000; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
+		a[0] = 0xffffffff; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
+		b[0] = 0xffffffff; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
 
 		base32_16();
 
