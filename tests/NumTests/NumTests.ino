@@ -21,7 +21,7 @@ uint32_t b[8];
 static const constexpr uint32_t p[16] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // DELETE ME?
 static const constexpr uint32_t p2[16] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda};
 
-uint32_t u[18]; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
+uint32_t u[34]; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
 uint32_t v[17]; // v[0] is used for carry / borrow.
 
 uint32_t carry;
@@ -34,6 +34,9 @@ unsigned short m;
 uint32_t qHat;
 uint32_t rHat;
 uint32_t q[18]; // DELETE ME?
+
+// Multiplication variables:
+uint32_t w[32];
 
 unsigned long timeStamp;
 unsigned long duration;
@@ -129,7 +132,7 @@ void base16Mod() { // Won't currently work post multiplication!
 
 		carry = 0x00000000;
 		for(unsigned short j = 17; j > 0; j -= 1) {
-			u[j - (m - i)] -= (v[j - 1] + carry); // Carry is used as a borrow here.
+			u[j - (m - i)] -= (v[j - 1] + carry); // Using a temp might be faster? Carry is used as a borrow here.
 			carry = (u[j - (m - i)] & base)/base;
 			u[j - (m - i)] = (u[j - (m - i)] & 0x0001ffff) % base;
 		}
@@ -199,12 +202,41 @@ void base16Add() { // Check for constant time. Might be able to optimize by comb
 }
 
 
+// ---------- Multiplication Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm M ----------
+void base16Mul() { // Might be able to optimize in the future by using the Karatsuba method, or some other method. Maybe within the modulus operation as well?
+	for(unsigned short i = 31; i > 15; i -= 1) {
+		w[i] = 0x00000000;
+	}
+
+	for(unsigned short j = 16; j > 0; j -= 1) {
+		carry = 0x00000000;
+		for(unsigned short i = 17; i > 1; i -= 1) {
+			w[(i + j) - 2] += ((u[i]*v[j]) + carry); // Using a temporary value (as t) might be faster? Carry is being used flexibly here (as a "super" carry).
+			carry = w[(i + j) - 2]/base;
+			w[(i + j) - 2] %= base;
+		}
+		w[j - 1] = carry;
+	}
+
+	Serial.print("base16Mul: ");
+	for(unsigned short i = 2; i < 34; i += 1) {
+		u[i] = w[i - 2];
+		Serial.print(u[i], HEX);
+		Serial.print(' ');
+	}
+	Serial.println('\n');
+
+//	m = 16;
+//	base16Mod();
+}
+
+
 // ---------- Subtraction Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm S ----------
 void base16Sub() { // Produces the signed two's compliment of the difference if it is negative. u[1] (the sign) will equal ffff if u is negative.
 	carry = 0x00000000;
 
 	for(unsigned short i = 17; i > 0; i -= 1) {
-		u[i] -= (v[i - 1] + carry); // Carry is being used as a borrow here.
+		u[i] -= (v[i - 1] + carry); // Using a temp might be faster? Carry is being used as a borrow here.
 		carry = (u[i] & base)/base;
 		u[i] = (u[i] & 0x0001ffff) % base;
 	}
@@ -229,15 +261,17 @@ void setup() {
 //		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
 //		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
 //               57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C = (a + b) % p.
+//               731ECA76 21CD7924  D07C27D3 7F2AD682  2DD98530 DC8833DF  8B36E28E 39E5913C  0256AAFF 53A7FC50  A4F94DA1 F64A9EF3  479BF044 98ED4195  EA3E92E7 3B8FE439 = (a * b).
 
 //		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
-		a[0] = 0xffffffff; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
-		b[0] = 0xffffffff; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
+		a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffff;
+		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffff;
 
 		base32_16();
 
 //		timeStamp = micros();
-		base16Add();
+//		base16Add();
+		base16Mul();
 //		duration += (micros() - timeStamp);
 
 		base16_32();
