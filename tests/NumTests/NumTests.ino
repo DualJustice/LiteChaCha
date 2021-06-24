@@ -57,12 +57,9 @@ void base32_16() {
 
 // ---------- Modulus Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm D ----------
 void base16Mod() { // Won't currently work post multiplication!
-	for(unsigned short i = 1; i < (n + m + 1); i += 1) { // D1.
-		v[i - 1] = u[i];
-	}
-	carry = 0x00000000;
+	carry = 0x00000000; // D1.
 	for(unsigned short i = 17; i > 0; i -= 1) {
-		u[i] += (v[i - 1] + carry); // Using a temp might be faster?
+		u[i] += (u[i] + carry); // Using a temp might be faster?
 		carry = u[i]/base;
 		u[i] %= base;
 	}
@@ -226,7 +223,7 @@ void base16Mul() { // Might be able to optimize in the future by using the Karat
 	}
 	Serial.println('\n');
 
-//	m = 16;
+//	m = 17;
 //	base16Mod();
 }
 
@@ -258,14 +255,14 @@ void setup() {
 
 //	duration = 0;
 //	for(unsigned short t = 0; t < 500; t += 1) {
-//		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
-//		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
+		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
+		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
 //               57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C = (a + b) % p.
 //               731ECA76 21CD7924  D07C27D3 7F2AD682  2DD98530 DC8833DF  8B36E28E 39E5913C  0256AAFF 53A7FC50  A4F94DA1 F64A9EF3  479BF044 98ED4195  EA3E92E7 3B8FE439 = (a * b).
 
 //		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
-		a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffff;
-		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffff;
+//		a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffff;
+//		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffff;
 
 		base32_16();
 
