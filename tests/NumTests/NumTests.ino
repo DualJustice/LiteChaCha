@@ -15,9 +15,9 @@
 */
 
 
-// 0 7ffffffe 00000000 00000000 00000000 00000000 00000000 00000000 00000039 <--- Wolfram answer.
-// 1 7ffffffe 00000000 00000000 00000000 00000000 00000000 00000000 00000039 <--- Pre D6 changes.
-// 
+// 0 7ffffffe 00000000 00000000 00000000 00000000 00000000 00000000 00000039 <---  Wolfram answer.
+// 1 7ffffffe 00000000 00000000 00000000 00000000 00000000 00000000 00000039 <---  Pre D6 changes.
+// 0 7ffffffe 00000000 00000000 00000000 00000000 00000000 00000000 00000039 <--- post D6 changes.
 
 
 uint32_t a[8];
@@ -157,8 +157,9 @@ void base16Mod() { // Won't currently work post multiplication!
 				carry = u[(j + 2) - (m - i)]/base;
 				u[(j + 2) - (m - i)] %= base;
 			}
-			u[i] = carry % base;
-			carry /= base; // FOR TROUBLESHOOTING PURPOSES ONLY! DELETE ME!
+			u[i] += carry;
+			carry = u[i]/base; // FOR TROUBLESHOOTING PURPOSES ONLY! DELETE ME!
+			u[i] %= base;
 			Serial.print("Carry (should be > 0): "); // FOR TROUBLESHOOTING PURPOSES ONLY! DELETE ME!
 			Serial.print(carry, HEX); // FOR TROUBLESHOOTING PURPOSES ONLY! DELETE ME!
 			Serial.println('\n');
