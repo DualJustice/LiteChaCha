@@ -58,7 +58,7 @@ void base32_16() {
 // ---------- Modulus Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm D ----------
 void base16Mod() { // Won't currently work post multiplication!
 	carry = 0x00000000; // D1.
-	for(unsigned short i = 17; i > 0; i -= 1) {
+	for(unsigned short i = (m + n); i > 0; i -= 1) {
 		u[i] += (u[i] + carry); // Using a temp might be faster?
 		carry = u[i]/base;
 		u[i] %= base;
@@ -66,7 +66,7 @@ void base16Mod() { // Won't currently work post multiplication!
 	u[0] = 0x00000000;
 
 	Serial.print("D1: ");
-	for(unsigned short i = 0; i < 18; i += 1) {
+	for(unsigned short i = 0; i < 34; i += 1) {
 		Serial.print(u[i], HEX);
 		Serial.print(' ');
 	}
@@ -128,14 +128,14 @@ void base16Mod() { // Won't currently work post multiplication!
 		Serial.println('\n');
 
 		carry = 0x00000000;
-		for(unsigned short j = 17; j > 0; j -= 1) {
-			u[j - (m - i)] -= (v[j - 1] + carry); // Using a temp might be faster? Carry is used as a borrow here.
+		for(unsigned short j = (m + n); j > (m - 1); j -= 1) {
+			u[j - (m - i)] -= (v[j - m] + carry); // Using a temp might be faster? Carry is used as a borrow here.
 			carry = (u[j - (m - i)] & base)/base;
 			u[j - (m - i)] = (u[j - (m - i)] & 0x0001ffff) % base;
 		}
 
 		Serial.print("D4 post sub: ");
-		for(unsigned short j = 0; j < 18; j += 1) {
+		for(unsigned short j = 0; j < 34; j += 1) {
 			Serial.print(u[j], HEX);
 			Serial.print(' ');
 		}
@@ -146,11 +146,20 @@ void base16Mod() { // Won't currently work post multiplication!
 
 			Serial.println("D5 Negative!"); // D6.
 			q[i] -= 0x00000001; // DELETE ME?
-			carry = 0x00000000;
+/*			carry = 0x00000000;
 			for(unsigned short j = 15; j < 16; j -= 1) {
 				u[(j + 2) - (m - i)] += (p2[j] + carry); // Using a temp might be faster?
 				carry = u[(j + 2) - (m - i)]/base;
 				u[(j + 2) - (m - i)] %= base;
+			}
+			u[i] += carry;
+			carry = u[i]/base; // FOR TROUBLESHOOTING PURPOSES ONLY! DELETE ME!
+			u[i] %= base;*/
+			carry = 0x00000000;
+			for(unsigned short j = (m + n); j > m; j -= 1) {
+				u[j - (m - i)] += (p2[(j - m) - 1] + carry); // Using a temp might be faster?
+				carry = u[j - (m - i)]/base;
+				u[j - (m - i)] %= base;
 			}
 			u[i] += carry;
 			carry = u[i]/base; // FOR TROUBLESHOOTING PURPOSES ONLY! DELETE ME!
@@ -162,14 +171,14 @@ void base16Mod() { // Won't currently work post multiplication!
 	}
 
 	carry = 0x00000000; // D8.
-	for(unsigned short i = 2; i < 18; i += 1) {
+	for(unsigned short i = (m + 1); i < (m + 17); i += 1) {
 		u[i] += (carry*base); // Carry is used as a remainder here.
 		carry = u[i] % d;
 		u[i] /= d;
 	}
 
 	Serial.print("D8: ");
-	for(unsigned short i = 0; i < 18; i += 1) {
+	for(unsigned short i = 0; i < 34; i += 1) {
 		Serial.print(u[i], HEX);
 		Serial.print(' ');
 	}
@@ -223,8 +232,8 @@ void base16Mul() { // Might be able to optimize in the future by using the Karat
 	}
 	Serial.println('\n');
 
-//	m = 17;
-//	base16Mod();
+	m = 17;
+	base16Mod();
 }
 
 
@@ -259,6 +268,8 @@ void setup() {
 		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
 //               57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C = (a + b) % p.
 //               731ECA76 21CD7924  D07C27D3 7F2AD682  2DD98530 DC8833DF  8B36E28E 39E5913C  0256AAFF 53A7FC50  A4F94DA1 F64A9EF3  479BF044 98ED4195  EA3E92E7 3B8FE439 = (a * b).
+//               18E8B888           5827F7C7           97673706           D6A67646           15E5B585           5524F4C4           94643403           D3A375A7 = (a * b) % p.
+//               18E8B888           5827F7C7           97673706           D6A67646           15E5B585           5524F4C4           94643403           D3A375A7
 
 //		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
 //		a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffff;
