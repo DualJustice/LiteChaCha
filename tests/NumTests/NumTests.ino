@@ -27,7 +27,7 @@ static const constexpr uint32_t base = 0x00010000;
 
 // Modulus variables:
 static const constexpr char d = 0x02;
-static const constexpr uint32_t p2[16] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda};
+static const constexpr uint32_t p2[16] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda}; // p*2.
 unsigned short m;
 static const constexpr unsigned short n = 16;
 uint32_t qHat;
@@ -35,6 +35,9 @@ uint32_t rHat;
 
 // Multiplication variables:
 uint32_t w[32];
+
+// Subtraction variables:
+static const constexpr uint32_t p[16] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
 
 unsigned long timeStamp;
 unsigned long duration;
@@ -160,7 +163,7 @@ void base16Add() { // Check for constant time! Might be able to optimize by comb
 
 
 // ---------- Multiplication Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm M ----------
-void base16Mul() { // Check for constant time! Might be able to optimize in the future by using the Karatsuba method, or some other method. Maybe within the modulus operation as well?
+void base16Mul() { // Check for constant time! Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well?
 	for(unsigned short i = 31; i > 15; i -= 1) {
 		w[i] = 0x00000000;
 	}
@@ -187,7 +190,7 @@ void base16Mul() { // Check for constant time! Might be able to optimize in the 
 
 
 // ---------- Subtraction Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm S ----------
-void base16Sub() { // Check for constant time! Produces the signed two's compliment of the difference if it is negative. u[1] (the sign) will equal ffff if u is negative.
+void base16Sub() { // Check for constant time! Might be able to optimize by removing base16Mod().
 	carry = 0x00000000;
 
 	for(unsigned short i = 17; i > 0; i -= 1) {
@@ -195,6 +198,23 @@ void base16Sub() { // Check for constant time! Produces the signed two's complim
 		carry = (u[i] & base)/base;
 		u[i] = (u[i] & 0x0001ffff) % base;
 	}
+
+	u[1] &= 0x00000001;
+
+	for(unsigned short t = 0; t < 3; t += 1) {
+		carry = 0x00000000;
+
+		for(unsigned short i = 17; i > 1; i -= 1) {
+			u[i] += ((u[1]*p[i - 2]) + carry);
+			carry = u[i]/base;
+			u[i] %= base;
+		}
+
+		u[1] -= carry;
+	}
+
+	m = 1;
+	base16Mod();
 }
 
 
@@ -220,17 +240,15 @@ void setup() {
 //               18E8B888           5827F7C7           97673706           D6A67646           15E5B585           5524F4C4           94643403           D3A375A7 = (a * b) % p.
 
 //		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
-		a[0] = 0xffffffff; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
-		b[0] = 0xffffffff; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
-
-//   7FFFFFFE 00000000 00000000 00000000 00000000 00000000 00000000 00000039
-// 0 7FFFFFFE 00000000 00000000 00000000 00000000 00000000 00000000 00000039
+		a[0] = 0x00000000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
+		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffd9;
 
 		base32_16();
 
 //		timeStamp = micros();
-		base16Add();
+//		base16Add();
 //		base16Mul();
+		base16Sub();
 //		duration += (micros() - timeStamp);
 
 		base16_32();
