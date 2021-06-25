@@ -88,7 +88,12 @@ void base16Mod() { // Optimize for constant time!
 		qHat = ((base*u[i]) + u[i + 1])/p2[0];
 		rHat = ((base*u[i]) + u[i + 1]) % p2[0];
 
-		if((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2]))) {
+// Max qHat: 0x00010001 = 65537.
+// Max qHat*p2[1]: 0xffffffff.
+// Max rHat: 0x0000fffe = 65534.
+// Max (base*rHat) + u[i + 2]: 0xfffeffff.
+
+/*		if((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2]))) {
 			qHat -= 0x00000001;
 			rHat += p2[0];
 
@@ -103,7 +108,11 @@ void base16Mod() { // Optimize for constant time!
 					}
 				}
 			}
-		}
+		}*/
+
+		carry = !(qHat - base);
+
+
 
 // ---------- D4 ----------
 		carry = 0x00000000;
