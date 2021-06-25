@@ -5,6 +5,18 @@
 
 
 /*
+-------------------- Relevant Notes --------------------
+
+multiprecision.h is a library created to do multiple-precision arithmetic on 32-byte numbers, specifically for ECDHE using X25519.
+
+The algorithms used for modulus, addition, multiplication, and subtraction below were derived from The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithms D, A, M, and S respectively.
+
+So far addition, multiplication, and subtraction are near constant-time. There appear to be slight differences in run time depending on the inputs which is UNACCEPTABLE for security reasons.
+Modulus is NOT constant-time yet, which is also UNACCEPTABLE for security reasons.
+If you are planning on using this yourself for public-key encryption I would advise you do some tests of your own to determine if the risks posed by side-channel attacks are not too great.
+As it is, this is NOT A SAFE IMPLEMENTATION of multiple-precision arithmetic for public-key encryption! Use at your own peril.
+
+
 0 7fffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffed is p (255 bits).
 0 ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffda is p*2.
 
@@ -57,8 +69,7 @@ void base32_16() {
 }
 
 
-// ---------- Modulus Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm D ----------
-void base16Mod() { // Check for constant time!
+void base16Mod() { // Optimize for constant time!
 // ---------- D1 ----------
 	carry = 0x00000000;
 
@@ -147,8 +158,7 @@ void base16Mod() { // Check for constant time!
 }
 
 
-// ---------- Addition Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm A ----------
-void base16Add() { // Check for constant time! Might be able to optimize by combining some steps? Addition could be done with 9 31-bit numbers, which would be an optimization, but it would require extra conversions for multiplication. It might be worth an attempt in the future.
+void base16Add() { // Might be able to optimize by combining some steps?
 	carry = 0x00000000;
 
 	for(unsigned short i = 17; i > 0; i -= 1) {
@@ -158,12 +168,11 @@ void base16Add() { // Check for constant time! Might be able to optimize by comb
 	}
 
 	m = 1;
-	base16Mod();
+//	base16Mod();
 }
 
 
-// ---------- Multiplication Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm M ----------
-void base16Mul() { // Check for constant time! Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well?
+void base16Mul() { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well?
 	for(unsigned short i = 31; i > 15; i -= 1) {
 		w[i] = 0x00000000;
 	}
@@ -185,12 +194,11 @@ void base16Mul() { // Check for constant time! Might be able to optimize by usin
 	}
 
 	m = 17;
-	base16Mod();
+//	base16Mod();
 }
 
 
-// ---------- Subtraction Using: The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithm S ----------
-void base16Sub() { // Check for constant time! Might be able to optimize by removing base16Mod().
+void base16Sub() { // Might be able to optimize by removing base16Mod().
 	carry = 0x00000000;
 
 	for(unsigned short i = 17; i > 0; i -= 1) {
@@ -201,7 +209,7 @@ void base16Sub() { // Check for constant time! Might be able to optimize by remo
 
 	u[1] &= 0x00000001;
 
-	for(unsigned short t = 0; t < 3; t += 1) {
+	for(unsigned short j = 0; j < 3; j += 1) {
 		carry = 0x00000000;
 
 		for(unsigned short i = 17; i > 1; i -= 1) {
@@ -214,7 +222,7 @@ void base16Sub() { // Check for constant time! Might be able to optimize by remo
 	}
 
 	m = 1;
-	base16Mod();
+//	base16Mod();
 }
 
 
@@ -231,8 +239,8 @@ void setup() {
 		delay(250);
 	}
 
-//	duration = 0;
-//	for(unsigned short t = 0; t < 500; t += 1) {
+	duration = 0;
+	for(unsigned short t = 0; t < 500; t += 1) {
 //		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
 //		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
 //               57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C = (a + b) % p.
@@ -241,22 +249,25 @@ void setup() {
 
 //		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
 		a[0] = 0x00000000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
-		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffd9;
+//		b[0] = 0x00000000; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
+
+//		a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffff;
+		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffff;
 
 		base32_16();
 
-//		timeStamp = micros();
+		timeStamp = micros();
 //		base16Add();
 //		base16Mul();
 		base16Sub();
-//		duration += (micros() - timeStamp);
+		duration += (micros() - timeStamp);
 
 		base16_32();
-//	}
+	}
 
-//	Serial.print("micros: ");
-//	Serial.print(duration);
-//	Serial.println('\n');
+	Serial.print("micros: ");
+	Serial.print(duration);
+	Serial.println('\n');
 
 	Serial.print(u[1], HEX);
 	Serial.print(' ');
