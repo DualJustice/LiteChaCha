@@ -44,6 +44,7 @@ unsigned short m;
 static const constexpr unsigned short n = 16;
 uint32_t qHat;
 uint32_t rHat;
+bool c;
 
 // Multiplication variables:
 uint32_t w[32];
@@ -110,9 +111,19 @@ void base16Mod() { // Optimize for constant time!
 			}
 		}*/
 
-		carry = !(qHat - base);
+		c = ((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2])));
+		qHat -= c;
+		rHat += (c*p2[0]);
 
+		c &= (rHat < base);
 
+		c &= ((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2])));
+		qHat -= c;
+		rHat += (c*p2[0]);
+
+		if(rHat < base) {
+			// Log an error here.
+		}
 
 // ---------- D4 ----------
 		carry = 0x00000000;
@@ -134,20 +145,21 @@ void base16Mod() { // Optimize for constant time!
 		}
 
 // ---------- D5 ----------
-		if(carry) {
+//		if(carry) {
+		c = (carry != 0x00000000);
 
 // ---------- D6 ----------
-			carry = 0x00000000;
+		carry = 0x00000000;
 
-			for(unsigned short j = (m + n); j > m; j -= 1) {
-				u[j - (m - i)] += (p2[(j - m) - 1] + carry);
-				carry = u[j - (m - i)]/base;
-				u[j - (m - i)] %= base;
-			}
-
-			u[i] += carry;
-			u[i] %= base;
+		for(unsigned short j = (m + n); j > m; j -= 1) {
+			u[j - (m - i)] += (c*(p2[(j - m) - 1] + carry));
+			carry = u[j - (m - i)]/base;
+			u[j - (m - i)] %= base;
 		}
+
+		u[i] += carry;
+		u[i] %= base;
+//		}
 	}
 
 // ---------- D8 ----------
