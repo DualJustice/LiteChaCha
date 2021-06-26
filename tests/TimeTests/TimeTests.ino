@@ -7,8 +7,11 @@
 #include "src/include/chacha.h"
 
 
-static ChaChaEncryption& cipher = *new ChaChaEncryption();
-static X25519KeyManagement& ecdhe = *new X25519KeyManagement();
+//static ChaChaEncryption& cipher = *new ChaChaEncryption();
+//static X25519KeyManagement& ecdhe = *new X25519KeyManagement();
+
+ChaChaEncryption cipher;
+X25519KeyManagement ecdhe;
 
 
 void setup() {

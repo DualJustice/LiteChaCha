@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 
-#include "stdint.h"
+#include "src\include\multiprecision.h"
 
 
 /*
@@ -15,7 +15,7 @@
 0 ffffffff ffffffff 00000000 00000000 00000000 00000000 00000000 00000000 = a & b: (a * b) % p is a D5 negative condition! It works as intended.
 */
 
-
+/*
 uint32_t a[8];
 uint32_t b[8];
 
@@ -217,6 +217,17 @@ void base16_32() {
 		a[i] = (u[(i*2) + 2] << 16) | u[(i*2) + 3];
 	}
 }
+*/
+
+uint32_t a[8];
+uint32_t b[8];
+uint32_t c[8];
+uint32_t am[math.getMultiLength()];
+uint32_t bm[math.getMultiLength()];
+uint32_t cm[math.getMultiLength()];
+
+unsigned long timeStamp;
+unsigned long duration;
 
 
 void setup() {
@@ -224,6 +235,8 @@ void setup() {
 	while(!Serial) {
 		delay(250);
 	}
+
+	multiPrecisionArithmetic math;
 
 	duration = 0;
 	for(unsigned short t = 0; t < 500; t += 1) {
@@ -244,18 +257,16 @@ void setup() {
 //		a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
 //		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
 
-// 0 7FFFFFFFFFFFFFB4000000000000002600000000000000000000000000000591
-// 0 7FFFFFFFFFFFFFB4000000000000002600000000000000000000000000000591
-
-		base32_16();
+		math.base32_16(am, a);
+		math.base32_16(bm, b);
 
 		timeStamp = micros();
-//		base16Add();
-//		base16Mul();
-//		base16Sub();
+//		math.base16Add(cm, am, bm);
+//		math.base16Mul(cm, am, bm);
+//		math.base16Sub(cm, am, bm);
 		duration += (micros() - timeStamp);
 
-		base16_32();
+		math.base16_32(c, cm);
 	}
 
 	Serial.print("micros: ");
