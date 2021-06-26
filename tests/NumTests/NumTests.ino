@@ -5,18 +5,6 @@
 
 
 /*
--------------------- Relevant Notes --------------------
-
-multiprecision.h is a library created to do multiple-precision arithmetic on 32-byte numbers, specifically for ECDHE using X25519.
-
-The algorithms used for modulus, addition, multiplication, and subtraction below were derived from The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithms D, A, M, and S respectively.
-
-Modulus, addition, multiplication, and subtraction are near constant-time. There are differences in run time depending on inputs, which is UNACCEPTABLE for security reasons.
-
-If you are planning on using multiprecision.h yourself for public-key encryption, I would advise you do some tests of your own to determine if the risks posed by side-channel attacks are not too great.
-As it is, this is NOT A SAFE IMPLEMENTATION of multiple-precision arithmetic for public-key encryption! Use at your own peril.
-
-
 0 7fffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffed is p (255 bits).
 0 ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffda is p*2.
 
