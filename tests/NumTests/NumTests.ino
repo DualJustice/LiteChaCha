@@ -11,9 +11,9 @@ multiprecision.h is a library created to do multiple-precision arithmetic on 32-
 
 The algorithms used for modulus, addition, multiplication, and subtraction below were derived from The Art Of Computer Programming, Vol. 2, Sec. 4.3.1, Algorithms D, A, M, and S respectively.
 
-So far addition, multiplication, and subtraction are near constant-time. There appear to be slight differences in run time depending on the inputs which is UNACCEPTABLE for security reasons.
-Modulus is NOT constant-time yet, which is also UNACCEPTABLE for security reasons.
-If you are planning on using this yourself for public-key encryption I would advise you do some tests of your own to determine if the risks posed by side-channel attacks are not too great.
+Modulus, addition, multiplication, and subtraction are near constant-time. There are differences in run time depending on inputs, which is UNACCEPTABLE for security reasons.
+
+If you are planning on using multiprecision.h yourself for public-key encryption, I would advise you do some tests of your own to determine if the risks posed by side-channel attacks are not too great.
 As it is, this is NOT A SAFE IMPLEMENTATION of multiple-precision arithmetic for public-key encryption! Use at your own peril.
 
 
@@ -44,7 +44,7 @@ unsigned short m;
 static const constexpr unsigned short n = 16;
 uint32_t qHat;
 uint32_t rHat;
-bool c;
+uint32_t c; // Conditional multiplier used in place of conditional branches to aid in constant-time.
 
 // Multiplication variables:
 uint32_t w[32];
@@ -70,7 +70,7 @@ void base32_16() {
 }
 
 
-void base16Mod() { // Optimize for constant time!
+void base16Mod() {
 // ---------- D1 ----------
 	carry = 0x00000000;
 
@@ -89,28 +89,6 @@ void base16Mod() { // Optimize for constant time!
 		qHat = ((base*u[i]) + u[i + 1])/p2[0];
 		rHat = ((base*u[i]) + u[i + 1]) % p2[0];
 
-// Max qHat: 0x00010001 = 65537.
-// Max qHat*p2[1]: 0xffffffff.
-// Max rHat: 0x0000fffe = 65534.
-// Max (base*rHat) + u[i + 2]: 0xfffeffff.
-
-/*		if((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2]))) {
-			qHat -= 0x00000001;
-			rHat += p2[0];
-
-			if(rHat < base) {
-
-				if((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2]))) {
-					qHat -= 0x00000001;
-					rHat += p2[0];
-
-					if(rHat < base) {
-						// Log an error here.
-					}
-				}
-			}
-		}*/
-
 		c = ((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2])));
 		qHat -= c;
 		rHat += (c*p2[0]);
@@ -123,6 +101,7 @@ void base16Mod() { // Optimize for constant time!
 
 		if(rHat < base) {
 			// Log an error here.
+			// Wait until new scalar is chosen.
 		}
 
 // ---------- D4 ----------
@@ -145,7 +124,6 @@ void base16Mod() { // Optimize for constant time!
 		}
 
 // ---------- D5 ----------
-//		if(carry) {
 		c = (carry != 0x00000000);
 
 // ---------- D6 ----------
@@ -159,7 +137,6 @@ void base16Mod() { // Optimize for constant time!
 
 		u[i] += carry;
 		u[i] %= base;
-//		}
 	}
 
 // ---------- D8 ----------
@@ -189,7 +166,7 @@ void base16Add() { // Might be able to optimize by combining some steps?
 	}
 
 	m = 1;
-//	base16Mod();
+	base16Mod();
 }
 
 
@@ -215,7 +192,7 @@ void base16Mul() { // Might be able to optimize by using the Karatsuba method, o
 	}
 
 	m = 17;
-//	base16Mod();
+	base16Mod();
 }
 
 
@@ -243,7 +220,7 @@ void base16Sub() { // Might be able to optimize by removing base16Mod().
 	}
 
 	m = 1;
-//	base16Mod();
+	base16Mod();
 }
 
 
@@ -269,18 +246,25 @@ void setup() {
 //               18E8B888           5827F7C7           97673706           D6A67646           15E5B585           5524F4C4           94643403           D3A375A7 = (a * b) % p.
 
 //		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
-		a[0] = 0x00000000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
+//		b[0] = 0x7fffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffed;
+//		a[0] = 0x00000000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
 //		b[0] = 0x00000000; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
 
 //		a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffff;
-		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffff;
+//		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffd9;
+
+//		a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
+//		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
+
+// 0 7FFFFFFFFFFFFFB4000000000000002600000000000000000000000000000591
+// 0 7FFFFFFFFFFFFFB4000000000000002600000000000000000000000000000591
 
 		base32_16();
 
 		timeStamp = micros();
 //		base16Add();
 //		base16Mul();
-		base16Sub();
+//		base16Sub();
 		duration += (micros() - timeStamp);
 
 		base16_32();
