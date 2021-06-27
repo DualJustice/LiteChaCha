@@ -219,16 +219,6 @@ void base16_32() {
 }
 */
 
-uint32_t a[8];
-uint32_t b[8];
-uint32_t c[8];
-uint32_t am[math.getMultiLength()];
-uint32_t bm[math.getMultiLength()];
-uint32_t cm[math.getMultiLength()];
-
-unsigned long timeStamp;
-unsigned long duration;
-
 
 void setup() {
 	Serial.begin(9600);
@@ -238,48 +228,62 @@ void setup() {
 
 	multiPrecisionArithmetic math;
 
-	duration = 0;
-	for(unsigned short t = 0; t < 500; t += 1) {
-//		a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
-//		b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
-//               57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C = (a + b) % p.
-//               731ECA76 21CD7924  D07C27D3 7F2AD682  2DD98530 DC8833DF  8B36E28E 39E5913C  0256AAFF 53A7FC50  A4F94DA1 F64A9EF3  479BF044 98ED4195  EA3E92E7 3B8FE439 = (a * b).
-//               18E8B888           5827F7C7           97673706           D6A67646           15E5B585           5524F4C4           94643403           D3A375A7 = (a * b) % p.
+	uint32_t a[8];
+	uint32_t b[8];
+	uint32_t c[8];
+	uint32_t am[math.getMultiLength()];
+	uint32_t bm[math.getMultiLength()];
+	uint32_t cm[math.getMultiLength()];
 
-//		a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
-//		b[0] = 0x7fffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffed;
-//		a[0] = 0x00000000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
-//		b[0] = 0x00000000; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
+	unsigned long timeStamp;
+	unsigned long duration;
 
-//		a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffff;
-//		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffd9;
+	for(unsigned short t1 = 0; t1 < 3; t1 += 1) {
+		duration = 0;
 
-//		a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
-//		b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
+		for(unsigned short t2 = 0; t2 < 500; t2 += 1) {
+//			a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
+//			b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
+//		             57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C = (a + b) % p.
+//		             731ECA76 21CD7924  D07C27D3 7F2AD682  2DD98530 DC8833DF  8B36E28E 39E5913C  0256AAFF 53A7FC50  A4F94DA1 F64A9EF3  479BF044 98ED4195  EA3E92E7 3B8FE439 = (a * b).
+//		             18E8B888           5827F7C7           97673706           D6A67646           15E5B585           5524F4C4           94643403           D3A375A7 = (a * b) % p.
 
-		math.base32_16(am, a);
-		math.base32_16(bm, b);
+//			a[0] = 0x7fffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffed;
+//			b[0] = 0x7fffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffed;
+//			a[0] = 0x00000000; a[1] = 0x00000000; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
+//			b[0] = 0x00000000; b[1] = 0x00000000; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
 
-		timeStamp = micros();
-//		math.base16Add(cm, am, bm);
-//		math.base16Mul(cm, am, bm);
-//		math.base16Sub(cm, am, bm);
-		duration += (micros() - timeStamp);
+//			a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff; a[4] = 0xffffffff; a[5] = 0xffffffff; a[6] = 0xffffffff; a[7] = 0xffffffff;
+//			b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffff;
+//			b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xffffffff; b[4] = 0xffffffff; b[5] = 0xffffffff; b[6] = 0xffffffff; b[7] = 0xffffffd9;
 
-		math.base16_32(c, cm);
-	}
+//			a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
+//			b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
 
-	Serial.print("micros: ");
-	Serial.print(duration);
-	Serial.println('\n');
+			math.base32_16(am, a);
+			math.base32_16(bm, b);
 
-	Serial.print(u[1], HEX);
-	Serial.print(' ');
-	for(unsigned short i = 0; i < 8; i += 1) {
-		Serial.print(a[i], HEX);
+			timeStamp = micros();
+//			math.base16Add(cm, am, bm);
+//			math.base16Mul(cm, am, bm);
+//			math.base16Sub(cm, am, bm);
+			duration += (micros() - timeStamp);
+
+			math.base16_32(c, cm);
+		}
+
+		Serial.print("micros: ");
+		Serial.print(duration);
+		Serial.println('\n');
+
+	//	Serial.print(u[1], HEX);
 		Serial.print(' ');
+		for(unsigned short i = 0; i < 8; i += 1) {
+			Serial.print(c[i], HEX);
+			Serial.print(' ');
+		}
+		Serial.println('\n');
 	}
-	Serial.println('\n');
 }
 
 
