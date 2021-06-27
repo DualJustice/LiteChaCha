@@ -6,28 +6,27 @@
 
 class multiPrecisionArithmetic {
 private:
-	uint32_t u[34]; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
-	uint32_t v[17]; // v[0] is used for carry / borrow.
-
-	uint32_t carry; // carry is used for addition carries, subtraction borrows, multiplication carries, and division remainders.
-	static const constexpr uint32_t base = 0x00010000;
-
-	// Modulus variables:
+// ---------- Modulus Variables ----------
 	static const constexpr uint32_t d = 0x00000002;
-//	static const constexpr uint32_t p2[16] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda}; // p*2.
-	const uint32_t p2[16] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda}; // p*2.
 	unsigned short m;
 	static const constexpr unsigned short n = 16;
+	const uint32_t p2[n] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda}; // p*2.
 	uint32_t qHat;
 	uint32_t rHat;
 	uint32_t c; // Conditional multiplier used in place of conditional branches to aid in constant-time.
 
-	// Multiplication variables:
-	uint32_t w[32];
+// ---------- Multiplication Variables ----------
+	uint32_t w[n*2];
 
-	// Subtraction variables:
-//	static const constexpr uint32_t p[16] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
-	const uint32_t p[16] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
+// ---------- Subtraction Variables ----------
+	const uint32_t p[n] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
+
+// ---------- General Variables ----------
+	uint32_t u[(n*2) + 2]; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
+	uint32_t v[n + 1]; // v[0] is used for carry / borrow.
+
+	uint32_t carry; // carry is used for addition carries, subtraction borrows, multiplication carries, and division remainders.
+	static const constexpr uint32_t base = 0x00010000;
 
 	void prepareIn(uint32_t*, uint32_t*);
 
@@ -59,34 +58,9 @@ multiPrecisionArithmetic::~multiPrecisionArithmetic() {
 
 }
 
-/*
-uint32_t a[8];
-uint32_t b[8];
-
-uint32_t u[34]; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
-uint32_t v[17]; // v[0] is used for carry / borrow.
-
-uint32_t carry; // carry is used for addition carries, subtraction borrows, multiplication carries, and division remainders.
-static const constexpr uint32_t base = 0x00010000;
-
-// Modulus variables:
-static const constexpr char d = 0x02;
-static const constexpr uint32_t p2[16] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda}; // p*2.
-unsigned short m;
-static const constexpr unsigned short n = 16;
-uint32_t qHat;
-uint32_t rHat;
-uint32_t c; // Conditional multiplier used in place of conditional branches to aid in constant-time.
-
-// Multiplication variables:
-uint32_t w[32];
-
-// Subtraction variables:
-static const constexpr uint32_t p[16] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
-*/
 
 void multiPrecisionArithmetic::base32_16(uint32_t* out, uint32_t* a) {
-	for(unsigned short i = 0; i < 8; i += 1) {
+	for(unsigned short i = 0; i < (n/2); i += 1) {
 		out[i*2] = a[i] >> 16;
 		out[(i*2) + 1] = a[i] & 0x0000ffff;
 	}
@@ -97,7 +71,7 @@ void multiPrecisionArithmetic::prepareIn(uint32_t* a, uint32_t* b) {
 	u[1] = 0x00000000;
 	v[0] = 0x00000000;
 
-	for(unsigned short i = 0; i < 16; i += 1) {
+	for(unsigned short i = 0; i < n; i += 1) {
 		u[i + 2] = a[i];
 		v[i + 1] = b[i];
 	}
@@ -141,7 +115,7 @@ void multiPrecisionArithmetic::base16Mod() {
 // ---------- D4 ----------
 		carry = 0x00000000;
 
-		for(unsigned short j = 15; j < 16; j -= 1) {
+		for(unsigned short j = (n - 1); j < n; j -= 1) {
 			v[j + 1] = (qHat*p2[j]) + carry;
 			carry = v[j + 1]/base;
 			v[j + 1] %= base;
@@ -183,7 +157,7 @@ void multiPrecisionArithmetic::base16Mod() {
 	}
 
 	if(m > 1) {
-		for(unsigned short i = 2; i < 18; i += 1) {
+		for(unsigned short i = 2; i < (n + 2); i += 1) {
 			u[i] = u[i + (m - 1)];
 		}
 	}
@@ -191,18 +165,18 @@ void multiPrecisionArithmetic::base16Mod() {
 
 
 void multiPrecisionArithmetic::prepareOut(uint32_t* out) {
-	for(unsigned short i = 0; i < 16; i += 1) {
+	for(unsigned short i = 0; i < n; i += 1) {
 		out[i] = u[i + 2];
 	}
 }
 
 
-void multiPrecisionArithmetic::base16Add(uint32_t* out, uint32_t* a, uint32_t* b) { // Might be able to optimize by combining some steps?
+void multiPrecisionArithmetic::base16Add(uint32_t* out, uint32_t* a, uint32_t* b) { // Might be able to optimize by combining some steps.
 	prepareIn(a, b);
 
 	carry = 0x00000000;
 
-	for(unsigned short i = 17; i > 0; i -= 1) {
+	for(unsigned short i = (n + 1); i > 0; i -= 1) {
 		u[i] += (v[i - 1] + carry);
 		carry = u[i]/base;
 		u[i] %= base;
@@ -215,17 +189,17 @@ void multiPrecisionArithmetic::base16Add(uint32_t* out, uint32_t* a, uint32_t* b
 }
 
 
-void multiPrecisionArithmetic::base16Mul(uint32_t* out, uint32_t* a, uint32_t* b) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well?
+void multiPrecisionArithmetic::base16Mul(uint32_t* out, uint32_t* a, uint32_t* b) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well.
 	prepareIn(a, b);
 
-	for(unsigned short i = 31; i > 15; i -= 1) {
+	for(unsigned short i = ((n*2) - 1); i > (n - 1); i -= 1) {
 		w[i] = 0x00000000;
 	}
 
-	for(unsigned short j = 16; j > 0; j -= 1) {
+	for(unsigned short j = n; j > 0; j -= 1) {
 		carry = 0x00000000;
 
-		for(unsigned short i = 17; i > 1; i -= 1) {
+		for(unsigned short i = (n + 1); i > 1; i -= 1) {
 			w[(i + j) - 2] += ((u[i]*v[j]) + carry);
 			carry = w[(i + j) - 2]/base;
 			w[(i + j) - 2] %= base;
@@ -234,11 +208,11 @@ void multiPrecisionArithmetic::base16Mul(uint32_t* out, uint32_t* a, uint32_t* b
 		w[j - 1] = carry;
 	}
 
-	for(unsigned short i = 2; i < 34; i += 1) {
+	for(unsigned short i = 2; i < ((n*2) + 2); i += 1) {
 		u[i] = w[i - 2];
 	}
 
-	m = 17;
+	m = n + 1;
 	base16Mod();
 
 	prepareOut(out);
@@ -250,7 +224,7 @@ void multiPrecisionArithmetic::base16Sub(uint32_t* out, uint32_t* a, uint32_t* b
 
 	carry = 0x00000000;
 
-	for(unsigned short i = 17; i > 0; i -= 1) {
+	for(unsigned short i = (n + 1); i > 0; i -= 1) {
 		u[i] -= (v[i - 1] + carry);
 		carry = (u[i] & base)/base;
 		u[i] = (u[i] & 0x0001ffff) % base;
@@ -261,7 +235,7 @@ void multiPrecisionArithmetic::base16Sub(uint32_t* out, uint32_t* a, uint32_t* b
 	for(unsigned short j = 0; j < 3; j += 1) {
 		carry = 0x00000000;
 
-		for(unsigned short i = 17; i > 1; i -= 1) {
+		for(unsigned short i = (n + 1); i > 1; i -= 1) {
 			u[i] += ((u[1]*p[i - 2]) + carry);
 			carry = u[i]/base;
 			u[i] %= base;
@@ -278,7 +252,7 @@ void multiPrecisionArithmetic::base16Sub(uint32_t* out, uint32_t* a, uint32_t* b
 
 
 void multiPrecisionArithmetic::base16_32(uint32_t* out, uint32_t* a) {
-	for(unsigned short i = 0; i < 8; i += 1) {
+	for(unsigned short i = 0; i < (n/2); i += 1) {
 		out[i] = (a[i*2] << 16) | a[(i*2) + 1];
 	}
 }
