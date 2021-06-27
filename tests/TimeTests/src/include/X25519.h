@@ -5,6 +5,7 @@
 #include "HardwareSerial.h" // DELETE ME!
 
 #include "multiprecision.h"
+multiPrecisionArithmetic math;
 
 #include <stdint.h>
 
@@ -13,34 +14,36 @@ class X25519KeyManagement {
 private:
 	static const constexpr unsigned short BYTELEN = 32;
 	static const constexpr unsigned short INTLEN = 8;
+	static const constexpr unsigned short INTLENMULTI = math.getMultiLength();
 	static const constexpr unsigned short BITS = 255;
 
 	uint32_t nInt[INTLEN];
 	uint32_t xInt[INTLEN];
+	uint32_t xIntMulti[INTLENMULTI];
 
-	uint32_t X1[INTLEN];
-	uint32_t X2[INTLEN];
-	uint32_t Z2[INTLEN];
-	uint32_t X3[INTLEN];
-	uint32_t Z3[INTLEN];
+	uint32_t X1[INTLENMULTI];
+	uint32_t X2[INTLENMULTI];
+	uint32_t Z2[INTLENMULTI];
+	uint32_t X3[INTLENMULTI];
+	uint32_t Z3[INTLENMULTI];
 
-	uint32_t swap;
+	uint32_t s;
+	uint32_t bit;
 	uint32_t mask;
+	uint32_t swap;
 
-	uint32_t A[INTLEN];
-	uint32_t AA[INTLEN];
-	uint32_t B[INTLEN];
-	uint32_t BB[INTLEN];
-	uint32_t E[INTLEN];
-	uint32_t C[INTLEN];
-	uint32_t D[INTLEN];
-	uint32_t DA[INTLEN];
-	uint32_t CB[INTLEN];
+	uint32_t A[INTLENMULTI];
+	uint32_t AA[INTLENMULTI];
+	uint32_t B[INTLENMULTI];
+	uint32_t BB[INTLENMULTI];
+	uint32_t E[INTLENMULTI];
+	uint32_t C[INTLENMULTI];
+	uint32_t D[INTLENMULTI];
+	uint32_t DA[INTLENMULTI];
+	uint32_t CB[INTLENMULTI];
 
-	char s;
-	char bit;
-
-	char carry;
+	uint32_t A24[INTLEN] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0001db41}; // (486662 - 2)/4.
+	uint32_t A24Multi[INTLENMULTI];
 
 	char* decodeBytesLittleEndian(char*);
 	char* clampAndDecodeScalar(char*);
@@ -48,7 +51,7 @@ private:
 	char* maskAndDecodeXCoord(char*);
 
 	void ladderStep();
-	void cSwap(char);
+	void cSwap(uint32_t);
 	void montgomeryLadder();
 
 //	void ladderStep(BigNumber, BigNumber, BigNumber, BigNumber, BigNumber, char);
@@ -113,34 +116,38 @@ char* X25519KeyManagement::maskAndDecodeXCoord(char* x) {
 
 
 void X25519KeyManagement::ladderStep() {
-//	A = (X2 + Z2) % p;
-	uint32_t temp;
-	carry = 0x00;
-
-	for(unsigned short i = (INTLEN - 1); i < INTLEN; i -= 1) {
-		temp = A[i];
-		A[i] = X2[i] + Z2[i] + carry;
-
-		if(A[i] < temp) {
-			carry = 0x01;
-		} else {
-			carry = 0x00;
-		}
-	}
+	math.base16Add(A, X2, Z2);
+	math.base16Mul(AA, A, A);
+	math.base16Sub(B, X2, Z2);
+	math.base16Mul(BB, B, B);
+	math.base16Sub(E, AA, BB);
+	math.base16Add(C, X3, Z3);
+	math.base16Sub(D, X3, Z3);
+	math.base16Mul(DA, D, A);
+	math.base16Mul(CB, C, B);
+	math.base16Add(X3, DA, CB);
+	math.base16Mul(X3, X3, X3);
+	math.base16Sub(Z3, DA, CB);
+	math.base16Mul(Z3, Z3, Z3);
+	math.base16Mul(Z3, X1, Z3);
+	math.base16Mul(X2, AA, BB);
+	math.base16Mul(Z2, A24Multi, E);
+	math.base16Add(Z2, AA, Z2);
+	math.base16Mul(Z2, E, Z2);
 }
 
 
-void X25519KeyManagement::cSwap(char s) {
+void X25519KeyManagement::cSwap(uint32_t s) {
 	mask = 0x00000000;
 	mask -= s;
 
-	for(unsigned short i = 0; i < INTLEN; i += 1) {
+	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
 		swap = mask & (X2[i] ^ X3[i]);
 		X2[i] ^= swap;
 		X3[i] ^= swap;
 	}
 
-	for(unsigned short i = 0; i < INTLEN; i += 1) {
+	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
 		swap = mask & (Z2[i] ^ Z3[i]);
 		Z2[i] ^= swap;
 		Z3[i] ^= swap;
@@ -149,35 +156,35 @@ void X25519KeyManagement::cSwap(char s) {
 
 
 void X25519KeyManagement::montgomeryLadder() {
-	for(unsigned short i = 0; i < INTLEN; i += 1) {
-		X1[i] = xInt[i];
+	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
+		X1[i] = xIntMulti[i];
 	}
-	for(unsigned short i = 0; i < (INTLEN - 1); i += 1) {
+	for(unsigned short i = 0; i < (INTLENMULTI - 1); i += 1) {
 		X2[i] = 0x00000000;
 	}
-	X2[INTLEN - 1] = 0x00000001;
-	for(unsigned short i = 0; i < INTLEN; i += 1) {
+	X2[INTLENMULTI - 1] = 0x00000001;
+	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
 		Z2[i] = 0x00000000;
 	}
-	for(unsigned short i = 0; i < INTLEN; i += 1) {
-		X3[i] = xInt[i];
+	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
+		X3[i] = xIntMulti[i];
 	}
-	for(unsigned short i = 0; i < (INTLEN - 1); i += 1) {
+	for(unsigned short i = 0; i < (INTLENMULTI - 1); i += 1) {
 		Z3[i] = 0x00000000;
 	}
-	Z3[INTLEN - 1] = 0x00000001;
-	s = 0x00;
+	Z3[INTLENMULTI - 1] = 0x00000001;
+	s = 0x00000000;
 
 	for(unsigned short i = (BITS - 1); i < BITS; i -= 1) {
-		bit = ((nInt[(BITS - i)/32]) >> (i % 32)) & 0x01;
+		bit = ((nInt[(BITS - i)/32]) >> (i % 32)) & 0x00000001;
 		s ^= bit;
 		cSwap(s);
 		s = bit;
 
 		ladderStep();
-
-		cSwap(s);
 	}
+
+	cSwap(s);
 }
 
 
@@ -406,6 +413,9 @@ void X25519KeyManagement::curve25519(char* n, char* xp) { // k is the independen
 	Serial.println('\n');
 
 	toUInt(xInt, xp);
+	math.base32_16(xIntMulti, xInt);
+
+	math.base32_16(A24Multi, A24);
 
 	montgomeryLadder();
 

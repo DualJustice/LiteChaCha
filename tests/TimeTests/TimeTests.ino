@@ -17,6 +17,9 @@ void setup() {
 		delay(250);
 	}
 
+	unsigned long timeStamp = 0;
+	unsigned long duration = 0;
+
 /*
 //CHACHA TEST:
 
@@ -39,9 +42,6 @@ void setup() {
 	}
 
 	unsigned long long messageCount = 0;
-
-	unsigned long timeStamp = 0;
-	unsigned long duration = 0;
 
 	unsigned long totalEncryptionTime = 0;
 	unsigned long totalDecryptionTime = 0;
@@ -140,7 +140,14 @@ void setup() {
 
 //	ecdhe.startBigNum();
 
+	duration = 0;
+	timeStamp = micros();
 	ecdhe.curve25519(privateKey, initXCoord);
+	duration = micros() - timeStamp;
+
+	Serial.print("micros: ");
+	Serial.print(duration);
+	Serial.println('\n');
 }
 
 
