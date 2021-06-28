@@ -50,9 +50,12 @@ private:
 	void toUInt(uint32_t*, char*);
 	char* maskAndDecodeXCoord(char*);
 
-	void ladderStep();
 	void cSwap(uint32_t);
+	void ladderStep();
 	void montgomeryLadder();
+	void reciprocal();
+
+	char* encodeXCoord(char*);
 
 //	void ladderStep(BigNumber, BigNumber, BigNumber, BigNumber, BigNumber, char);
 //	void montgomeryLadder(BigNumber, char*, BigNumber);
@@ -101,7 +104,7 @@ char* X25519KeyManagement::clampAndDecodeScalar(char* n) {
 
 void X25519KeyManagement::toUInt(uint32_t* outInt, char* b) {
 	for(unsigned short i = 0; i < INTLEN; i += 1) {
-		outInt[i] = (b[i*4] << 24) | (b[i*4 + 1] << 16) | (b[i*4 + 2] << 8) | b[i*4 + 3];
+		outInt[i] = (b[i*4] << 24) | (b[(i*4) + 1] << 16) | (b[(i*4) + 2] << 8) | b[(i*4) + 3];
 	}
 }
 
@@ -112,6 +115,24 @@ char* X25519KeyManagement::maskAndDecodeXCoord(char* x) {
 	x = decodeBytesLittleEndian(x);
 
 	return x;
+}
+
+
+void X25519KeyManagement::cSwap(uint32_t s) {
+	mask = 0x00000000;
+	mask -= s;
+
+	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
+		swap = mask & (X2[i] ^ X3[i]);
+		X2[i] ^= swap;
+		X3[i] ^= swap;
+	}
+
+	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
+		swap = mask & (Z2[i] ^ Z3[i]);
+		Z2[i] ^= swap;
+		Z3[i] ^= swap;
+	}
 }
 
 
@@ -134,24 +155,6 @@ void X25519KeyManagement::ladderStep() {
 	math.base16Mul(Z2, A24Multi, E);
 	math.base16Add(Z2, AA, Z2);
 	math.base16Mul(Z2, E, Z2);
-}
-
-
-void X25519KeyManagement::cSwap(uint32_t s) {
-	mask = 0x00000000;
-	mask -= s;
-
-	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
-		swap = mask & (X2[i] ^ X3[i]);
-		X2[i] ^= swap;
-		X3[i] ^= swap;
-	}
-
-	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
-		swap = mask & (Z2[i] ^ Z3[i]);
-		Z2[i] ^= swap;
-		Z3[i] ^= swap;
-	}
 }
 
 
@@ -185,6 +188,106 @@ void X25519KeyManagement::montgomeryLadder() {
 	}
 
 	cSwap(s);
+}
+
+
+void X25519KeyManagement::reciprocal() {
+	/*
+	A:  z2
+	AA: z9
+	B:  z11
+	BB: z2_5_0
+	E:  z2_10_0
+	C:  z2_20_0
+	D:  z2_50_0
+	DA: z2_100_0
+	X3: t0
+	Z3: t1
+	*/
+
+	math.base16Mul(A, Z2, Z2);
+	math.base16Mul(Z3, A, A);
+	math.base16Mul(X3, Z3, Z3);
+	math.base16Mul(AA, X3, Z2);
+	math.base16Mul(B, AA, A);
+	math.base16Mul(X3, B, B);
+	math.base16Mul(BB, X3, AA);
+
+	math.base16Mul(X3, BB, BB);
+	math.base16Mul(Z3, X3, X3);
+	math.base16Mul(X3, Z3, Z3);
+	math.base16Mul(Z3, X3, X3);
+	math.base16Mul(X3, Z3, Z3);
+	math.base16Mul(E, X3, BB);
+
+	math.base16Mul(X3, E, E);
+	math.base16Mul(Z3, X3, X3);
+	for(unsigned short i = 2; i < 10; i += 2) {
+		math.base16Mul(X3, Z3, Z3);
+		math.base16Mul(Z3, X3, X3);
+	}
+	math.base16Mul(C, Z3, E);
+
+	math.base16Mul(X3, C, C);
+	math.base16Mul(Z3, X3, X3);
+	for(unsigned short i = 2; i < 20; i += 2) {
+		math.base16Mul(X3, Z3, Z3);
+		math.base16Mul(Z3, X3, X3);
+	}
+	math.base16Mul(X3, Z3, C);
+
+	math.base16Mul(Z3, X3, X3);
+	math.base16Mul(X3, Z3, Z3);
+	for(unsigned short i = 2; i < 10; i += 2) {
+		math.base16Mul(Z3, X3, X3);
+		math.base16Mul(X3, Z3, Z3);
+	}
+	math.base16Mul(D, X3, E);
+
+	math.base16Mul(X3, D, D);
+	math.base16Mul(Z3, X3, X3);
+	for(unsigned short i = 2; i < 50; i += 2) {
+		math.base16Mul(X3, Z3, Z3);
+		math.base16Mul(Z3, X3, X3);
+	}
+	math.base16Mul(DA, Z3, D);
+
+	math.base16Mul(Z3, DA, DA);
+	math.base16Mul(X3, Z3, Z3);
+	for(unsigned short i = 2; i < 100; i += 2) {
+		math.base16Mul(Z3, X3, X3);
+		math.base16Mul(X3, Z3, Z3);
+	}
+	math.base16Mul(Z3, X3, DA);
+
+	math.base16Mul(X3, Z3, Z3);
+	math.base16Mul(Z3, X3, X3);
+	for(unsigned short i = 2; i < 50; i += 2) {
+		math.base16Mul(X3, Z3, Z3);
+		math.base16Mul(Z3, X3, X3);
+	}
+	math.base16Mul(X3, Z3, D);
+
+	math.base16Mul(Z3, X3, X3);
+	math.base16Mul(X3, Z3, Z3);
+	math.base16Mul(Z3, X3, X3);
+	math.base16Mul(X3, Z3, Z3);
+	math.base16Mul(Z3, X3, X3);
+	math.base16Mul(Z2, Z3, B);
+}
+
+
+char* X25519KeyManagement::encodeXCoord(char* x) {
+	for(unsigned short i = 0; i < INTLEN; i += 1) {
+		x[i*4] = xInt[i] >> 24;
+		x[(i*4) + 1] = xInt[i] >> 16;
+		x[(i*4) + 2] = xInt[i] >> 8;
+		x[(i*4) + 3] = xInt[i];
+	}
+
+	x = decodeBytesLittleEndian(x);
+
+	return x;
 }
 
 
@@ -418,6 +521,23 @@ void X25519KeyManagement::curve25519(char* n, char* xp) { // k is the independen
 	math.base32_16(A24Multi, A24);
 
 	montgomeryLadder();
+
+	reciprocal();
+	math.base16Mul(xIntMulti, X2, Z2);
+	math.base16_32(xInt, xIntMulti);
+
+	xp = encodeXCoord(xp);
+
+	Serial.print("Encoded key: ");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		if(xp[i] > 0x0f) {
+			Serial.print(xp[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(xp[i], HEX);
+		}
+	}
+	Serial.println('\n');
 
 //	reciprocal();
 
