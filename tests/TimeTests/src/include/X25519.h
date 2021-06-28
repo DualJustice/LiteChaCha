@@ -42,6 +42,8 @@ private:
 	uint32_t A24[INTLEN] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0001db41}; // (486662 - 2)/4.
 	uint32_t A24Multi[INTLENMULTI];
 
+	char z;
+
 	char* decodeBytesLittleEndian(char*);
 	char* clampAndDecodeScalar(char*);
 	void toUInt(uint32_t*, char*);
@@ -53,6 +55,7 @@ private:
 	void reciprocal();
 
 	char* encodeXCoord(char*);
+	void checkAllZerosCase(char*);
 public:
 	X25519KeyManagement();
 	~X25519KeyManagement();
@@ -270,6 +273,20 @@ char* X25519KeyManagement::encodeXCoord(char* x) {
 }
 
 
+void X25519KeyManagement::checkAllZerosCase(char* x) {
+	z = 0x00;
+
+	for(unsigned short i = 0; i < BYTELEN; i += 1) {
+		z |= x[i];
+	}
+
+	if(!z) {
+		// Log an error here.
+		// Wait until new private keys are chosen.
+	}
+}
+
+
 void X25519KeyManagement::curve25519(char* n, char* xp) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
 	n = clampAndDecodeScalar(n);
 
@@ -289,6 +306,8 @@ void X25519KeyManagement::curve25519(char* n, char* xp) { // k is the independen
 	math.base16_32(xInt, xIntMulti);
 
 	xp = encodeXCoord(xp);
+
+	checkAllZerosCase(xp);
 }
 
 #endif
