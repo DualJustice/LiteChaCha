@@ -16,7 +16,7 @@ void setup() {
 	unsigned long duration = 0;
 
 /*
-//CHACHA TEST:
+// CHACHA TEST (12 ms max per message):
 
 	ChaChaEncryption cipher;
 
