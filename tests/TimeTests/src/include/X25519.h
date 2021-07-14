@@ -2,13 +2,15 @@
 #define X25519_H
 
 #include "multiprecision.h"
-MultiPrecisionArithmetic math;
+//MultiPrecisionArithmetic math;
 
 #include <stdint.h>
 
 
 class X25519KeyManagement {
 private:
+	static MultiPrecisionArithmetic math;
+
 	static const constexpr unsigned short BYTELEN = 32;
 	static const constexpr unsigned short INTLEN = 8;
 	static const constexpr unsigned short INTLENMULTI = math.getMultiLength();
