@@ -3,11 +3,10 @@
 
 #include "src/include/tempfuncs.h"
 #include "src/include/X25519.h"
-X25519KeyManagement ecdhe;
 #include "src/include/poly1305.h"
-Poly1305MAC mac;
-//#include "src/include/chacha.h"
-//ChaChaEncryption cipher;
+
+#include "src/include/chacha.h"
+
 
 // To Do: Create a wrapper for ChaCha and Poly which is a single header.
 
@@ -28,6 +27,10 @@ Poly1305MAC mac;
 
 
 void setup() {
+	X25519KeyManagement ecdhe;
+	Poly1305MAC mac;
+	ChaChaEncryption cipher;
+
 	Serial.begin(BAUD_RATE);
 	while(!Serial) {
 		delay(250);
