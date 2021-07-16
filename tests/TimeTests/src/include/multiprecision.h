@@ -37,7 +37,7 @@ public:
 	MultiPrecisionArithmetic();
 	~MultiPrecisionArithmetic();
 
-	static const constexpr unsigned short getMultiLength() {return n;}
+//	static const constexpr unsigned short getMultiLength() {return n;}
 
 	void base32_16(uint32_t*, uint32_t*);
 
