@@ -8,11 +8,13 @@
 
 class X25519KeyManagement {
 private:
-	static MultiPrecisionArithmetic math;
+//	static MultiPrecisionArithmetic math;
+	MultiPrecisionArithmetic math;
 
 	static const constexpr unsigned short BYTELEN = 32;
 	static const constexpr unsigned short INTLEN = 8;
-	static const constexpr unsigned short INTLENMULTI = math.getMultiLength();
+//	static const constexpr unsigned short INTLENMULTI = math.getMultiLength();
+	static const constexpr unsigned short INTLENMULTI = 2*INTLEN;
 	static const constexpr unsigned short BITS = 255;
 
 	uint32_t nInt[INTLEN];
