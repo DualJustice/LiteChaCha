@@ -10,7 +10,7 @@ private:
 	static const constexpr uint32_t d = 0x00000002;
 	unsigned short m;
 	static const constexpr unsigned short n = 16;
-	const uint32_t p2[n] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda}; // p*2.
+	const uint32_t pd[n] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda}; // p*2.
 	uint32_t qHat;
 	uint32_t rHat;
 	uint32_t c; // Conditional multiplier used in place of conditional branches to aid in constant-time.
@@ -94,18 +94,18 @@ void MultiPrecisionArithmetic::base16Mod() {
 	for(unsigned short i = 0; i < (m + 1); i += 1) {
 
 // ---------- D3 ----------
-		qHat = ((base*u[i]) + u[i + 1])/p2[0];
-		rHat = ((base*u[i]) + u[i + 1]) % p2[0];
+		qHat = ((base*u[i]) + u[i + 1])/pd[0];
+		rHat = ((base*u[i]) + u[i + 1]) % pd[0];
 
-		c = ((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2])));
+		c = ((qHat == base) || ((qHat*pd[1]) > ((base*rHat) + u[i + 2])));
 		qHat -= c;
-		rHat += (c*p2[0]);
+		rHat += (c*pd[0]);
 
 		c &= (rHat < base);
 
-		c &= ((qHat == base) || ((qHat*p2[1]) > ((base*rHat) + u[i + 2])));
+		c &= ((qHat == base) || ((qHat*pd[1]) > ((base*rHat) + u[i + 2])));
 		qHat -= c;
-		rHat += (c*p2[0]);
+		rHat += (c*pd[0]);
 
 		if(rHat < base) {
 			// Log an error here.
@@ -116,7 +116,7 @@ void MultiPrecisionArithmetic::base16Mod() {
 		carry = 0x00000000;
 
 		for(unsigned short j = (n - 1); j < n; j -= 1) {
-			v[j + 1] = (qHat*p2[j]) + carry;
+			v[j + 1] = (qHat*pd[j]) + carry;
 			carry = v[j + 1]/base;
 			v[j + 1] %= base;
 		}
@@ -138,7 +138,7 @@ void MultiPrecisionArithmetic::base16Mod() {
 		carry = 0x00000000;
 
 		for(unsigned short j = (m + n); j > m; j -= 1) {
-			u[j - (m - i)] += (c*(p2[(j - m) - 1] + carry));
+			u[j - (m - i)] += (c*(pd[(j - m) - 1] + carry));
 			carry = u[j - (m - i)]/base;
 			u[j - (m - i)] %= base;
 		}

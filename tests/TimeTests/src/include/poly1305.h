@@ -10,11 +10,13 @@
 ---------- What you'll need ----------
 - 256-bit one-time key, s, created using chacha.
 - the message.
-	- The message will be broken up into 16-byte blocks. Example block: 01 6f46 2063 6968 7061 7267 6f74 7079 7243 (9, 16-bit words).
+	- The message will be broken up into 16-byte blocks. Example block: 0001 6f46 2063 6968 7061 7267 6f74 7079 7243 (9, 16-bit words).
 	- The contents of the blocks will be read on little-endian.
 - r (128-bit number).
 - s (128-bit number).
-- p = 3 ffff ffff ffff ffff ffff ffff ffff fffb = (2^130) - 5 (9, 16-bit words).
+- p =      0003 ffff ffff ffff ffff ffff ffff ffff fffb = (2^130) - 5 (9, 16-bit words).
+	-  d = 2001 HEX = 8,193 DEC (Smallest viable value)
+	- pd = 8003 ffff ffff ffff ffff ffff ffff ffff 5ffb
 - a (the accumulator).
 
 ---------- What you'll do ----------
