@@ -4,7 +4,6 @@
 #include "src/include/tempfuncs.h"
 #include "src/include/X25519.h"
 #include "src/include/poly1305.h"
-
 #include "src/include/chacha.h"
 
 
@@ -96,7 +95,7 @@ void setup() {
 	Serial.println('\n');
 
 /*
-// CHACHA TEST (12 ms max per message):
+// CHACHA TEST (12 ms max per message, 256 bytes max expected message length):
 
 	for(unsigned short i = 0; i < 2; i += 1) {
 		cipher.incrementNonceCounter();

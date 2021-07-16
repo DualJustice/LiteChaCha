@@ -2,7 +2,6 @@
 #define X25519_H
 
 #include "multiprecision.h"
-//MultiPrecisionArithmetic math;
 
 #include <stdint.h>
 
