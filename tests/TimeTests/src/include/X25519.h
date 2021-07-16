@@ -9,7 +9,18 @@
 class X25519KeyManagement {
 private:
 //	static MultiPrecisionArithmetic math;
-	MultiPrecisionArithmetic math;
+	const uint32_t d = 0x00000002;
+	static const unsigned short n = 16;
+	const uint32_t pd[n] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda}; // p*2.
+
+	uint32_t w[n*2];
+
+	const uint32_t p[n] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
+
+	uint32_t u[(n*2) + 2]; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
+	uint32_t v[n + 1]; // v[0] is used for carry / borrow.
+
+	MultiPrecisionArithmetic math = MultiPrecisionArithmetic(d, n, pd, w, p, u, v);
 
 	static const constexpr unsigned short BYTELEN = 32;
 	static const constexpr unsigned short INTLEN = 8;

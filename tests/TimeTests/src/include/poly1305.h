@@ -41,7 +41,7 @@ LOOP THROUGH BLOCKS {
 class Poly1305MAC {
 private:
 	ChaChaEncryption keygen;
-	MultiPrecisionArithmetic math;
+//	MultiPrecisionArithmetic math;
 
 	
 public:
