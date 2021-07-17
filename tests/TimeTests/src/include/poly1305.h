@@ -2,7 +2,7 @@
 #define POLY1305_H
 
 #include "chacha.h"
-#include "multiprecision.h"
+#include "multiprecision1305.h"
 
 #include <stdint.h>
 
@@ -41,7 +41,7 @@ LOOP THROUGH BLOCKS {
 class Poly1305MAC {
 private:
 	ChaChaEncryption keygen;
-	MultiPrecisionArithmetic math;
+	MultiPrecisionArithmetic1305 math;
 
 	
 public:
