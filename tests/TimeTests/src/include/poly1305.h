@@ -48,10 +48,18 @@ private:
 	uint32_t r[INTLEN];
 	uint32_t s[INTLEN];
 
+	static const constexpr uint32_t BITMASK1 = 0x0ffffffc;
+	static const constexpr uint32_t BITMASK2 = 0x0fffffff;
+
+	uint32_t a[INTLENMULTI];
+
 	uint32_t rMulti[INTLENMULTI];
 	uint32_t sMulti[INTLENMULTI];
 
-	uint32_t a[INTLENMULTI];
+	uint32_t block[INTLENMULTI];
+
+	void clamp(uint32_t*);
+	void prepareInt(uint32_t*);
 public:
 	Poly1305MAC();
 	~Poly1305MAC();
@@ -71,8 +79,34 @@ Poly1305MAC::~Poly1305MAC() {
 }
 
 
-void Poly1305MAC::createTag(char* out, uint32_t* key, char* message, unsigned long long bytes) {
+void Poly1305MAC::clamp(uint32_t* r) {
+	for(unsigned short i = 0; i < (INTLEN - 1); i += 1) {
+		r[i] &= BITMASK1;
+	}
 
+	r[INTLEN - 1] &= BITMASK2;
+}
+
+
+void Poly1305MAC::prepareInt(uint32_t* key) {
+	for(unsigned short i = 0; i < INTLEN; i += 1) {
+		r[i] = key[i];
+		s[i] = key[i + 4];
+	}
+
+	clamp(r);
+
+	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
+		a[i] = 0x00000000;
+	}
+}
+
+
+void Poly1305MAC::createTag(char* out, uint32_t* key, char* message, unsigned long long bytes) {
+	prepareInt(key);
+
+	math.base32_16(rMulti, r);
+	math.base32_16(sMulti, s);
 }
 
 
