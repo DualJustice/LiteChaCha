@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-/*
+
 class MultiPrecisionArithmetic {
 private:
 // ---------- Modulus Variables ----------
@@ -47,61 +47,10 @@ public:
 
 	void base16_32(uint32_t*, uint32_t*);
 };
-*/
-
-class MultiPrecisionArithmetic {
-private:
-// ---------- Modulus Variables ----------
-	uint32_t d;
-	unsigned short m;
-	unsigned short n;
-	const uint32_t* pd; // p*d.
-	uint32_t qHat;
-	uint32_t rHat;
-	uint32_t c; // Conditional multiplier used in place of conditional branches to aid in constant-time.
-
-// ---------- Multiplication Variables ----------
-	uint32_t* w;
-
-// ---------- Subtraction Variables ----------
-	const uint32_t* p;
-
-// ---------- General Variables ----------
-	uint32_t* u; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
-	uint32_t* v; // v[0] is used for carry / borrow.
-
-	uint32_t carry; // carry is used for addition carries, subtraction borrows, multiplication carries, and division remainders.
-	static const constexpr uint32_t base = 0x00010000;
-
-	void prepareIn(uint32_t*, uint32_t*);
-
-	void base16Mod();
-
-	void prepareOut(uint32_t*);
-public:
-	MultiPrecisionArithmetic(uint32_t, unsigned short, const uint32_t*, uint32_t*, const uint32_t*, uint32_t*, uint32_t*);
-	~MultiPrecisionArithmetic();
-
-//	static const constexpr unsigned short getMultiLength() {return n;}
-
-	void base32_16(uint32_t*, uint32_t*);
-
-	void base16Add(uint32_t*, uint32_t*, uint32_t*);
-	void base16Mul(uint32_t*, uint32_t*, uint32_t*);
-	void base16Sub(uint32_t*, uint32_t*, uint32_t*);
-
-	void base16_32(uint32_t*, uint32_t*);
-};
 
 
-MultiPrecisionArithmetic::MultiPrecisionArithmetic(uint32_t dIn, unsigned short nIn, const uint32_t* pdIn, uint32_t* wIn, const uint32_t* pIn, uint32_t* uIn, uint32_t* vIn) {
-	d = dIn;
-	n = nIn;
-	pd = pdIn;
-	w = wIn;
-	p = pIn;
-	u = uIn;
-	v = vIn;
+MultiPrecisionArithmetic::MultiPrecisionArithmetic() {
+
 }
 
 
