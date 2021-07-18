@@ -52,14 +52,17 @@ private:
 
 	static const constexpr uint32_t BITMASK1 = 0x0ffffffc;
 	static const constexpr uint32_t BITMASK2 = 0x0fffffff;
+	static const constexpr uint32_t BITMASK3 = 0x0000ffff;
 
 	uint32_t a[INTLENMULTI];
 
 	uint32_t rMulti[INTLENMULTI];
 	uint32_t sMulti[INTLENMULTI];
 
+	uint32_t blockCounter = 0x00000000;
 	unsigned long long messageBlockCount = 0;
 	unsigned short messageRemainder = 0;
+	unsigned long long blockIndexBytes = 0;
 
 	uint32_t block[INTLENMULTI];
 
@@ -112,6 +115,7 @@ void Poly1305MAC::prepareInt(uint32_t* key) {
 
 
 void Poly1305MAC::initializeMAC(uint32_t* key, unsigned long long bytes) {
+	blockCounter = 0x00000000;
 	messageBlockCount = (bytes/(BLOCKBYTES + 1)) + 1;
 	messageRemainder = bytes % BLOCKBYTES;
 
@@ -120,8 +124,10 @@ void Poly1305MAC::initializeMAC(uint32_t* key, unsigned long long bytes) {
 
 
 void Poly1305MAC::prepareBlock(char* message) {
+	blockIndexBytes = ((unsigned long)blockCounter)*BLOCKBYTES;
+
 	for(unsigned short i = 0; i < INITBLOCKLEN; i += 1) {
-//		block[(INITBLOCKLEN - 1) - i] = Need to have a way to know which block we are processing in the chain. Like a block counter...
+		block[(INITBLOCKLEN - 1) - i] = (message[(i*2) + blockIndexBytes + 1] << 8) | message[(i*2) + blockIndexBytes] & BITMASK3;
 	}
 }
 
