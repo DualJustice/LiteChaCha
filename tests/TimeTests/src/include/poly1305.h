@@ -35,6 +35,15 @@ LOOP THROUGH BLOCKS {
 }
 11. Add "s" to a.
 12. The 128 least significant bits are serialized in little-endian order to form the tag.
+
+---------- What to expect ----------
+The largest expected block: 	0001 ffff ffff ffff ffff ffff ffff ffff ffff
+The largest expected a:			0003 ffff ffff ffff ffff ffff ffff ffff fffa
+The largest expected sum:		0005 ffff ffff ffff ffff ffff ffff ffff fff9
+Above sum*d:					c005 ffff ffff ffff ffff ffff ffff ffff 1ff9
+
+The largest expected product:	0003 ffff ffff ffff ffff ffff ffff ffff fff6 0000 0000 0000 0000 0000 0000 0000 0006
+Above product*d:				8003 ffff ffff ffff ffff ffff ffff fffe bff6 0000 0000 0000 0000 0000 0000 0000 c006
 */
 
 class Poly1305MAC {
@@ -71,6 +80,8 @@ private:
 	void initializeMAC(uint32_t*, unsigned long long);
 
 	void prepareBlock(char*);
+	void incrementBlockCounter();
+	void prepareFinalBlock(char*);
 	void tagProcess(char*);
 public:
 	Poly1305MAC();
@@ -127,10 +138,29 @@ void Poly1305MAC::prepareBlock(char* message) {
 	blockIndexBytes = ((unsigned long)blockCounter)*BLOCKBYTES;
 
 	for(unsigned short i = 0; i < INITBLOCKLEN; i += 1) {
-		block[INITBLOCKLEN - i] = (message[(i*2) + blockIndexBytes + 1] << 8) | message[(i*2) + blockIndexBytes] & BITMASK3;
+		block[INITBLOCKLEN - i] = ((message[(i*2) + blockIndexBytes + 1] << 8) | message[(i*2) + blockIndexBytes]) & BITMASK3;
 	}
 
 	block[0] = 0x00000001;
+}
+
+
+void Poly1305MAC::incrementBlockCounter() {
+	if(blockCounter == 0xffffffff) {
+		// Log an error here.
+	}
+
+	blockCounter += 0x00000001;
+}
+
+
+void Poly1305MAC::prepareFinalBlock(char* message) { // Hmmm?
+	blockIndexBytes = ((unsigned long)blockCounter)*BLOCKBYTES;
+
+//	for(unsigned short i = 0; i < ((messageRemainder + 1)/2); i += 1) {
+	for(unsigned short i = 0; i < messageRemainder; i += 1) {
+		block[INITBLOCKLEN - i] = ((message[i + blockIndexBytes] << 8) | message[(i*2) + blockIndexBytes]) & BITMASK3; // This is wrong!
+	}
 }
 
 
@@ -139,17 +169,29 @@ void Poly1305MAC::tagProcess(char* message) {
 		prepareBlock(message);
 		math.base16Add(a, a, block);
 		math.base16Mul(a, a, r);
+		incrementBlockCounter();
+	}
+	if(messageRemainder == 0) {
+		prepareBlock(message);
+		math.base16Add(a, a, block);
+		math.base16Mul(a, a, r);
+	} else {
+		prepareFinalBlock(message);
+		math.base16Add(a, a, block);
+		math.base16Mul(a, a, r);
 	}
 }
 
 
 void Poly1305MAC::createTag(char* out, uint32_t* key, char* message, unsigned long long bytes) {
-	initializeMAC(key, bytes);
+	if(bytes > 0) {
+		initializeMAC(key, bytes);
 
-	math.base32_16(rMulti, r);
-	math.base32_16(sMulti, s);
+		math.base32_16(rMulti, r);
+		math.base32_16(sMulti, s);
 
-	tagProcess(message);
+		tagProcess(message);
+	}
 }
 
 
