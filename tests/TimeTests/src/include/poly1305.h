@@ -44,6 +44,7 @@ private:
 	static const constexpr unsigned short KEYLEN = 8;
 	static const constexpr unsigned short INTLEN = 4;
 	static const constexpr unsigned short INTLENMULTI = (2*INTLEN) + 1;
+	static const constexpr unsigned short BLOCKLEN = 16;
 
 	uint32_t r[INTLEN];
 	uint32_t s[INTLEN];
