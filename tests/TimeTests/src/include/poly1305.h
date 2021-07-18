@@ -127,14 +127,18 @@ void Poly1305MAC::prepareBlock(char* message) {
 	blockIndexBytes = ((unsigned long)blockCounter)*BLOCKBYTES;
 
 	for(unsigned short i = 0; i < INITBLOCKLEN; i += 1) {
-		block[(INITBLOCKLEN - 1) - i] = (message[(i*2) + blockIndexBytes + 1] << 8) | message[(i*2) + blockIndexBytes] & BITMASK3;
+		block[INITBLOCKLEN - i] = (message[(i*2) + blockIndexBytes + 1] << 8) | message[(i*2) + blockIndexBytes] & BITMASK3;
 	}
+
+	block[0] = 0x00000001;
 }
 
 
 void Poly1305MAC::tagProcess(char* message) {
 	for(unsigned long long i = 0; i < (messageBlockCount - 1); i += 1) {
 		prepareBlock(message);
+		math.base16Add(a, a, block);
+		math.base16Mul(a, a, r);
 	}
 }
 

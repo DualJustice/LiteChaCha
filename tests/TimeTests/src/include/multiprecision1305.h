@@ -78,11 +78,21 @@ void MultiPrecisionArithmetic1305::base16Mod() {
 // ---------- D1 ----------
 	carry = 0x00000000;
 
+/*
 	for(unsigned short i = (m + n); i > 0; i -= 1) {
 		u[i] += (u[i] + carry);
 		carry = u[i]/base;
 		u[i] %= base;
 	}
+*/
+
+	for(unsigned short i = (m + n); i > 0; i -= 1) {
+		u[i] = (d*u[i]) + carry;
+		carry = u[i]/base;
+		u[i] %= base;
+	}
+
+	v[0] = carry;
 
 	u[0] = 0x00000000;
 
