@@ -222,7 +222,7 @@ void ChaChaEncryption::encryptAndDecryptSubProcess(char* message) {
 
 
 void ChaChaEncryption::encryptAndDecryptProcess(char* message, unsigned long long bytes, unsigned long startBlock = 0) {
-	for(unsigned short i = 0; i < (messageBlockCount - 1); i += 1) {
+	for(unsigned long long i = 0; i < (messageBlockCount - 1); i += 1) {
 		encryptAndDecryptSubProcess(message);
 		incrementBlockCounter();
 	}

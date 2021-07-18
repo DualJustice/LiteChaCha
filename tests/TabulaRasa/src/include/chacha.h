@@ -224,7 +224,7 @@ void ChaChaEncryption::encryptMessage(char* message, unsigned long long bytes, u
 	if(bytes > 0) {
 		initializeEncryption(bytes, startBlock);
 
-		for(unsigned short i = 0; i < (messageBlockCount - 1); i += 1) {
+		for(unsigned long long i = 0; i < (messageBlockCount - 1); i += 1) {
 			updateStartState();
 			createEndState();
 			createKeyStream();

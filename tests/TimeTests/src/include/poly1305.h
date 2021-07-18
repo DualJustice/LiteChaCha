@@ -44,7 +44,8 @@ private:
 	static const constexpr unsigned short KEYLEN = 8;
 	static const constexpr unsigned short INTLEN = 4;
 	static const constexpr unsigned short INTLENMULTI = (2*INTLEN) + 1;
-	static const constexpr unsigned short BLOCKLEN = 16;
+	static const constexpr unsigned short BLOCKBYTES = 16;
+	static const constexpr unsigned short INITBLOCKLEN = BLOCKBYTES/2;
 
 	uint32_t r[INTLEN];
 	uint32_t s[INTLEN];
@@ -57,10 +58,17 @@ private:
 	uint32_t rMulti[INTLENMULTI];
 	uint32_t sMulti[INTLENMULTI];
 
+	unsigned long long messageBlockCount = 0;
+	unsigned short messageRemainder = 0;
+
 	uint32_t block[INTLENMULTI];
 
-	void clamp(uint32_t*);
+	void clamp();
 	void prepareInt(uint32_t*);
+	void initializeMAC(uint32_t*, unsigned long long);
+
+	void prepareBlock(char*);
+	void tagProcess(char*);
 public:
 	Poly1305MAC();
 	~Poly1305MAC();
@@ -80,7 +88,7 @@ Poly1305MAC::~Poly1305MAC() {
 }
 
 
-void Poly1305MAC::clamp(uint32_t* r) {
+void Poly1305MAC::clamp() {
 	for(unsigned short i = 0; i < (INTLEN - 1); i += 1) {
 		r[i] &= BITMASK1;
 	}
@@ -95,7 +103,7 @@ void Poly1305MAC::prepareInt(uint32_t* key) {
 		s[i] = key[i + 4];
 	}
 
-	clamp(r);
+	clamp();
 
 	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
 		a[i] = 0x00000000;
@@ -103,11 +111,35 @@ void Poly1305MAC::prepareInt(uint32_t* key) {
 }
 
 
-void Poly1305MAC::createTag(char* out, uint32_t* key, char* message, unsigned long long bytes) {
+void Poly1305MAC::initializeMAC(uint32_t* key, unsigned long long bytes) {
+	messageBlockCount = (bytes/(BLOCKBYTES + 1)) + 1;
+	messageRemainder = bytes % BLOCKBYTES;
+
 	prepareInt(key);
+}
+
+
+void Poly1305MAC::prepareBlock(char* message) {
+	for(unsigned short i = 0; i < INITBLOCKLEN; i += 1) {
+//		block[(INITBLOCKLEN - 1) - i] = Need to have a way to know which block we are processing in the chain. Like a block counter...
+	}
+}
+
+
+void Poly1305MAC::tagProcess(char* message) {
+	for(unsigned long long i = 0; i < (messageBlockCount - 1); i += 1) {
+		prepareBlock(message);
+	}
+}
+
+
+void Poly1305MAC::createTag(char* out, uint32_t* key, char* message, unsigned long long bytes) {
+	initializeMAC(key, bytes);
 
 	math.base32_16(rMulti, r);
 	math.base32_16(sMulti, s);
+
+	tagProcess(message);
 }
 
 
