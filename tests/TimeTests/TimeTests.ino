@@ -6,6 +6,8 @@
 #include "src/include/poly1305.h"
 #include "src/include/chacha.h"
 
+#include <stdint.h> // DELETE ME!
+
 
 // To Do: Create a wrapper for ChaCha and Poly which is a single header.
 
@@ -38,7 +40,7 @@ void setup() {
 	unsigned long timeStamp = 0;
 	unsigned long duration = 0;
 
-
+/*
 // X25519 TEST:
 
 //	static char privateKey[32] = {0xa5, 0x46, 0xe3, 0x6b, 0xf0, 0x52, 0x7c, 0x9d, 0x3b, 0x16, 0x15, 0x4b, 0x82, 0x46, 0x5e, 0xdd, 0x62, 0x14, 0x4c, 0x0a, 0xc1, 0xfc, 0x5a, 0x18, 0x50, 0x6a, 0x22, 0x44, 0xba, 0x44, 0x9a, 0xc4};
@@ -86,6 +88,34 @@ void setup() {
 		} else {
 			Serial.print('0');
 			Serial.print(initXCoord[i], HEX);
+		}
+	}
+	Serial.println('\n');
+
+	Serial.print("micros: ");
+	Serial.print(duration);
+	Serial.println('\n');
+*/
+
+// POLY1305 TEST:
+	char tag[16];
+
+	uint32_t key[8] = {0x85d6be78, 0x57556d33, 0x7f4452fe, 0x42d506a8, 0x0103808a, 0xfb0db2fd, 0x4abff6af, 0x4149f51b};
+	unsigned long long messageLength = 34;
+	char message[messageLength] = {"Cryptographic Forum Research Group"};
+
+	duration = 0;
+	timeStamp = micros();
+	mac.createTag(tag, key, message, messageLength);
+	duration = micros() - timeStamp;
+
+	Serial.print("tag: ");
+	for(unsigned short i = 0; i < 16; i += 1) {
+		if(tag[i] > 0x0f) {
+			Serial.print(tag[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(tag[i], HEX);
 		}
 	}
 	Serial.println('\n');

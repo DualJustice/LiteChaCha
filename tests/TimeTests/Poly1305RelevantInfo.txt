@@ -1,0 +1,10 @@
+RFC8439 TEST VECTORS (HEX):
+-------------------------------------------------------------------------------------
+1.
+uint32_t key[8] = {0x85d6be78, 0x57556d33, 0x7f4452fe, 0x42d506a8, 0x0103808a, 0xfb0db2fd, 0x4abff6af, 0x4149f51b};
+unsigned long long messageLength = 34;
+char message[messageLength] = {"Cryptographic Forum Research Group"};
+
+tag = a8061dc1305136c6c22b8baf0c0127a9
+
+-------------------------------------------------------------------------------------

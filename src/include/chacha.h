@@ -1,5 +1,5 @@
 #ifndef CHACHA_H
-#define CHACAH_H
+#define CHACHA_H
 
 #include <stdint.h>
 
