@@ -142,7 +142,7 @@ void Poly1305MAC::prepareInt(uint32_t* key) {
 
 void Poly1305MAC::initializeMAC(uint32_t* key, unsigned long long bytes) {
 	blockCounter = 0x00000000;
-	messageBlockCount = (bytes/(BLOCKBYTES + 1)) + 1;
+	messageBlockCount = ((bytes - 1)/BLOCKBYTES) + 1; // OOPS! MAKE SURE TO CHANGE THIS IN CHACHA!
 	messageRemainder = bytes % BLOCKBYTES;
 
 	prepareInt(key);
@@ -180,6 +180,10 @@ void Poly1305MAC::incrementBlockCounter() {
 void Poly1305MAC::prepareFinalBlock(char* message) {
 	finalBlockLastWordIndex = INITBLOCKLEN - ((messageRemainder - 1)/2);
 	blockIndexBytes = ((unsigned long)blockCounter)*BLOCKBYTES;
+
+	Serial.print("blockIndexBytes: ");
+	Serial.print(blockIndexBytes);
+	Serial.println('\n');
 
 	for(unsigned short i = 0; i < finalBlockLastWordIndex; i += 1) {
 		block[i] = 0x00000000;

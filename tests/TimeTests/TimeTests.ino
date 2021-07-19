@@ -101,8 +101,8 @@ void setup() {
 	char tag[16];
 
 	uint32_t key[8] = {0x85d6be78, 0x57556d33, 0x7f4452fe, 0x42d506a8, 0x0103808a, 0xfb0db2fd, 0x4abff6af, 0x4149f51b};
-	unsigned long long messageLength = 34;
-	char message[messageLength] = {"Cryptographic Forum Research Group"};
+	unsigned long long messageLength = 33;
+	char message[messageLength] = {"Cryptographic Forum Research Grou"};
 
 	duration = 0;
 	timeStamp = micros();
