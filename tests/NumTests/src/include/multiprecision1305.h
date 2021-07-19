@@ -1,9 +1,6 @@
 #ifndef MULTIPRECISION1305_H
 #define MULTIPRECISION1305_H
 
-#include "Arduino.h" // DELETE ME!
-#include "HardwareSerial.h" // DELETE ME!
-
 #include <stdint.h>
 
 

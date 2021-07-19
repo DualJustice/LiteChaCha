@@ -235,7 +235,7 @@ void MultiPrecisionArithmetic1305::base16AddNoMod(uint32_t* out, uint32_t* a, ui
 
 void MultiPrecisionArithmetic1305::base16_32(uint32_t* out, uint32_t* a) {
 	for(unsigned short i = 0; i < (n/2); i += 1) {
-		out[i] = (a[i*2] << 16) | a[(i*2) + 1];
+		out[i] = (a[(i*2) + 1] << 16) | a[(i*2) + 2];
 	}
 }
 

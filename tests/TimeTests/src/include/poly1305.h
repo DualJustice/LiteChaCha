@@ -120,8 +120,16 @@ void Poly1305MAC::clamp() {
 
 void Poly1305MAC::prepareInt(uint32_t* key) {
 	for(unsigned short i = 0; i < INTLEN; i += 1) {
-		r[i] = key[i];
-		s[i] = key[i + 4];
+		r[i] = key[(INTLEN - 1) - i] << 24;
+		r[i] |= ((key[(INTLEN - 1) - i] & 0x0000ff00) << 8);
+		r[i] |= ((key[(INTLEN - 1) - i] & 0x00ff0000) >> 8);
+		r[i] |= ((key[(INTLEN - 1) - i] & 0xff000000) >> 24);
+
+//		s[i] = (key[(INTLEN + 3) - i] << 24) | ((key[(INTLEN + 3) - i] & 0x0000ff00) << 16) | ((key[(INTLEN + 3) - i] & 0x00ff0000) << 8) | (key[(INTLEN + 3) - i] & 0xff000000);
+		s[i] = key[(INTLEN + 3) - i] << 24;
+		s[i] |= ((key[(INTLEN + 3) - i] & 0x0000ff00) << 8);
+		s[i] |= ((key[(INTLEN + 3) - i] & 0x00ff0000) >> 8);
+		s[i] |= ((key[(INTLEN + 3) - i] & 0xff000000) >> 24);
 	}
 
 	clamp();
@@ -179,7 +187,15 @@ void Poly1305MAC::prepareFinalBlock(char* message) {
 
 	for(unsigned short i = 0; i < messageRemainder; i += 1) {
 		block[INITBLOCKLEN - (i/2)] >> 8;
-		block[INITBLOCKLEN - (i/2)] = message[i + blockIndexBytes] << 8;
+
+		Serial.print("step 1: ");
+		Serial.println(block[INITBLOCKLEN - (i/2)], HEX);
+
+		block[INITBLOCKLEN - (i/2)] |= (message[i + blockIndexBytes] << 8);
+
+		Serial.print("step 2: ");
+		Serial.println(block[INITBLOCKLEN - (i/2)], HEX);
+
 	}
 
 	if(messageRemainder % 2) {
@@ -203,6 +219,14 @@ void Poly1305MAC::tagProcess(char* message) {
 	for(unsigned long long i = 0; i < (messageBlockCount - 1); i += 1) {
 		prepareBlock(message);
 		math.base16Add(a, a, block);
+
+		Serial.print("(Acc+Block) % P: ");
+		for(unsigned short j = 0; j < INTLENMULTI; j += 1) {
+			Serial.print(a[j], HEX);
+			Serial.print(' ');
+		}
+		Serial.println('\n');
+
 		math.base16Mul(a, a, rMulti);
 
 		Serial.print("((Acc+Block)*r) % P: ");
@@ -217,6 +241,14 @@ void Poly1305MAC::tagProcess(char* message) {
 	if(messageRemainder == 0) {
 		prepareBlock(message);
 		math.base16Add(a, a, block);
+
+		Serial.print("(Acc+Block) % P: ");
+		for(unsigned short j = 0; j < INTLENMULTI; j += 1) {
+			Serial.print(a[j], HEX);
+			Serial.print(' ');
+		}
+		Serial.println('\n');
+
 		math.base16Mul(a, a, rMulti);
 
 		Serial.print("((Acc+Block)*r) % P: ");
@@ -229,6 +261,14 @@ void Poly1305MAC::tagProcess(char* message) {
 	} else {
 		prepareFinalBlock(message);
 		math.base16Add(a, a, block);
+
+		Serial.print("(Acc+Block) % P: ");
+		for(unsigned short j = 0; j < INTLENMULTI; j += 1) {
+			Serial.print(a[j], HEX);
+			Serial.print(' ');
+		}
+		Serial.println('\n');
+
 		math.base16Mul(a, a, rMulti);
 
 		Serial.print("((Acc+Block)*r) % P: ");
@@ -266,6 +306,19 @@ void Poly1305MAC::createTag(char* out, uint32_t* key, char* message, unsigned lo
 
 		math.base32_16(rMulti, r);
 		math.base32_16(sMulti, s);
+
+		Serial.print("rMulti: ");
+		for(unsigned short i = 0; i < 9; i += 1) {
+			Serial.print(rMulti[i], HEX);
+			Serial.print(' ');
+		}
+		Serial.println();
+		Serial.print("sMulti: ");
+		for(unsigned short i = 0; i < 9; i += 1) {
+			Serial.print(sMulti[i], HEX);
+			Serial.print(' ');
+		}
+		Serial.println('\n');
 
 		tagProcess(message);
 
