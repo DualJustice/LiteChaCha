@@ -1,9 +1,6 @@
 #ifndef POLY1305_H
 #define POLY1305_H
 
-#include "Arduino.h" // DELETE ME!
-#include "HardwareSerial.h" // DELETE ME!
-
 #include "multiprecision1305.h"
 
 #include <stdint.h>
@@ -157,14 +154,6 @@ void Poly1305MAC::prepareBlock(char* message) {
 	}
 
 	block[0] = 0x00000001;
-
-	Serial.print("block: ");
-	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
-		Serial.print(block[i], HEX);
-		Serial.print(' ');
-	}
-	Serial.println('\n');
-
 }
 
 
@@ -181,25 +170,13 @@ void Poly1305MAC::prepareFinalBlock(char* message) {
 	finalBlockLastWordIndex = INITBLOCKLEN - ((messageRemainder - 1)/2);
 	blockIndexBytes = ((unsigned long)blockCounter)*BLOCKBYTES;
 
-	Serial.print("blockIndexBytes: ");
-	Serial.print(blockIndexBytes);
-	Serial.println('\n');
-
 	for(unsigned short i = 0; i < finalBlockLastWordIndex; i += 1) {
 		block[i] = 0x00000000;
 	}
 
 	for(unsigned short i = 0; i < messageRemainder; i += 1) {
 		block[INITBLOCKLEN - (i/2)] = block[INITBLOCKLEN - (i/2)] >> 8;
-
-		Serial.print("step 1: ");
-		Serial.println(block[INITBLOCKLEN - (i/2)], HEX);
-
 		block[INITBLOCKLEN - (i/2)] |= (message[i + blockIndexBytes] << 8);
-
-		Serial.print("step 2: ");
-		Serial.println(block[INITBLOCKLEN - (i/2)], HEX);
-
 	}
 
 	if(messageRemainder % 2) {
@@ -208,14 +185,6 @@ void Poly1305MAC::prepareFinalBlock(char* message) {
 	} else {
 		block[finalBlockLastWordIndex - 1] = 0x00000001;
 	}
-
-	Serial.print("block: ");
-	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
-		Serial.print(block[i], HEX);
-		Serial.print(' ');
-	}
-	Serial.println('\n');
-
 }
 
 
@@ -223,76 +192,20 @@ void Poly1305MAC::tagProcess(char* message) {
 	for(unsigned long long i = 0; i < (messageBlockCount - 1); i += 1) {
 		prepareBlock(message);
 		math.base16Add(a, a, block);
-
-		Serial.print("(Acc+Block) % P: ");
-		for(unsigned short j = 0; j < INTLENMULTI; j += 1) {
-			Serial.print(a[j], HEX);
-			Serial.print(' ');
-		}
-		Serial.println('\n');
-
 		math.base16Mul(a, a, rMulti);
-
-		Serial.print("((Acc+Block)*r) % P: ");
-		for(unsigned short j = 0; j < INTLENMULTI; j += 1) {
-			Serial.print(a[j], HEX);
-			Serial.print(' ');
-		}
-		Serial.println('\n');
-
 		incrementBlockCounter();
 	}
 	if(messageRemainder == 0) {
 		prepareBlock(message);
 		math.base16Add(a, a, block);
-
-		Serial.print("(Acc+Block) % P: ");
-		for(unsigned short j = 0; j < INTLENMULTI; j += 1) {
-			Serial.print(a[j], HEX);
-			Serial.print(' ');
-		}
-		Serial.println('\n');
-
 		math.base16Mul(a, a, rMulti);
-
-		Serial.print("((Acc+Block)*r) % P: ");
-		for(unsigned short j = 0; j < INTLENMULTI; j += 1) {
-			Serial.print(a[j], HEX);
-			Serial.print(' ');
-		}
-		Serial.println('\n');
-
 	} else {
 		prepareFinalBlock(message);
 		math.base16Add(a, a, block);
-
-		Serial.print("(Acc+Block) % P: ");
-		for(unsigned short j = 0; j < INTLENMULTI; j += 1) {
-			Serial.print(a[j], HEX);
-			Serial.print(' ');
-		}
-		Serial.println('\n');
-
 		math.base16Mul(a, a, rMulti);
-
-		Serial.print("((Acc+Block)*r) % P: ");
-		for(unsigned short j = 0; j < INTLENMULTI; j += 1) {
-			Serial.print(a[j], HEX);
-			Serial.print(' ');
-		}
-		Serial.println('\n');
-
 	}
 
 	math.base16AddNoMod(a, a, sMulti);
-
-	Serial.print("a + s: ");
-	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
-		Serial.print(a[i], HEX);
-		Serial.print(' ');
-	}
-	Serial.println('\n');
-
 }
 
 
@@ -310,19 +223,6 @@ void Poly1305MAC::createTag(char* out, uint32_t* key, char* message, unsigned lo
 
 		math.base32_16(rMulti, r);
 		math.base32_16(sMulti, s);
-
-		Serial.print("rMulti: ");
-		for(unsigned short i = 0; i < 9; i += 1) {
-			Serial.print(rMulti[i], HEX);
-			Serial.print(' ');
-		}
-		Serial.println();
-		Serial.print("sMulti: ");
-		for(unsigned short i = 0; i < 9; i += 1) {
-			Serial.print(sMulti[i], HEX);
-			Serial.print(' ');
-		}
-		Serial.println('\n');
 
 		tagProcess(message);
 
