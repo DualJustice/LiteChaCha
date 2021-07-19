@@ -186,7 +186,7 @@ void Poly1305MAC::prepareFinalBlock(char* message) {
 	}
 
 	for(unsigned short i = 0; i < messageRemainder; i += 1) {
-		block[INITBLOCKLEN - (i/2)] >> 8;
+		block[INITBLOCKLEN - (i/2)] = block[INITBLOCKLEN - (i/2)] >> 8;
 
 		Serial.print("step 1: ");
 		Serial.println(block[INITBLOCKLEN - (i/2)], HEX);
@@ -199,8 +199,8 @@ void Poly1305MAC::prepareFinalBlock(char* message) {
 	}
 
 	if(messageRemainder % 2) {
-		block[finalBlockLastWordIndex] >> 8;
-		block[finalBlockLastWordIndex] | 0x00000100;
+		block[finalBlockLastWordIndex] = block[finalBlockLastWordIndex] >> 8;
+		block[finalBlockLastWordIndex] |= 0x00000100;
 	} else {
 		block[finalBlockLastWordIndex - 1] = 0x00000001;
 	}
