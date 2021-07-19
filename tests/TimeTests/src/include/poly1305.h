@@ -142,7 +142,7 @@ void Poly1305MAC::prepareInt(uint32_t* key) {
 
 void Poly1305MAC::initializeMAC(uint32_t* key, unsigned long long bytes) {
 	blockCounter = 0x00000000;
-	messageBlockCount = ((bytes - 1)/BLOCKBYTES) + 1; // OOPS! MAKE SURE TO CHANGE THIS IN CHACHA!
+	messageBlockCount = ((bytes - 1)/BLOCKBYTES) + 1;
 	messageRemainder = bytes % BLOCKBYTES;
 
 	prepareInt(key);

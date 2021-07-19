@@ -113,7 +113,7 @@ void ChaChaEncryption::initializeEncryption(unsigned long long bytes, unsigned l
 	}
 
 	encryptBytes = BLOCK_BYTES;
-	messageBlockCount = (bytes/(BLOCK_BYTES + 1)) + 1;
+	messageBlockCount = ((bytes - 1)/BLOCK_BYTES) + 1;
 	messageRemainder = bytes % BLOCK_BYTES;
 }
 
