@@ -38,7 +38,7 @@ LOOP THROUGH BLOCKS {
 
 ---------- What to expect ----------
 The largest expected block: 	0001 ffff ffff ffff ffff ffff ffff ffff ffff
-The largest expected acc:			0003 ffff ffff ffff ffff ffff ffff ffff fffa
+The largest expected acc:		0003 ffff ffff ffff ffff ffff ffff ffff fffa
 The largest expected sum:		0005 ffff ffff ffff ffff ffff ffff ffff fff9
 Above sum*d:					c005 ffff ffff ffff ffff ffff ffff ffff 1ff9
 

@@ -38,8 +38,6 @@ public:
 
 	void base16Add(uint32_t*, uint32_t*, uint32_t*, bool);
 	void base16Mul(uint32_t*, uint32_t*, uint32_t*);
-
-	void base16_32(uint32_t*, uint32_t*); // Isn't currently used.
 };
 
 
@@ -216,13 +214,6 @@ void MultiPrecisionArithmetic1305::base16Mul(uint32_t* out, uint32_t* a, uint32_
 	base16Mod();
 
 	prepareOut(out);
-}
-
-
-void MultiPrecisionArithmetic1305::base16_32(uint32_t* out, uint32_t* a) {
-	for(unsigned short i = 0; i < (n/2); i += 1) {
-		out[i] = (a[(i*2) + 1] << 16) | a[(i*2) + 2];
-	}
 }
 
 #endif
