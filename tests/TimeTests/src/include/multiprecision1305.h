@@ -36,11 +36,10 @@ public:
 
 	void base32_16(uint32_t*, uint32_t*);
 
-	void base16Add(uint32_t*, uint32_t*, uint32_t*);
+	void base16Add(uint32_t*, uint32_t*, uint32_t*, bool);
 	void base16Mul(uint32_t*, uint32_t*, uint32_t*);
-	void base16AddNoMod(uint32_t*, uint32_t*, uint32_t*);
 
-	void base16_32(uint32_t*, uint32_t*);
+	void base16_32(uint32_t*, uint32_t*); // Isn't currently used.
 };
 
 
@@ -170,7 +169,7 @@ void MultiPrecisionArithmetic1305::prepareOut(uint32_t* out) {
 }
 
 
-void MultiPrecisionArithmetic1305::base16Add(uint32_t* out, uint32_t* a, uint32_t* b) { // Might be able to optimize by combining some steps.
+void MultiPrecisionArithmetic1305::base16Add(uint32_t* out, uint32_t* a, uint32_t* b, bool mod = true) { // Might be able to optimize by combining some steps.
 	prepareIn(a, b);
 
 	carry = 0x00000000;
@@ -181,8 +180,10 @@ void MultiPrecisionArithmetic1305::base16Add(uint32_t* out, uint32_t* a, uint32_
 		u[i] %= base;
 	}
 
-	m = 1;
-	base16Mod();
+	if(mod) {
+		m = 1;
+		base16Mod();
+	}
 
 	prepareOut(out);
 }
@@ -213,21 +214,6 @@ void MultiPrecisionArithmetic1305::base16Mul(uint32_t* out, uint32_t* a, uint32_
 
 	m = n + 1;
 	base16Mod();
-
-	prepareOut(out);
-}
-
-
-void MultiPrecisionArithmetic1305::base16AddNoMod(uint32_t* out, uint32_t* a, uint32_t* b) { // Might be able to optimize by combining some steps.
-	prepareIn(a, b);
-
-	carry = 0x00000000;
-
-	for(unsigned short i = (n + 1); i > 0; i -= 1) {
-		u[i] += (v[i - 1] + carry);
-		carry = u[i]/base;
-		u[i] %= base;
-	}
 
 	prepareOut(out);
 }

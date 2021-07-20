@@ -16,29 +16,29 @@
 - p = 		0003 ffff ffff ffff ffff ffff ffff ffff fffb = (2^130) - 5 (9, 16-bit words).
 	-  d =	2001 HEX = 8,193 DEC (Smallest viable value)
 	- pd =	8003 ffff ffff ffff ffff ffff ffff ffff 5ffb
-- a (the accumulator).
+- acc (the accumulator).
 
 ---------- What you'll do ----------
-1. Call chacha with blockCounter set to 0 to obtain a 512-bit state.
+1. Call chacha with blockCounter set to 0 to obtain acc 512-bit state.
 2. Take the first 256 bits of the serialized state and use those as the one-time Poly key.
 	2.1. The first 128 bits are clamped and form "r."
 	2.2. The next 128 bits become "s."
 3. Encrypt the message using chacha with blockCounter set to 1.
-4. Initialize a to 0.
+4. Initialize acc to 0.
 5. Divide the message into 16-byte blocks. The last block might be shorter.
 LOOP THROUGH BLOCKS {
 	6. Read the block in little-endian order.
 	7. Add one bit beyond the number of octets. For the shorter block, it can be 2^120, 2^112, or any power of two that is evenly divisible by 8, all the way down to 2^8. (0x01, 0x.., ...)
 	8. If the last block is not 17 bytes long (16 + 1 bit), pad (prepend) it with zeros. This is meaningless if you treat the blocks as numbers.
-	9. Add this number to the accumulator: a.
-	10. Multiply a by "r" and take the result mod p. { a = ((a + block)*r) % p }.
+	9. Add this number to the accumulator: acc.
+	10. Multiply acc by "r" and take the result mod p. { acc = ((acc + block)*r) % p }.
 }
-11. Add "s" to a.
+11. Add "s" to acc.
 12. The 128 least significant bits are serialized in little-endian order to form the tag.
 
 ---------- What to expect ----------
 The largest expected block: 	0001 ffff ffff ffff ffff ffff ffff ffff ffff
-The largest expected a:			0003 ffff ffff ffff ffff ffff ffff ffff fffa
+The largest expected acc:			0003 ffff ffff ffff ffff ffff ffff ffff fffa
 The largest expected sum:		0005 ffff ffff ffff ffff ffff ffff ffff fff9
 Above sum*d:					c005 ffff ffff ffff ffff ffff ffff ffff 1ff9
 
@@ -50,49 +50,49 @@ class Poly1305MAC {
 private:
 	MultiPrecisionArithmetic1305 math;
 
-	static const constexpr unsigned short KEYLEN = 8;
-	static const constexpr unsigned short INTLEN = 4;
-	static const constexpr unsigned short INTLENMULTI = (2*INTLEN) + 1;
-	static const constexpr unsigned short BLOCKBYTES = 16;
-	static const constexpr unsigned short INITBLOCKLEN = BLOCKBYTES/2;
-	static const constexpr unsigned short TAGBYTES = 16;
-
-	uint32_t r[INTLEN];
-	uint32_t s[INTLEN];
-
-	static const constexpr uint32_t BITMASK1 = 0x0ffffffc;
-	static const constexpr uint32_t BITMASK2 = 0x0fffffff;
-	static const constexpr uint32_t BITMASK3 = 0x0000ffff;
-	static const constexpr uint32_t BITMASK4 = 0x000000ff;
-
-	uint32_t a[INTLENMULTI];
-
-	uint32_t rMulti[INTLENMULTI];
-	uint32_t sMulti[INTLENMULTI];
+	static const constexpr unsigned short TAG_BYTES = 16;
+	static const constexpr unsigned short KEY_LENGTH = 8;
+	static const constexpr unsigned short INT_LENGTH = 4;
+	static const constexpr unsigned short INT_LENGTH_MULTI = (2*INT_LENGTH) + 1;
+	static const constexpr unsigned short BLOCK_BYTES = 16;
+	static const constexpr unsigned short DEPENDENT_BLOCK_LENGTH = BLOCK_BYTES/2;
 
 	uint32_t blockCounter = 0x00000000;
+
+	uint32_t r[INT_LENGTH];
+	uint32_t s[INT_LENGTH];
+
+	uint32_t rMulti[INT_LENGTH_MULTI];
+	uint32_t sMulti[INT_LENGTH_MULTI];
+
+	uint32_t acc[INT_LENGTH_MULTI];
+
+	uint32_t block[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
+
 	unsigned long long messageBlockCount = 0;
 	unsigned short messageRemainder = 0;
 	unsigned long long blockIndexBytes = 0;
 	unsigned short finalBlockLastWordIndex = 0;
 
-	uint32_t block[INTLENMULTI];
+	static const constexpr uint32_t BITMASK = 0x000000ff;
 
 	void clamp();
 	void prepareInt(uint32_t*);
 	void initializeMAC(uint32_t*, unsigned long long);
 
-	void prepareBlock(char*);
+	void prepareBlockLittleEndian(char*);
+	void prepareFinalBlockLittleEndian(char*);
+	void tagSubProcess();
 	void incrementBlockCounter();
-	void prepareFinalBlock(char*);
 	void tagProcess(char*);
+
 	void serializeLittleEndian(char*);
 public:
 	Poly1305MAC();
 	~Poly1305MAC();
 
-	void createTag(char[TAGBYTES], uint32_t[KEYLEN], char*, unsigned long long);
-	bool authenticate(uint32_t[KEYLEN], char*, unsigned long long, char*);
+	void createTag(char[TAG_BYTES], uint32_t[KEY_LENGTH], char*, unsigned long long);
+	bool authenticate(uint32_t[KEY_LENGTH], char*, unsigned long long, char*);
 };
 
 
@@ -107,53 +107,83 @@ Poly1305MAC::~Poly1305MAC() {
 
 
 void Poly1305MAC::clamp() {
-	for(unsigned short i = 0; i < (INTLEN - 1); i += 1) {
-		r[i] &= BITMASK1;
+	for(unsigned short i = 0; i < (INT_LENGTH - 1); i += 1) {
+		r[i] &= 0x0ffffffc;
 	}
 
-	r[INTLEN - 1] &= BITMASK2;
+	r[INT_LENGTH - 1] &= 0x0fffffff;
 }
 
 
 void Poly1305MAC::prepareInt(uint32_t* key) {
-	for(unsigned short i = 0; i < INTLEN; i += 1) {
-		r[i] = key[(INTLEN - 1) - i] << 24;
-		r[i] |= ((key[(INTLEN - 1) - i] & 0x0000ff00) << 8);
-		r[i] |= ((key[(INTLEN - 1) - i] & 0x00ff0000) >> 8);
-		r[i] |= ((key[(INTLEN - 1) - i] & 0xff000000) >> 24);
+	for(unsigned short i = 0; i < INT_LENGTH; i += 1) {
+		r[i] = key[(INT_LENGTH - 1) - i] << 24;
+		r[i] |= ((key[(INT_LENGTH - 1) - i] & 0x0000ff00) << 8);
+		r[i] |= ((key[(INT_LENGTH - 1) - i] & 0x00ff0000) >> 8);
+		r[i] |= (key[(INT_LENGTH - 1) - i] >> 24);
 
-//		s[i] = (key[(INTLEN + 3) - i] << 24) | ((key[(INTLEN + 3) - i] & 0x0000ff00) << 16) | ((key[(INTLEN + 3) - i] & 0x00ff0000) << 8) | (key[(INTLEN + 3) - i] & 0xff000000);
-		s[i] = key[(INTLEN + 3) - i] << 24;
-		s[i] |= ((key[(INTLEN + 3) - i] & 0x0000ff00) << 8);
-		s[i] |= ((key[(INTLEN + 3) - i] & 0x00ff0000) >> 8);
-		s[i] |= ((key[(INTLEN + 3) - i] & 0xff000000) >> 24);
+		s[i] = key[(INT_LENGTH + 3) - i] << 24;
+		s[i] |= ((key[(INT_LENGTH + 3) - i] & 0x0000ff00) << 8);
+		s[i] |= ((key[(INT_LENGTH + 3) - i] & 0x00ff0000) >> 8);
+		s[i] |= (key[(INT_LENGTH + 3) - i] >> 24);
 	}
 
 	clamp();
 
-	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
-		a[i] = 0x00000000;
+	math.base32_16(rMulti, r);
+	math.base32_16(sMulti, s);
+
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		acc[i] = 0x00000000;
 	}
 }
 
 
 void Poly1305MAC::initializeMAC(uint32_t* key, unsigned long long bytes) {
 	blockCounter = 0x00000000;
-	messageBlockCount = ((bytes - 1)/BLOCKBYTES) + 1;
-	messageRemainder = bytes % BLOCKBYTES;
+	messageBlockCount = ((bytes - 1)/BLOCK_BYTES) + 1;
+	messageRemainder = bytes % BLOCK_BYTES;
 
 	prepareInt(key);
 }
 
 
-void Poly1305MAC::prepareBlock(char* message) {
-	blockIndexBytes = ((unsigned long)blockCounter)*BLOCKBYTES;
+void Poly1305MAC::prepareBlockLittleEndian(char* message) {
+	blockIndexBytes = ((unsigned long)blockCounter)*BLOCK_BYTES;
 
-	for(unsigned short i = 0; i < INITBLOCKLEN; i += 1) {
-		block[INITBLOCKLEN - i] = ((message[(i*2) + blockIndexBytes + 1] << 8) | message[(i*2) + blockIndexBytes]) & BITMASK3;
+	for(unsigned short i = 0; i < DEPENDENT_BLOCK_LENGTH; i += 1) {
+		block[DEPENDENT_BLOCK_LENGTH - i] = (message[(i*2) + blockIndexBytes + 1] << 8) | message[(i*2) + blockIndexBytes];
 	}
 
 	block[0] = 0x00000001;
+}
+
+
+void Poly1305MAC::prepareFinalBlockLittleEndian(char* message) {
+	finalBlockLastWordIndex = DEPENDENT_BLOCK_LENGTH - ((messageRemainder - 1)/2);
+	blockIndexBytes = ((unsigned long)blockCounter)*BLOCK_BYTES;
+
+	for(unsigned short i = 0; i < finalBlockLastWordIndex; i += 1) {
+		block[i] = 0x00000000;
+	}
+
+	for(unsigned short i = 0; i < messageRemainder; i += 1) {
+		block[DEPENDENT_BLOCK_LENGTH - (i/2)] = block[DEPENDENT_BLOCK_LENGTH - (i/2)] >> 8;
+		block[DEPENDENT_BLOCK_LENGTH - (i/2)] |= (message[i + blockIndexBytes] << 8);
+	}
+
+	if(messageRemainder % 2) {
+		block[finalBlockLastWordIndex] = block[finalBlockLastWordIndex] >> 8;
+		block[finalBlockLastWordIndex] |= 0x00000100;
+	} else {
+		block[finalBlockLastWordIndex - 1] = 0x00000001;
+	}
+}
+
+
+void Poly1305MAC::tagSubProcess() {
+	math.base16Add(acc, acc, block);
+	math.base16Mul(acc, acc, rMulti);
 }
 
 
@@ -166,53 +196,28 @@ void Poly1305MAC::incrementBlockCounter() {
 }
 
 
-void Poly1305MAC::prepareFinalBlock(char* message) {
-	finalBlockLastWordIndex = INITBLOCKLEN - ((messageRemainder - 1)/2);
-	blockIndexBytes = ((unsigned long)blockCounter)*BLOCKBYTES;
-
-	for(unsigned short i = 0; i < finalBlockLastWordIndex; i += 1) {
-		block[i] = 0x00000000;
-	}
-
-	for(unsigned short i = 0; i < messageRemainder; i += 1) {
-		block[INITBLOCKLEN - (i/2)] = block[INITBLOCKLEN - (i/2)] >> 8;
-		block[INITBLOCKLEN - (i/2)] |= (message[i + blockIndexBytes] << 8);
-	}
-
-	if(messageRemainder % 2) {
-		block[finalBlockLastWordIndex] = block[finalBlockLastWordIndex] >> 8;
-		block[finalBlockLastWordIndex] |= 0x00000100;
-	} else {
-		block[finalBlockLastWordIndex - 1] = 0x00000001;
-	}
-}
-
-
 void Poly1305MAC::tagProcess(char* message) {
 	for(unsigned long long i = 0; i < (messageBlockCount - 1); i += 1) {
-		prepareBlock(message);
-		math.base16Add(a, a, block);
-		math.base16Mul(a, a, rMulti);
+		prepareBlockLittleEndian(message);
+		tagSubProcess();
 		incrementBlockCounter();
 	}
 	if(messageRemainder == 0) {
-		prepareBlock(message);
-		math.base16Add(a, a, block);
-		math.base16Mul(a, a, rMulti);
+		prepareBlockLittleEndian(message);
+		tagSubProcess();
+		math.base16Add(acc, acc, sMulti, false);
 	} else {
-		prepareFinalBlock(message);
-		math.base16Add(a, a, block);
-		math.base16Mul(a, a, rMulti);
+		prepareFinalBlockLittleEndian(message);
+		tagSubProcess();
+		math.base16Add(acc, acc, sMulti, false);
 	}
-
-	math.base16AddNoMod(a, a, sMulti);
 }
 
 
 void Poly1305MAC::serializeLittleEndian(char* out) {
-	for(unsigned short i = 0; i < INITBLOCKLEN; i += 1) {
-		out[(i*2)] = a[INITBLOCKLEN - i] & BITMASK4;
-		out[(i*2) + 1] = (a[INITBLOCKLEN - i] >> 8) & BITMASK4; // Bitwise and statement may not be necessary.
+	for(unsigned short i = 0; i < DEPENDENT_BLOCK_LENGTH; i += 1) {
+		out[(i*2)] = acc[DEPENDENT_BLOCK_LENGTH - i] & BITMASK;
+		out[(i*2) + 1] = acc[DEPENDENT_BLOCK_LENGTH - i] >> 8;
 	}
 }
 
@@ -220,9 +225,6 @@ void Poly1305MAC::serializeLittleEndian(char* out) {
 void Poly1305MAC::createTag(char* out, uint32_t* key, char* message, unsigned long long bytes) {
 	if(bytes > 0) {
 		initializeMAC(key, bytes);
-
-		math.base32_16(rMulti, r);
-		math.base32_16(sMulti, s);
 
 		tagProcess(message);
 

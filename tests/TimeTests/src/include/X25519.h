@@ -10,40 +10,40 @@ class X25519KeyManagement {
 private:
 	MultiPrecisionArithmetic25519 math;
 
-	static const constexpr unsigned short BYTELEN = 32;
-	static const constexpr unsigned short INTLEN = 8;
-	static const constexpr unsigned short INTLENMULTI = 2*INTLEN;
+	static const constexpr unsigned short BYTE_LENGTH = 32;
+	static const constexpr unsigned short INT_LENGTH = 8;
+	static const constexpr unsigned short INT_LENGTH_MULTI = 2*INT_LENGTH;
 	static const constexpr unsigned short BITS = 255;
 
-	uint32_t nInt[INTLEN];
-	uint32_t xInt[INTLEN];
-	uint32_t xIntMulti[INTLENMULTI];
+	uint32_t nInt[INT_LENGTH];
+	uint32_t xInt[INT_LENGTH];
+	uint32_t xIntMulti[INT_LENGTH_MULTI];
 
-	uint32_t X1[INTLENMULTI];
-	uint32_t X2[INTLENMULTI];
-	uint32_t Z2[INTLENMULTI];
-	uint32_t X3[INTLENMULTI];
-	uint32_t Z3[INTLENMULTI];
+	uint32_t X1[INT_LENGTH_MULTI];
+	uint32_t X2[INT_LENGTH_MULTI];
+	uint32_t Z2[INT_LENGTH_MULTI];
+	uint32_t X3[INT_LENGTH_MULTI];
+	uint32_t Z3[INT_LENGTH_MULTI];
 
 	uint32_t s;
 	uint32_t bit;
 	uint32_t mask;
 	uint32_t swap;
 
-	uint32_t A[INTLENMULTI];
-	uint32_t AA[INTLENMULTI];
-	uint32_t B[INTLENMULTI];
-	uint32_t BB[INTLENMULTI];
-	uint32_t E[INTLENMULTI];
-	uint32_t C[INTLENMULTI];
-	uint32_t D[INTLENMULTI];
-	uint32_t DA[INTLENMULTI];
-	uint32_t CB[INTLENMULTI];
+	uint32_t A[INT_LENGTH_MULTI];
+	uint32_t AA[INT_LENGTH_MULTI];
+	uint32_t B[INT_LENGTH_MULTI];
+	uint32_t BB[INT_LENGTH_MULTI];
+	uint32_t E[INT_LENGTH_MULTI];
+	uint32_t C[INT_LENGTH_MULTI];
+	uint32_t D[INT_LENGTH_MULTI];
+	uint32_t DA[INT_LENGTH_MULTI];
+	uint32_t CB[INT_LENGTH_MULTI];
 
-	uint32_t A24[INTLEN] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0001db41}; // (486662 - 2)/4.
-	uint32_t A24Multi[INTLENMULTI];
+	uint32_t A24[INT_LENGTH] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0001db41}; // (486662 - 2)/4.
+	uint32_t A24Multi[INT_LENGTH_MULTI];
 
-	char z;
+	char zerosCheck;
 
 	char* decodeBytesLittleEndian(char*);
 	char* clampAndDecodeScalar(char*);
@@ -61,7 +61,7 @@ public:
 	X25519KeyManagement();
 	~X25519KeyManagement();
 
-	void curve25519(char[BYTELEN], char[BYTELEN]);
+	void curve25519(char[BYTE_LENGTH], char[BYTE_LENGTH]);
 };
 
 
@@ -77,10 +77,10 @@ X25519KeyManagement::~X25519KeyManagement() {
 
 char* X25519KeyManagement::decodeBytesLittleEndian(char* b) {
 	char temp;
-	for(unsigned short i = 0; i < BYTELEN/2; i += 1) {
+	for(unsigned short i = 0; i < BYTE_LENGTH/2; i += 1) {
 		temp = b[i];
-		b[i] = b[(BYTELEN - 1) - i];
-		b[(BYTELEN - 1) - i] = temp;
+		b[i] = b[(BYTE_LENGTH - 1) - i];
+		b[(BYTE_LENGTH - 1) - i] = temp;
 	}
 
 	return b;
@@ -99,7 +99,7 @@ char* X25519KeyManagement::clampAndDecodeScalar(char* n) {
 
 
 void X25519KeyManagement::toUInt(uint32_t* outInt, char* b) {
-	for(unsigned short i = 0; i < INTLEN; i += 1) {
+	for(unsigned short i = 0; i < INT_LENGTH; i += 1) {
 		outInt[i] = (b[i*4] << 24) | (b[(i*4) + 1] << 16) | (b[(i*4) + 2] << 8) | b[(i*4) + 3];
 	}
 }
@@ -118,13 +118,13 @@ void X25519KeyManagement::cSwap(uint32_t s) {
 	mask = 0x00000000;
 	mask -= s;
 
-	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		swap = mask & (X2[i] ^ X3[i]);
 		X2[i] ^= swap;
 		X3[i] ^= swap;
 	}
 
-	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		swap = mask & (Z2[i] ^ Z3[i]);
 		Z2[i] ^= swap;
 		Z3[i] ^= swap;
@@ -155,23 +155,23 @@ void X25519KeyManagement::ladderStep() {
 
 
 void X25519KeyManagement::montgomeryLadder() {
-	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		X1[i] = xIntMulti[i];
 	}
-	for(unsigned short i = 0; i < (INTLENMULTI - 1); i += 1) {
+	for(unsigned short i = 0; i < (INT_LENGTH_MULTI - 1); i += 1) {
 		X2[i] = 0x00000000;
 	}
-	X2[INTLENMULTI - 1] = 0x00000001;
-	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
+	X2[INT_LENGTH_MULTI - 1] = 0x00000001;
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		Z2[i] = 0x00000000;
 	}
-	for(unsigned short i = 0; i < INTLENMULTI; i += 1) {
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		X3[i] = xIntMulti[i];
 	}
-	for(unsigned short i = 0; i < (INTLENMULTI - 1); i += 1) {
+	for(unsigned short i = 0; i < (INT_LENGTH_MULTI - 1); i += 1) {
 		Z3[i] = 0x00000000;
 	}
-	Z3[INTLENMULTI - 1] = 0x00000001;
+	Z3[INT_LENGTH_MULTI - 1] = 0x00000001;
 	s = 0x00000000;
 
 	for(unsigned short i = (BITS - 1); i < BITS; i -= 1) {
@@ -261,7 +261,7 @@ void X25519KeyManagement::reciprocal() {
 
 
 char* X25519KeyManagement::encodeXCoord(char* x) {
-	for(unsigned short i = 0; i < INTLEN; i += 1) {
+	for(unsigned short i = 0; i < INT_LENGTH; i += 1) {
 		x[i*4] = xInt[i] >> 24;
 		x[(i*4) + 1] = xInt[i] >> 16;
 		x[(i*4) + 2] = xInt[i] >> 8;
@@ -275,13 +275,13 @@ char* X25519KeyManagement::encodeXCoord(char* x) {
 
 
 void X25519KeyManagement::checkAllZerosCase(char* x) {
-	z = 0x00;
+	zerosCheck = 0x00;
 
-	for(unsigned short i = 0; i < BYTELEN; i += 1) {
-		z |= x[i];
+	for(unsigned short i = 0; i < BYTE_LENGTH; i += 1) {
+		zerosCheck |= x[i];
 	}
 
-	if(!z) {
+	if(!zerosCheck) {
 		// Log an error here.
 		// Wait until new private keys are chosen.
 	}
