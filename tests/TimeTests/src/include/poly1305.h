@@ -5,46 +5,6 @@
 
 #include <stdint.h>
 
-/*
----------- What you'll need ----------
-- 256-bit one-time key, s, created using chacha.
-- the message.
-	- The message will be broken up into 16-byte blocks. Example block: 0001 6f46 2063 6968 7061 7267 6f74 7079 7243 (9, 16-bit words).
-	- The contents of the blocks will be read in little-endian.
-- r (128-bit number).
-- s (128-bit number).
-- p = 		0003 ffff ffff ffff ffff ffff ffff ffff fffb = (2^130) - 5 (9, 16-bit words).
-	-  d =	2001 HEX = 8,193 DEC (Smallest viable value)
-	- pd =	8003 ffff ffff ffff ffff ffff ffff ffff 5ffb
-- acc (the accumulator).
-
----------- What you'll do ----------
-1. Call chacha with blockCounter set to 0 to obtain acc 512-bit state.
-2. Take the first 256 bits of the serialized state and use those as the one-time Poly key.
-	2.1. The first 128 bits are clamped and form "r."
-	2.2. The next 128 bits become "s."
-3. Encrypt the message using chacha with blockCounter set to 1.
-4. Initialize acc to 0.
-5. Divide the message into 16-byte blocks. The last block might be shorter.
-LOOP THROUGH BLOCKS {
-	6. Read the block in little-endian order.
-	7. Add one bit beyond the number of octets. For the shorter block, it can be 2^120, 2^112, or any power of two that is evenly divisible by 8, all the way down to 2^8. (0x01, 0x.., ...)
-	8. If the last block is not 17 bytes long (16 + 1 bit), pad (prepend) it with zeros. This is meaningless if you treat the blocks as numbers.
-	9. Add this number to the accumulator: acc.
-	10. Multiply acc by "r" and take the result mod p. { acc = ((acc + block)*r) % p }.
-}
-11. Add "s" to acc.
-12. The 128 least significant bits are serialized in little-endian order to form the tag.
-
----------- What to expect ----------
-The largest expected block: 	0001 ffff ffff ffff ffff ffff ffff ffff ffff
-The largest expected acc:		0003 ffff ffff ffff ffff ffff ffff ffff fffa
-The largest expected sum:		0005 ffff ffff ffff ffff ffff ffff ffff fff9
-Above sum*d:					c005 ffff ffff ffff ffff ffff ffff ffff 1ff9
-
-The largest expected product:	0003 ffff ffff ffff ffff ffff ffff ffff fff6 0000 0000 0000 0000 0000 0000 0000 0006
-Above product*d:				8003 ffff ffff ffff ffff ffff ffff fffe bff6 0000 0000 0000 0000 0000 0000 0000 c006
-*/
 
 class Poly1305MAC {
 private:

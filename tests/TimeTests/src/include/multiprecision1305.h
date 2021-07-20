@@ -21,6 +21,12 @@ Above sum*d:					c005 ffff ffff ffff ffff ffff ffff ffff 1ff9
 The largest expected r:			0000 ffff ffff ffff ffff ffff ffff ffff ffff
 The largest expected product:	0003 ffff ffff ffff ffff ffff ffff ffff fff6 0000 0000 0000 0000 0000 0000 0000 0006
 Above product*d:				8003 ffff ffff ffff ffff ffff ffff fffe bff6 0000 0000 0000 0000 0000 0000 0000 c006
+
+---------- What to glean ----------
+Because no carry is every used beyond the input length the sizes of u and w can be potentially shortened by one. m can Decrease in kind. Addition, multiplication, and modulo could be
+made to run quicker along side these changes. This is ripe for future optimization. Optimizations may be smaller than initially anticipated though. For example, v cannot be shortened
+because of D4. If qHat is ever larger than approximately 1.9998 the extra carry place is necessary. As another example, shortening the runtime of multiplication is less trivial than
+it first appears.
 */
 
 class MultiPrecisionArithmetic1305 {
