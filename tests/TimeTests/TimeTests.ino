@@ -9,8 +9,6 @@
 #include <stdint.h> // DELETE ME!
 
 
-// To Do: Create a wrapper for ChaCha and Poly which is a single header.
-
 /*
 ---------- Basic Order of Operations ----------
 
@@ -18,7 +16,9 @@
 2. Create a public session key with your private session key using X25519.
 3. Create a shared private session key with your private session key and the other users public session key using X25519.
 	3.1. Ensure that your fixed nonce is different from that of the other user.
-	3.2. Ensure that the shared private session key & nonce pair is unique.
+	3.2. Ensure that your shared private session key & fixed nonce pair has not been used by you before. For better, though unnecessary security, simply ensuring that the shared private
+			session key is new is more secure as it does not allow for private key swaps across two different connections, giving potential attackers less messages to work with using a
+			single key.
 	3.3. Confirm a secure connection by comparing shared private session key out-of-band. If they match, the session is secure. This could be done in the future using RSA or ECDSA.
 4. Encrypt messages with the shared private session key using chacha.
 5. Create a MAC of the encrypted message with the shared private session key using poly1305.
