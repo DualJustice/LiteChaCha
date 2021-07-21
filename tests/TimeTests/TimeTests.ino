@@ -1,18 +1,18 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 
-#include "src/include/tempfuncs.h"
 #include "src/include/X25519.h"
-#include "src/include/poly1305.h"
-#include "src/include/chacha.h"
-
-#include <stdint.h> // DELETE ME!
+#include "src/include/AEAD.h"
+//#include <stdint.h>
+//#include "src/include/poly1305.h"
+//#include "src/include/tempfuncs.h"
+//#include "src/include/chacha.h"
 
 
 /*
 ---------- Basic Order of Operations ----------
 
-1. Generate two cryptographically random numbers (Not pseudorandom). These will be your private session key and your fixed nonce.
+1. Generate two cryptographically random numbers (not pseudorandom). These will be your private session key and your fixed nonce.
 2. Create a public session key with your private session key using X25519.
 3. Create a shared private session key with your private session key and the other users public session key using X25519.
 	3.1. Ensure that your fixed nonce is different from that of the other user.
@@ -33,10 +33,11 @@
 
 void setup() {
 	X25519KeyManagement ecdhe;
-	Poly1305MAC mac;
-	ChaChaEncryption cipher;
+	AEADConstruct authencrypt;
+//	Poly1305MAC mac;
+//	ChaChaEncryption cipher;
 
-	Serial.begin(BAUD_RATE);
+	Serial.begin(9600);
 	while(!Serial) {
 		delay(250);
 	}
@@ -44,8 +45,13 @@ void setup() {
 	unsigned long timeStamp = 0;
 	unsigned long duration = 0;
 
+
+// AEAD TEST: -------------------------------------------------------------------------------------
+
+
+
 /*
-// X25519 TEST:
+// X25519 TEST: -----------------------------------------------------------------------------------
 
 //	static char privateKey[32] = {0xa5, 0x46, 0xe3, 0x6b, 0xf0, 0x52, 0x7c, 0x9d, 0x3b, 0x16, 0x15, 0x4b, 0x82, 0x46, 0x5e, 0xdd, 0x62, 0x14, 0x4c, 0x0a, 0xc1, 0xfc, 0x5a, 0x18, 0x50, 0x6a, 0x22, 0x44, 0xba, 0x44, 0x9a, 0xc4};
 //	static char initXCoord[32] = {0xe6, 0xdb, 0x68, 0x67, 0x58, 0x30, 0x30, 0xdb, 0x35, 0x94, 0xc1, 0xa4, 0x24, 0xb1, 0x5f, 0x7c, 0x72, 0x66, 0x24, 0xec, 0x26, 0xb3, 0x35, 0x3b, 0x10, 0xa9, 0x03, 0xa6, 0xd0, 0xab, 0x1c, 0x4c};
@@ -100,8 +106,8 @@ void setup() {
 	Serial.print(duration);
 	Serial.println('\n');
 */
-
-// POLY1305 TEST:
+/*
+// POLY1305 TEST: ---------------------------------------------------------------------------------
 	char tag[16];
 	bool auth;
 
@@ -150,9 +156,9 @@ void setup() {
 	Serial.print("5-run micros: ");
 	Serial.print(duration);
 	Serial.println('\n');
-
+*/
 /*
-// CHACHA TEST (12 ms max per message, 256 bytes max expected message length):
+// CHACHA TEST (12 ms max per message, 256 bytes max expected message length): --------------------
 
 	for(unsigned short i = 0; i < 2; i += 1) {
 		cipher.incrementNonceCounter();
