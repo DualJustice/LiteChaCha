@@ -288,7 +288,7 @@ void X25519KeyManagement::checkAllZerosCase(char* x) {
 }
 
 
-void X25519KeyManagement::curve25519(char* n, char* xp) { // k is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
+void X25519KeyManagement::curve25519(char* n, char* xp) { // n is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
 	n = clampAndDecodeScalar(n);
 
 	toUInt(nInt, n);
