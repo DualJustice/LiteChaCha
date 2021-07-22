@@ -54,17 +54,29 @@ void setup() {
 
 // PKI & AEAD TEST: -------------------------------------------------------------------------------------
 
-	char userID[pki.getIDBytes];
-	char peerID[pki.getIDBytes];
-	char userPubKey[pki.getKeyBytes];
-	char peerPubKey[pki.getKeyBytes];
+	char userID[pki.getIDBytes()];
+	char peerID[pki.getIDBytes()];
+	char userPubKey[pki.getKeyBytes()];
+	char peerPubKey[pki.getKeyBytes()];
 
 	duration = 0;
 	timeStamp = micros();
 	pki.initialize(userID, userPubKey);
 	duration = micros() - timeStamp;
+	pki.initialize(peerID, peerPubKey);
 
-	Serial.print("micros: ");
+	Serial.print("initialize micros: ");
+	Serial.print(duration);
+	Serial.println('\n');
+
+	duration = 0;
+	timeStamp = micros();
+	if(pki.IDUnique(userID, peerID)) {
+		pki.createSessionKey(peerPubKey);
+	}
+	duration = micros() - timeStamp;
+
+	Serial.print("sessionKey micros: ");
 	Serial.print(duration);
 	Serial.println('\n');
 
