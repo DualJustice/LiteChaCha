@@ -1,8 +1,8 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 
-#include "src/include/ciphersetup.h"
-#include "src/include/X25519.h"
+#include "src/include/keyinfrastructure.h"
+//#include "src/include/X25519.h"
 #include "src/include/AEAD.h"
 //#include <stdint.h>
 //#include "src/include/poly1305.h"
@@ -11,19 +11,22 @@
 
 
 /*
----------- Basic Order of Operations ----------
+-------------------- Basic Order of Operations --------------------
+
+---------- Establish Connection (Done In KeyManagement) ----------
 
 1. Generate two cryptographically random numbers (not pseudorandom). These will be your private session key and your fixed nonce.
 	1.1. Exchange fixed nonces unencrypted.
 	1.2. Ensure that your fixed nonce is different from that of the other user.
+ - The fixed nonce does not need to be random. If the fixed nonce is stored, step 1 would only ever need to be run a single time between two users.
 2. Create a public session key with your private session key using X25519.
-3. Create a shared private session key with your private session key and the other users public session key using X25519.
+3. Create a shared private session key with your private session key and the other users public session key using X25519. Public keys are exchanged unencrypted.
 	3.1. Ensure that your shared private session key & fixed nonce pair has not been used by you before. For better, though unnecessary security, simply ensuring that the shared private
-			session key is new is more secure as it does not allow for private key swaps across two different connections, giving potential attackers less messages to work with using a
+			session key is new is more secure as it does not allow for private key "swaps" across two different connections, giving potential attackers less messages to work with using a
 			single key.
 	3.2. Confirm a secure connection by comparing shared private session key out-of-band. If they match, the session is secure. This could be done in the future using RSA or ECDSA.
 
----------- Communication ----------
+---------- Communication (Done In AEADConstruct) ----------
 
 4. Create a one-time Poly1305 key with the private session key, your nonce, and the block counter set to 0 using chacha.
 5. Encrypt the message with the shared private session key, your nonce, and the block counter set to 1 using chacha.
@@ -34,8 +37,8 @@
 
 
 void setup() {
-	CipherSuiteSetup init;
-	X25519KeyManagement ecdhe;
+	KeyManagement pki;
+//	X25519KeyExchange ecdhe;
 	AEADConstruct authencrypt;
 //	Poly1305MAC mac;
 //	ChaChaEncryption cipher;
@@ -49,13 +52,21 @@ void setup() {
 	unsigned long duration = 0;
 
 
-// SETUP TEST: ------------------------------------------------------------------------------------
+// PKI & AEAD TEST: -------------------------------------------------------------------------------------
 
-	init.generateRandomKey();
+	char userID[pki.getIDBytes];
+	char peerID[pki.getIDBytes];
+	char userPubKey[pki.getKeyBytes];
+	char peerPubKey[pki.getKeyBytes];
 
-// AEAD TEST: -------------------------------------------------------------------------------------
+	duration = 0;
+	timeStamp = micros();
+	pki.initialize(userID, userPubKey);
+	duration = micros() - timeStamp;
 
-
+	Serial.print("micros: ");
+	Serial.print(duration);
+	Serial.println('\n');
 
 /*
 // X25519 TEST: -----------------------------------------------------------------------------------
@@ -115,6 +126,7 @@ void setup() {
 */
 /*
 // POLY1305 TEST: ---------------------------------------------------------------------------------
+
 	char tag[16];
 	bool auth;
 

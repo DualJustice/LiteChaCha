@@ -18,7 +18,7 @@ public:
 	~AEADConstruct();
 
 	void encryptAndTagMessage();
-	bool authenticateMessage();
+	bool messageAuthentic();
 	void decryptAuthenticatedMessage();
 };
 
