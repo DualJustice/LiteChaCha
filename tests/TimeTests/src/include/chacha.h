@@ -67,7 +67,7 @@ public:
 
 	unsigned long long getNonceCounter() {return (nonceCounter[0] << 32) | nonceCounter[1];}
 
-//	unsigned long* getLastEndState() {return (unsigned long*)endState;}
+	uint32_t* getLastEndState() {return endState;}
 //	char* getLastKeyStream() {return keyStream;}
 
 	void encryptMessage(char*, unsigned long long, unsigned long);

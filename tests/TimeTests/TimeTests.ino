@@ -59,26 +59,44 @@ void setup() {
 	char userPubKey[pki.getKeyBytes()];
 	char peerPubKey[pki.getKeyBytes()];
 
+	unsigned short messageBytes = 375;
+	char sentMessage[messageBytes] = {"Any submission to the IETF intended by the Contributor for publication as all or part of an IETF Internet-Draft or RFC and any statement made within the context of an IETF activity is considered an \"IETF Contribution\". Such statements include oral statements in IETF sessions, as well as written and electronic communications made at any time or place, which are addressed to"};
+	char receivedMessage[messageBytes];
+
 	duration = 0;
+
 	timeStamp = micros();
 	pki.initialize(userID, userPubKey);
-	duration = micros() - timeStamp;
+	timeStamp = micros() - timeStamp;
+	duration += timeStamp;
+
 	pki.initialize(peerID, peerPubKey);
 
-	Serial.print("initialize micros: ");
-	Serial.print(duration);
+	Serial.print("PKI init micros: ");
+	Serial.print(timeStamp);
 	Serial.println('\n');
 
-	duration = 0;
 	timeStamp = micros();
 	if(pki.IDUnique(userID, peerID)) {
 		pki.createSessionKey(peerPubKey);
 	}
-	duration = micros() - timeStamp;
+	timeStamp = micros() - timeStamp;
+	duration += timeStamp;
 
 	Serial.print("sessionKey micros: ");
-	Serial.print(duration);
+	Serial.print(timeStamp);
 	Serial.println('\n');
+
+	timeStamp = micros();
+	authencrypt.initialize(peerPubKey, userID, peerID);
+	timeStamp = micros() - timeStamp;
+	duration += timeStamp;
+
+	Serial.print("AEAD init micros: ");
+	Serial.print(timeStamp);
+	Serial.println('\n');
+
+
 
 /*
 // X25519 TEST: -----------------------------------------------------------------------------------
