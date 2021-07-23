@@ -3,7 +3,7 @@
 
 #include "src/include/keyinfrastructure.h"
 //#include "src/include/X25519.h"
-#include "src/include/AEAD.h"
+#include "src/include/authenticatedencrypt.h"
 //#include <stdint.h>
 //#include "src/include/poly1305.h"
 //#include "src/include/tempfuncs.h"
@@ -39,7 +39,7 @@
 void setup() {
 	KeyManagement pki;
 //	X25519KeyExchange ecdhe;
-	AEADConstruct authencrypt;
+	CipherManagement ae;
 //	Poly1305MAC mac;
 //	ChaChaEncryption cipher;
 
@@ -60,8 +60,11 @@ void setup() {
 	char peerPubKey[pki.getKeyBytes()];
 
 	unsigned short messageBytes = 375;
-	char sentMessage[messageBytes] = {"Any submission to the IETF intended by the Contributor for publication as all or part of an IETF Internet-Draft or RFC and any statement made within the context of an IETF activity is considered an \"IETF Contribution\". Such statements include oral statements in IETF sessions, as well as written and electronic communications made at any time or place, which are addressed to"};
-	char receivedMessage[messageBytes];
+	char message[messageBytes] = {"Any submission to the IETF intended by the Contributor for publication as all or part of an IETF Internet-Draft or RFC and any statement made within the context of an IETF activity is considered an \"IETF Contribution\". Such statements include oral statements in IETF sessions, as well as written and electronic communications made at any time or place, which are addressed to"};
+
+	unsigned long long messageCount;
+
+	char tag[16];
 
 	duration = 0;
 
@@ -72,7 +75,7 @@ void setup() {
 
 	pki.initialize(peerID, peerPubKey);
 
-	Serial.print("PKI init micros: ");
+	Serial.print("pki init micros:         ");
 	Serial.print(timeStamp);
 	Serial.println('\n');
 
@@ -83,20 +86,48 @@ void setup() {
 	timeStamp = micros() - timeStamp;
 	duration += timeStamp;
 
-	Serial.print("sessionKey micros: ");
+	Serial.print("sessionKey micros:       ");
+	Serial.print(timeStamp);
+	Serial.println('\n');
+	Serial.println();
+
+	timeStamp = micros();
+	ae.initialize(peerPubKey, userID, peerID);
+	timeStamp = micros() - timeStamp;
+	duration += timeStamp;
+
+	Serial.print("ae init micros:          ");
 	Serial.print(timeStamp);
 	Serial.println('\n');
 
 	timeStamp = micros();
-	authencrypt.initialize(peerPubKey, userID, peerID);
+	ae.encryptAndTagMessage(messageCount, tag, message, messageBytes);
 	timeStamp = micros() - timeStamp;
 	duration += timeStamp;
 
-	Serial.print("AEAD init micros: ");
+	Serial.print("ae encrypt & tag micros: ");
 	Serial.print(timeStamp);
 	Serial.println('\n');
 
+	timeStamp = micros();
+	if(ae.messageAuthentic(message, messageBytes, messageCount, tag)) { // Will return false because the message was tagged using fixedNonce, not peerFixedNonce.
+		Serial.println("authentic");
+	}
+	timeStamp = micros() - timeStamp;
+	duration += timeStamp;
 
+	Serial.print("ae auth check micros:    ");
+	Serial.print(timeStamp);
+	Serial.println('\n');
+
+	timeStamp = micros();
+	ae.decryptAuthenticatedMessage(message, messageBytes, messageCount);
+	timeStamp = micros() - timeStamp;
+	duration += timeStamp;
+
+	Serial.print("ae decrypt micros:       ");
+	Serial.print(timeStamp);
+	Serial.println('\n');
 
 /*
 // X25519 TEST: -----------------------------------------------------------------------------------
