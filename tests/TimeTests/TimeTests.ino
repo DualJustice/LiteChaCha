@@ -77,7 +77,7 @@ void setup() {
 
 	Serial.print("pki init micros:         ");
 	Serial.print(timeStamp);
-	Serial.println('\n');
+	Serial.println();
 
 	timeStamp = micros();
 	if(pki.IDUnique(userID, peerID)) {
@@ -89,7 +89,6 @@ void setup() {
 	Serial.print("sessionKey micros:       ");
 	Serial.print(timeStamp);
 	Serial.println('\n');
-	Serial.println();
 
 	timeStamp = micros();
 	ae.initialize(peerPubKey, userID, peerID);
@@ -98,7 +97,7 @@ void setup() {
 
 	Serial.print("ae init micros:          ");
 	Serial.print(timeStamp);
-	Serial.println('\n');
+	Serial.println();
 
 	timeStamp = micros();
 	ae.encryptAndTagMessage(messageCount, tag, message, messageBytes);
@@ -107,7 +106,7 @@ void setup() {
 
 	Serial.print("ae encrypt & tag micros: ");
 	Serial.print(timeStamp);
-	Serial.println('\n');
+	Serial.println();
 
 	timeStamp = micros();
 	if(ae.messageAuthentic(message, messageBytes, messageCount, tag)) { // Will return false because the message was tagged using fixedNonce, not peerFixedNonce.
@@ -118,7 +117,7 @@ void setup() {
 
 	Serial.print("ae auth check micros:    ");
 	Serial.print(timeStamp);
-	Serial.println('\n');
+	Serial.println();
 
 	timeStamp = micros();
 	ae.decryptAuthenticatedMessage(message, messageBytes, messageCount);
@@ -127,7 +126,7 @@ void setup() {
 
 	Serial.print("ae decrypt micros:       ");
 	Serial.print(timeStamp);
-	Serial.println('\n');
+	Serial.println();
 
 /*
 // X25519 TEST: -----------------------------------------------------------------------------------
