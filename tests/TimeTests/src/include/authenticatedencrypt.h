@@ -16,10 +16,11 @@ private:
 	static const constexpr unsigned short FIXED_NONCE_BYTES = 4;
 	static const constexpr unsigned short TAG_BYTES = 16;
 	static const constexpr unsigned short POLY_KEY_LENGTH = 8;
-	static const constexpr unsigned long INITIAL_BLOCK = 1;
 
 	uint32_t* polyKeyMaterial;
 	uint32_t polyKey[POLY_KEY_LENGTH];
+
+	static const constexpr unsigned long INITIAL_BLOCK = 1;
 
 	void createPolyKey();
 public:

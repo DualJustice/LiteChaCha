@@ -17,22 +17,26 @@
 
 1. Generate two cryptographically random numbers (not pseudorandom). These will be your private session key and your fixed nonce.
 	1.1. Exchange fixed nonces unencrypted.
-	1.2. Ensure that your fixed nonce is different from that of the other user.
  - The fixed nonce does not need to be random. If the fixed nonce is stored, step 1 would only ever need to be run a single time between two users.
 2. Create a public session key with your private session key using X25519.
-3. Create a shared private session key with your private session key and the other users public session key using X25519. Public keys are exchanged unencrypted.
+	2.1. Ensure that your fixed nonce is different from that of the other user.
+	2.2. Exchange public session keys unencrypted.
+3. Create a shared private session key with your private session key and the other users public session key using X25519.
 	3.1. Ensure that your shared private session key & fixed nonce pair has not been used by you before. For better, though unnecessary security, simply ensuring that the shared private
 			session key is new is more secure as it does not allow for private key "swaps" across two different connections, giving potential attackers less messages to work with using a
 			single key.
-	3.2. Confirm a secure connection by comparing shared private session key out-of-band. If they match, the session is secure. This could be done in the future using RSA or ECDSA.
+	3.2. Confirm a secure connection by comparing the shared private session key out-of-band. If they match, the session is secure. This could be done in the future using RSA or ECDSA.
 
----------- Communication (Done In AEADConstruct) ----------
+---------- Communication (Done In CipherManagement) ----------
 
-4. Create a one-time Poly1305 key with the private session key, your nonce, and the block counter set to 0 using chacha.
-5. Encrypt the message with the shared private session key, your nonce, and the block counter set to 1 using chacha.
-6. Create a MAC of the encrypted message in AEAD format (the nonce counter will be additional data) with the shared private session key using poly1305.
-	6.1. When a message is received, reproduce its MAC in the same way.
-	6.2. If your MAC matches that of the one sent with the message it is safe to decrypt and parse.
+4. To send a message:
+	4.1. Create a one-time Poly1305 key with the private session key, your nonce, and the block counter set to 0 using chacha.
+	4.2. Encrypt the message with the shared private session key, your nonce, and the block counter set to 1 using chacha.
+	4.3. Create a MAC of the encrypted message with the one-time key using poly1305.
+5. When a message is received:
+	5.1. Repeat step 4.1 using the peer's variables.
+	5.2. Create a MAC of the received encrypted message with the one-time key using poly1305.
+6. If your MAC matches that of the one sent with the message it is safe to decrypt and parse.
 */
 
 
@@ -59,8 +63,11 @@ void setup() {
 	char userPubKey[pki.getKeyBytes()];
 	char peerPubKey[pki.getKeyBytes()];
 
-	unsigned short messageBytes = 375;
-	char message[messageBytes] = {"Any submission to the IETF intended by the Contributor for publication as all or part of an IETF Internet-Draft or RFC and any statement made within the context of an IETF activity is considered an \"IETF Contribution\". Such statements include oral statements in IETF sessions, as well as written and electronic communications made at any time or place, which are addressed to"};
+//	unsigned short messageBytes = 375;
+//	char message[messageBytes] = {"Any submission to the IETF intended by the Contributor for publication as all or part of an IETF Internet-Draft or RFC and any statement made within the context of an IETF activity is considered an \"IETF Contribution\". Such statements include oral statements in IETF sessions, as well as written and electronic communications made at any time or place, which are addressed to"};
+
+	unsigned short messageBytes = 256;
+	char message[messageBytes] = {"Any submission to the IETF intended by the Contributor for publication as all or part of an IETF Internet-Draft or RFC and any statement made within the context of an IETF activity is considered an \"IETF Contribution\". Such statements include oral statemen"};
 
 	unsigned long long messageCount;
 
