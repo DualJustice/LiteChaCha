@@ -62,14 +62,9 @@ public:
 	ChaChaEncryption();
 	~ChaChaEncryption();
 
-	const unsigned short getNonceCounterBytes() {return COUNTER_NONCE_LENGTH*4;} // Used to specify the length of the prepended Counter Nonce variable.
-
 	void buildEncryption(char*, char*, char*);
 
 	unsigned long long getNonceCounter() {return (nonceCounter[0] << 32) | nonceCounter[1];}
-
-//	uint32_t* getLastEndState() {return endState;}
-//	char* getLastKeyStream() {return keyStream;}
 
 	uint32_t* generateEndState();
 	uint32_t* generatePeerEndState(unsigned long long);
@@ -162,7 +157,7 @@ void ChaChaEncryption::createEndState() { // Not generalized for BLOCK_COUNTER_L
 }
 
 
-void ChaChaEncryption::createKeyStream() { // Consider using different bitmasks for each index as opposed to shifting endState[i] each time (might save on processing time).
+void ChaChaEncryption::createKeyStream() {
 	for(unsigned short i = 0; i < BLOCK_LENGTH; i += 1) {
 		keyStream[(i*4)] = endState[i] & BITMASK;
 		keyStream[(i*4) + 1] = (endState[i] >> 8) & BITMASK;

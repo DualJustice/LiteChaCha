@@ -25,11 +25,11 @@ public:
 	const unsigned short getIDBytes() {return ID_BYTES;}
 	const unsigned short getKeyBytes() {return KEY_BYTES;}
 
-	void initialize(char[ID_BYTES], char[KEY_BYTES]); // Generates a random user ID (to be used as the fixed nonce in ChaCha) and a random public session key.
+	void initialize(char[ID_BYTES], char[KEY_BYTES]);
 
 	bool IDUnique(char[ID_BYTES], char[ID_BYTES]);
 
-	void createSessionKey(char[KEY_BYTES]); // Input is the peer's public session key. It destructively outputs the session shared secret key over the input key.
+	void createSessionKey(char[KEY_BYTES]);
 };
 
 
