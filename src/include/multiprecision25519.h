@@ -7,7 +7,7 @@
 class MultiPrecisionArithmetic25519 {
 private:
 // ---------- Modulus Variables ----------
-	const uint32_t d = 0x00000002; // 2 is the simplest value which satisfies D1.
+	const uint32_t d = 0x00000002;
 	unsigned short m;
 	static const unsigned short n = 16;
 	const uint32_t pd[n] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda}; // p*d.
