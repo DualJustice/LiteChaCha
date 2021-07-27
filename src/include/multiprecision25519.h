@@ -7,9 +7,9 @@
 class MultiPrecisionArithmetic25519 {
 private:
 // ---------- Modulus Variables ----------
-	const uint32_t d = 0x00000002;
+	static const constexpr uint32_t d = 0x00000002;
 	unsigned short m;
-	static const unsigned short n = 16;
+	static const constexpr unsigned short n = 16;
 	const uint32_t pd[n] = {0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffda}; // p*d.
 	uint32_t qHat;
 	uint32_t rHat;
@@ -26,7 +26,7 @@ private:
 	uint32_t v[n + 1]; // v[0] is used for carry / borrow.
 
 	uint32_t carry; // carry is used for addition carries, subtraction borrows, multiplication carries, and division remainders.
-	const uint32_t base = 0x00010000;
+	static const constexpr uint32_t base = 0x00010000;
 
 	void prepareIn(uint32_t*, uint32_t*);
 
@@ -34,6 +34,9 @@ private:
 
 	void prepareOut(uint32_t*);
 public:
+	MultiPrecisionArithmetic25519();
+	~MultiPrecisionArithmetic25519();
+
 	void base32_16(uint32_t*, uint32_t*);
 
 	void base16Add(uint32_t*, uint32_t*, uint32_t*);
@@ -42,6 +45,16 @@ public:
 
 	void base16_32(uint32_t*, uint32_t*);
 };
+
+
+MultiPrecisionArithmetic25519::MultiPrecisionArithmetic25519() {
+
+}
+
+
+MultiPrecisionArithmetic25519::~MultiPrecisionArithmetic25519() {
+
+}
 
 
 void MultiPrecisionArithmetic25519::base32_16(uint32_t* out, uint32_t* a) {

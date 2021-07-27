@@ -12,18 +12,21 @@ private:
 	ChaChaEncryption cipher;
 	Poly1305MAC mac;
 
-	static const unsigned short KEY_BYTES = 32;
-	static const unsigned short FIXED_NONCE_BYTES = 4;
-	static const unsigned short TAG_BYTES = 16;
-	static const unsigned short POLY_KEY_LENGTH = 8;
+	static const constexpr unsigned short KEY_BYTES = 32;
+	static const constexpr unsigned short FIXED_NONCE_BYTES = 4;
+	static const constexpr unsigned short TAG_BYTES = 16;
+	static const constexpr unsigned short POLY_KEY_LENGTH = 8;
 
 	uint32_t* polyKeyMaterial;
 	uint32_t polyKey[POLY_KEY_LENGTH];
 
-	const unsigned long INITIAL_BLOCK = 1;
+	static const constexpr unsigned long INITIAL_BLOCK = 1;
 
 	void createPolyKey();
 public:
+	CipherManagement();
+	~CipherManagement();
+
 	const unsigned short getTagBytes() {return TAG_BYTES;}
 
 	void initialize(char[KEY_BYTES], char[FIXED_NONCE_BYTES], char[FIXED_NONCE_BYTES]);
@@ -32,6 +35,16 @@ public:
 	bool messageAuthentic(char*, unsigned long long, unsigned long long, char[TAG_BYTES]);
 	void decryptAuthenticatedMessage(char*, unsigned long long, unsigned long long);
 };
+
+
+CipherManagement::CipherManagement() {
+
+}
+
+
+CipherManagement::~CipherManagement() {
+
+}
 
 
 void CipherManagement::initialize(char* sharedPrivateKey, char* userFixedNonce, char* peerFixedNonce) {

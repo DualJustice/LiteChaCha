@@ -6,18 +6,17 @@
 
 class ChaChaEncryption {
 private:
-	static const unsigned short CONSTANT_LENGTH = 4;
-	static const unsigned short KEY_LENGTH = 8;
-	static const unsigned short BLOCK_COUNTER_LENGTH = 1; // Some implementations use a BLOCK_COUNTER_LENGTH of 2.
-	static const unsigned short NONCE_LENGTH = 4 - BLOCK_COUNTER_LENGTH;
-	static const unsigned short FIXED_NONCE_LENGTH = 1;
-	static const unsigned short COUNTER_NONCE_LENGTH = NONCE_LENGTH - FIXED_NONCE_LENGTH;
-	static const unsigned short BLOCK_LENGTH = CONSTANT_LENGTH + KEY_LENGTH + BLOCK_COUNTER_LENGTH + NONCE_LENGTH; // MUST be equal to 16.
-	static const unsigned short BLOCK_BYTES = BLOCK_LENGTH*4;
+	static const constexpr unsigned short CONSTANT_LENGTH = 4;
+	static const constexpr unsigned short KEY_LENGTH = 8;
+	static const constexpr unsigned short BLOCK_COUNTER_LENGTH = 1; // Some implementations use a BLOCK_COUNTER_LENGTH of 2.
+	static const constexpr unsigned short NONCE_LENGTH = 4 - BLOCK_COUNTER_LENGTH;
+	static const constexpr unsigned short FIXED_NONCE_LENGTH = 1;
+	static const constexpr unsigned short COUNTER_NONCE_LENGTH = NONCE_LENGTH - FIXED_NONCE_LENGTH;
+	static const constexpr unsigned short BLOCK_LENGTH = CONSTANT_LENGTH + KEY_LENGTH + BLOCK_COUNTER_LENGTH + NONCE_LENGTH; // MUST be equal to 16.
+	static const constexpr unsigned short BLOCK_BYTES = BLOCK_LENGTH*4;
+	static const constexpr unsigned short ROUNDS = 20;
 
-	const unsigned short ROUNDS = 20;
-
-	const uint32_t constant[CONSTANT_LENGTH] = {0x61707865, 0x3320646e, 0x79622d32, 0x6b206574}; // In ASCII (little-endian): "expand 32-byte k"
+	static constexpr uint32_t constant[CONSTANT_LENGTH] = {0x61707865, 0x3320646e, 0x79622d32, 0x6b206574}; // In ASCII (little-endian): "expand 32-byte k"
 	uint32_t key[KEY_LENGTH] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
 	uint32_t initialBlockCounter = 0x00000000;
 	uint32_t blockCounter = 0x00000000;
@@ -31,15 +30,15 @@ private:
 	uint32_t endState[BLOCK_LENGTH];
 	char keyStream[BLOCK_BYTES];
 
-	const uint32_t BITMASK = 0x000000ff;
+	static const constexpr uint32_t BITMASK = 0x000000ff;
 
 	unsigned short encryptBytes = BLOCK_BYTES;
 	unsigned long long messageBlockCount = 0;
 	unsigned short messageRemainder = 0;
 	unsigned long long blockIndexBytes = 0;
 
-	const unsigned long long EMPTY_BYTES = 1;
-	const unsigned long ZERO_START_BLOCK = 0;
+	static const constexpr unsigned long long EMPTY_BYTES = 1;
+	static const constexpr unsigned long ZERO_START_BLOCK = 0;
 
 	void initializeEncryption(unsigned long long, unsigned long, uint32_t, uint32_t*);
 
@@ -60,11 +59,17 @@ private:
 	void encryptAndDecryptSubProcess(char*);
 	void encryptAndDecryptProcess(char*, unsigned long long, unsigned long);
 public:
+	ChaChaEncryption();
+	~ChaChaEncryption();
+
 	const unsigned short getNonceCounterBytes() {return COUNTER_NONCE_LENGTH*4;} // Used to specify the length of the prepended Counter Nonce variable.
 
 	void buildEncryption(char*, char*, char*);
 
 	unsigned long long getNonceCounter() {return (nonceCounter[0] << 32) | nonceCounter[1];}
+
+//	uint32_t* getLastEndState() {return endState;}
+//	char* getLastKeyStream() {return keyStream;}
 
 	uint32_t* generateEndState();
 	uint32_t* generatePeerEndState(unsigned long long);
@@ -72,6 +77,16 @@ public:
 	void encryptMessage(char*, unsigned long long, unsigned long);
 	void decryptMessage(char*, unsigned long long, unsigned long long, unsigned long);
 };
+
+
+ChaChaEncryption::ChaChaEncryption() {
+
+}
+
+
+ChaChaEncryption::~ChaChaEncryption() {
+
+}
 
 
 void ChaChaEncryption::buildEncryption(char* userKeyIn, char* userFixedNonceIn, char* peerFixedNonceIn) { // Assumes fixed portion of nonce is 32 bits.
@@ -147,7 +162,7 @@ void ChaChaEncryption::createEndState() { // Not generalized for BLOCK_COUNTER_L
 }
 
 
-void ChaChaEncryption::createKeyStream() {
+void ChaChaEncryption::createKeyStream() { // Consider using different bitmasks for each index as opposed to shifting endState[i] each time (might save on processing time).
 	for(unsigned short i = 0; i < BLOCK_LENGTH; i += 1) {
 		keyStream[(i*4)] = endState[i] & BITMASK;
 		keyStream[(i*4) + 1] = (endState[i] >> 8) & BITMASK;
