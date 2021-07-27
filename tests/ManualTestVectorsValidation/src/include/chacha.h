@@ -37,6 +37,8 @@ private:
 	unsigned short messageRemainder = 0;
 	unsigned long long blockIndexBytes = 0;
 
+	static const constexpr unsigned long long EMPTY_BYTES = 1;
+
 	void initializeEncryption(unsigned long long, unsigned long, uint32_t, uint32_t*);
 
 	uint32_t rotL(uint32_t, unsigned short);
@@ -67,8 +69,10 @@ public:
 
 	unsigned long long getNonceCounter() {return (nonceCounter[0] << 32) | nonceCounter[1];}
 
-//	unsigned long* getLastEndState() {return (unsigned long*)endState;}
+//	uint32_t* getLastEndState() {return endState;}
 //	char* getLastKeyStream() {return keyStream;}
+
+	uint32_t* generateEndState(unsigned long);
 
 	void encryptMessage(char*, unsigned long long, unsigned long);
 	void decryptMessage(char*, unsigned long long, unsigned long long, unsigned long);
@@ -234,6 +238,14 @@ void ChaChaEncryption::encryptAndDecryptProcess(char* message, unsigned long lon
 		encryptBytes = messageRemainder;
 		encryptAndDecryptSubProcess(message);
 	}
+}
+
+
+uint32_t* ChaChaEncryption::generateEndState(unsigned long startBlock = 0) {
+	initializeEncryption(EMPTY_BYTES, startBlock, fixedNonce, nonceCounter);
+	createEndState();
+
+	return endState;
 }
 
 

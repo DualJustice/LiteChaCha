@@ -3,7 +3,10 @@
 
 
 /*
-EXAMPLE OF LAST TEST VECTOR IN TestVectors.txt:
+EXAMPLE OF LAST CHACHA TEST VECTOR IN TestVectors.txt:
+
+Note: If no ciphertext is involved with a test vector, comment out the message, MESSAGE_BYTES, cipher.encryptMessage, all printMessages, and cipher.decryptMessage.
+Then uncomment cipher.generateEndState and printLastEndState. All other steps should be done in a similar fashion to test vectors which use ciphertexts.
 
 1. Change the message below to:
 {"'Twas brillig, and the slithy toves.Did gyre and gimble in the wabe:.All mimsy were the borogoves,.And the mome raths outgrabe."}
@@ -29,10 +32,9 @@ EXAMPLE OF LAST TEST VECTOR IN TestVectors.txt:
 */
 
 
-static ChaChaEncryption& cipher = *new ChaChaEncryption();
-
-
 void setup() {
+	ChaChaEncryption cipher;
+
 	Serial.begin(BAUD_RATE);
 	while(!Serial) {
 		delay(250);
@@ -56,6 +58,7 @@ void setup() {
 		messageCount = cipher.getNonceCounter(); // getNonceCounter() will typically need to be called before every encryptMessage() in order to get the nonce needed to decrypt the message. It does not need to be secret.
 		cipher.encryptMessage(message, MESSAGE_BYTES, startBlock); // startBlock is an optional parameter. Its default value is 0.
 		printMessage(message, MESSAGE_BYTES);
+//		printLastEndState(cipher.generateEndState(startBlock));
 
 		cipher.decryptMessage(message, MESSAGE_BYTES, messageCount, startBlock);
 		printMessage(message, MESSAGE_BYTES);

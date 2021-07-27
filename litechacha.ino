@@ -22,7 +22,7 @@ void setup() {
 
 	char tag[ae.getTagBytes()]; // Used to authenticate encrypted messages. Will be sent with each encrypted message.
 
-// -------------------- Establish Connection --------------------
+// -------------------- Establish Connection (KeyManagement) --------------------
 
 	pki.initialize(userID, userPubKey); // Generates a random user ID and public key.
 
@@ -36,7 +36,7 @@ void setup() {
 
 //	To confirm a secure connection, compare shared private session keys out-of-band. If they match, the session is secure. This could be done in the future using RSA or ECDSA.
 
-// -------------------- Encrypt and Decrypt --------------------
+// -------------------- Encrypt and Decrypt (CipherManagement) --------------------
 
 	ae.initialize(peerPubKey, userID, peerID);
 
