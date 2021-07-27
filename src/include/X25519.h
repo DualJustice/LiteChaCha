@@ -10,10 +10,11 @@ class X25519KeyExchange {
 private:
 	MultiPrecisionArithmetic25519 math;
 
-	static const constexpr unsigned short BYTE_LENGTH = 32;
-	static const constexpr unsigned short INT_LENGTH = 8;
-	static const constexpr unsigned short INT_LENGTH_MULTI = 2*INT_LENGTH;
-	static const constexpr unsigned short BITS = 255;
+	static const unsigned short BYTE_LENGTH = 32;
+	static const unsigned short INT_LENGTH = 8;
+	static const unsigned short INT_LENGTH_MULTI = 2*INT_LENGTH;
+
+	const unsigned short BITS = 255;
 
 	uint32_t nInt[INT_LENGTH];
 	uint32_t xInt[INT_LENGTH];
@@ -58,21 +59,8 @@ private:
 	char* encodeXCoord(char*);
 	void checkAllZerosCase(char*);
 public:
-	X25519KeyExchange();
-	~X25519KeyExchange();
-
 	void curve25519(char[BYTE_LENGTH], char[BYTE_LENGTH]);
 };
-
-
-X25519KeyExchange::X25519KeyExchange() {
-
-}
-
-
-X25519KeyExchange::~X25519KeyExchange() {
-
-}
 
 
 char* X25519KeyExchange::decodeBytesLittleEndian(char* b) {

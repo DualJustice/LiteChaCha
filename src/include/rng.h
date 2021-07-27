@@ -18,21 +18,8 @@ private:
 
 	void initializeSeed();
 public:
-	RNGen();
-	~RNGen();
-
 	void generateBytes(char*, unsigned short);
 };
-
-
-RNGen::RNGen() {
-
-}
-
-
-RNGen::~RNGen() {
-
-}
 
 
 void RNGen::initializeSeed() { // Truly, this is shameful. Please do better than me.

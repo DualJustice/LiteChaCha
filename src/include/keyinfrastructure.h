@@ -10,8 +10,8 @@ private:
 	RNGen randnum;
 	X25519KeyExchange ecdhe;
 
-	static const constexpr unsigned short ID_BYTES = 4;
-	static const constexpr unsigned short KEY_BYTES = 32;
+	static const unsigned short ID_BYTES = 4;
+	static const unsigned short KEY_BYTES = 32;
 
 	char privateSessionKey[KEY_BYTES];
 	char publicSessionKey[KEY_BYTES];
@@ -19,28 +19,15 @@ private:
 
 	char check;
 public:
-	KeyManagement();
-	~KeyManagement();
-
 	const unsigned short getIDBytes() {return ID_BYTES;}
 	const unsigned short getKeyBytes() {return KEY_BYTES;}
 
-	void initialize(char[ID_BYTES], char[KEY_BYTES]); // Generates a random user ID (to be used as the fixed nonce in ChaCha) and a random public session key.
+	void initialize(char[ID_BYTES], char[KEY_BYTES]);
 
 	bool IDUnique(char[ID_BYTES], char[ID_BYTES]);
 
-	void createSessionKey(char[KEY_BYTES]); // Input is the peer's public session key. It destructively outputs the session shared secret key over the input key.
+	void createSessionKey(char[KEY_BYTES]);
 };
-
-
-KeyManagement::KeyManagement() {
-
-}
-
-
-KeyManagement::~KeyManagement() {
-
-}
 
 
 void KeyManagement::initialize(char* IDOut, char* keyOut) {
