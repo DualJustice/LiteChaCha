@@ -27,6 +27,8 @@ public:
 	CipherManagement();
 	~CipherManagement();
 
+	const unsigned short getTagBytes() {return TAG_BYTES;}
+
 	void initialize(char[KEY_BYTES], char[FIXED_NONCE_BYTES], char[FIXED_NONCE_BYTES]);
 
 	void encryptAndTagMessage(unsigned long long, char[TAG_BYTES], char*, unsigned long long);

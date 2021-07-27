@@ -56,7 +56,7 @@ void setup() {
 	unsigned long duration = 0;
 
 
-// PKI & AEAD TEST: -------------------------------------------------------------------------------------
+// PKI & AE TEST: -------------------------------------------------------------------------------------
 
 	char userID[pki.getIDBytes()];
 	char peerID[pki.getIDBytes()];
@@ -71,7 +71,7 @@ void setup() {
 
 	unsigned long long messageCount;
 
-	char tag[16];
+	char tag[ae.getTagBytes()];
 
 	duration = 0;
 

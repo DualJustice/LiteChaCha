@@ -1,31 +1,56 @@
-#include "src/include/tempfuncs.h"
-#include "src/include/chacha.h"
-
-
-static ChaChaEncryption& cipher = *new ChaChaEncryption();
+#include "src/include/keyinfrastructure.h"
+#include "src/include/authenticatedencrypt.h"
 
 
 void setup() {
-	Serial.begin(BAUD_RATE);
+	KeyManagement pki;
+	CipherManagement ae;
+
+	Serial.begin(9600);
 	while(!Serial) {
 		delay(250);
 	}
 
+// -------------------- Necessary Variables --------------------
+
+	char userID[pki.getIDBytes()]; // IDs are used for a fixed portion of a nonce.
+	char peerID[pki.getIDBytes()];
+	char userPubKey[pki.getKeyBytes()];
+	char peerPubKey[pki.getKeyBytes()];
+
+	unsigned long long messageCount; // Used to increment a nonce for each new message sent. Will be sent with each encrypted message.
+
+	char tag[ae.getTagBytes()]; // Used to authenticate encrypted messages. Will be sent with each encrypted message.
+
+// -------------------- Establish Connection --------------------
+
+	pki.initialize(userID, userPubKey); // Generates a random user ID and public key.
+
+//	Exchange IDs and public keys unencrypted.
+
+	if(pki.IDUnique(userID, peerID)) {
+		pki.createSessionKey(peerPubKey); // Creates a shared private session key, overwriting peerPubKey, if both users have different IDs.
+	}
+
+//	Ensure that the shared private session key has never been used by you before!
+
+//	To confirm a secure connection, compare shared private session keys out-of-band. If they match, the session is secure. This could be done in the future using RSA or ECDSA.
+
+// -------------------- Encrypt and Decrypt --------------------
+
+	ae.initialize(peerPubKey, userID, peerID);
+
 	// Input message and the number of bytes in message:
-	unsigned long long MESSAGE_BYTES = 0;
-	char message[MESSAGE_BYTES] = {""};
+	unsigned long long messageBytes = 0;
+	char message[messageBytes] = {""};
 
-	unsigned long long messageCount = 0; // Used to increment a nonce for each new message sent.
+	ae.encryptAndTagMessage(messageCount, tag, message, messageBytes); // Encrypts message, overwriting it with the ciphertext. Outputs messageCount and the MAC tag as well.
 
-	if(setupEncryption()) { // Preferably only run once per session.
-		cipher.buildEncryption(userKeyHex, userFixedNonceHex, peerFixedNonceHex); // Preferably only run once per session. Always run immediately after setupEncryption().
-		
-		messageCount = cipher.getNonceCounter(); // getNonceCounter() will typically need to be called before every encryptMessage() in order to get the nonce needed to decrypt the message. It does not need to be secret.
-		cipher.encryptMessage(message, MESSAGE_BYTES);
-		printMessage(message, MESSAGE_BYTES);
+//	Send the messageCount, tag, and message.
 
-		cipher.decryptMessage(message, MESSAGE_BYTES, messageCount);
-		printMessage(message, MESSAGE_BYTES);
+	// Upon receiving a ciphertext, messageCount, and tag:
+	if(ae.messageAuthentic(message, messageBytes, messageCount, tag)) { // Authenticates the message with the MAC tag.
+		ae.decryptAuthenticatedMessage(message, messageBytes, messageCount); // Decrypts message, overwriting it with the plaintext.
 	}
 }
 
