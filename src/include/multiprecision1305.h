@@ -3,38 +3,13 @@
 
 #include <stdint.h>
 
-/*
----------- What you'll need ----------
-- p =	0003 ffff ffff ffff ffff ffff ffff ffff fffb = (2^130) - 5 (9, 16-bit words)
-- d =	2001 HEX = 8,193 DEC (Smallest viable value)
-- pd =	8003 ffff ffff ffff ffff ffff ffff ffff 5ffb
-
----------- What you'll do ----------
-acc = ((acc + block)*r) % p
-
----------- What to expect ----------
-The largest expected acc:		0003 ffff ffff ffff ffff ffff ffff ffff fffa
-The largest expected block: 	0001 ffff ffff ffff ffff ffff ffff ffff ffff
-The largest expected sum:		0005 ffff ffff ffff ffff ffff ffff ffff fff9
-Above sum*d:					c005 ffff ffff ffff ffff ffff ffff ffff 1ff9
-
-The largest expected r:			0000 ffff ffff ffff ffff ffff ffff ffff ffff
-The largest expected product:	0003 ffff ffff ffff ffff ffff ffff ffff fff6 0000 0000 0000 0000 0000 0000 0000 0006
-Above product*d:				8003 ffff ffff ffff ffff ffff ffff fffe bff6 0000 0000 0000 0000 0000 0000 0000 c006
-
----------- What to glean ----------
-Because no carry is every used beyond the input length the sizes of u and w can be potentially shortened by one. m can Decrease in kind. Addition, multiplication, and modulo could be
-made to run quicker along side these changes. This is ripe for future optimization. Optimizations may be smaller than initially anticipated though. For example, v cannot be shortened
-because of D4. If qHat is ever larger than approximately 1.9998 the extra carry place is necessary. As another example, shortening the runtime of multiplication is less trivial than
-it first appears.
-*/
 
 class MultiPrecisionArithmetic1305 {
 private:
 // ---------- Modulus Variables ----------
-	static const constexpr uint32_t d = 0x00002001; // 8,193 is the smallest value which satisfies D1.
+	const uint32_t d = 0x00002001; // 8,193 is the smallest value which satisfies D1.
 	unsigned short m;
-	static const constexpr unsigned short n = 9;
+	static const unsigned short n = 9;
 	const uint32_t pd[n] = {0x00008003, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x00005ffb}; // p*d with p = (2^130) - 5.
 	uint32_t qHat;
 	uint32_t rHat;
@@ -48,7 +23,7 @@ private:
 	uint32_t v[n + 1]; // v[0] is used for carry / borrow.
 
 	uint32_t carry; // carry is used for addition carries, multiplication carries, and division remainders.
-	static const constexpr uint32_t base = 0x00010000;
+	static const uint32_t base = 0x00010000;
 
 	void prepareIn(uint32_t*, uint32_t*);
 
@@ -56,24 +31,11 @@ private:
 
 	void prepareOut(uint32_t*);
 public:
-	MultiPrecisionArithmetic1305();
-	~MultiPrecisionArithmetic1305();
-
 	void base32_16(uint32_t*, uint32_t*);
 
 	void base16Add(uint32_t*, uint32_t*, uint32_t*, bool);
 	void base16Mul(uint32_t*, uint32_t*, uint32_t*);
 };
-
-
-MultiPrecisionArithmetic1305::MultiPrecisionArithmetic1305() {
-
-}
-
-
-MultiPrecisionArithmetic1305::~MultiPrecisionArithmetic1305() {
-
-}
 
 
 void MultiPrecisionArithmetic1305::base32_16(uint32_t* out, uint32_t* a) {

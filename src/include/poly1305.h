@@ -10,12 +10,13 @@ class Poly1305MAC {
 private:
 	MultiPrecisionArithmetic1305 math;
 
-	static const constexpr unsigned short TAG_BYTES = 16;
-	static const constexpr unsigned short KEY_LENGTH = 8;
-	static const constexpr unsigned short INT_LENGTH = 4;
-	static const constexpr unsigned short INT_LENGTH_MULTI = (2*INT_LENGTH) + 1;
-	static const constexpr unsigned short BLOCK_BYTES = 16;
-	static const constexpr unsigned short DEPENDENT_BLOCK_LENGTH = BLOCK_BYTES/2;
+	static const unsigned short TAG_BYTES = 16;
+	static const unsigned short KEY_LENGTH = 8;
+	static const unsigned short INT_LENGTH = 4;
+	static const unsigned short INT_LENGTH_MULTI = (2*INT_LENGTH) + 1;
+
+	const unsigned short BLOCK_BYTES = 16;
+	const unsigned short DEPENDENT_BLOCK_LENGTH = BLOCK_BYTES/2;
 
 	uint32_t blockCounter = 0x00000000;
 
@@ -34,7 +35,7 @@ private:
 	unsigned long long blockIndexBytes = 0;
 	unsigned short finalBlockLastWordIndex = 0;
 
-	static const constexpr uint32_t BITMASK = 0x000000ff;
+	const uint32_t BITMASK = 0x000000ff;
 
 	char tempTag[TAG_BYTES];
 	char zerosCheck;
@@ -54,22 +55,9 @@ private:
 	void serializeLittleEndian(char*);
 	bool authenticateLittleEndian(char*);
 public:
-	Poly1305MAC();
-	~Poly1305MAC();
-
 	void createTag(char[TAG_BYTES], uint32_t[KEY_LENGTH], char*, unsigned long long);
 	bool authenticateTag(char[TAG_BYTES], uint32_t[KEY_LENGTH], char*, unsigned long long);
 };
-
-
-Poly1305MAC::Poly1305MAC() {
-
-}
-
-
-Poly1305MAC::~Poly1305MAC() {
-
-}
 
 
 void Poly1305MAC::clamp() {
