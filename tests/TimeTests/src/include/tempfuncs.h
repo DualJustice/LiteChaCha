@@ -183,7 +183,7 @@ bool setupEncryption() {
 	}
 
 // Print instructions:
-	Serial.println("Please input your glEEpal's unique, 4-Byte, hex nonce in the form of the suggested nonce given above.");
+	Serial.println("Please input your peer's unique, 4-Byte, hex nonce in the form of the suggested nonce given above.");
 	Serial.println("This cannot be the same as your nonce!\n");
 
 // Read in peer's fixed nonce:
