@@ -116,6 +116,10 @@
 
 1. Digital Signature Authentication using RSA or ECDSA.
 
-2. Optimize multi-precision implementations.
+2. AEAD construction to allow for the authentication of unencrypted data.
 
-3. Optimize X25519 implementation.
+   * Currently, if any unencrypted data which is necessary for decryption is changed in-transit, but the accompanying ciphertext is unchanged, the MAC will show the message to be authentic. Thus, the ciphertext will be incorrectly decrypted.
+
+3. Optimize multi-precision implementations.
+
+4. Optimize X25519 implementation.
