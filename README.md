@@ -24,13 +24,16 @@
 
 1. All necessary header files are within the src\include folder.
 
-2. Include keyinfrastructure.h & authenticatedencrypt.h in your project.
+2. ```
+   #include "src/include/keyinfrastructure.h"
+   #include "src/include/authenticatedencrypt.h"
+   ```
 
-3. All functions are handled in the KeyManagement & CipherManagement objects.
+3. All functions are handled in the `KeyManagement` & `CipherManagement` objects.
 
-4. The example file, litechacha.ino, is included to show you the ropes.
+4. The example file, `litechacha.ino`, is included to show you the ropes.
 
-   * The random ID that is generated each session **must *not* match** between peers. As such, it is recommended that you use the `IDUnique()` function as it is used in litechacha.h.
+   * The random ID that is generated each session **must *not* match** between peers. As such, it is recommended that you use the `IDUnique()` function as it is used in `litechacha.h`.
 
      * The ID does not need to be random, nor does it need to be generated each session. If it is stored, it need only be generated once, and confirmed to be different from all other peers' IDs.
 
@@ -44,19 +47,19 @@
 
 ### rng.h:
 
-* The pin used for rng.h **must be floating**!
+* The pin used for `rng.h` **must be floating**!
 
-* rng.h generates random bytes using `rand()` & `srand()`. `srand()` is seeded by repeatedly calling `analogRead()` and `micros()`.
+* `rng.h` generates random bytes using `rand()` & `srand()`. `srand()` is seeded by repeatedly calling `analogRead()` and `micros()`.
 
 * It is hoped that sufficient entropy will be obtained by adding, XORing, rotating, and multiplying the values created by the above calls.
 
-* rng.h is almost certainly insufficient as a random number generator! Users are encouraged to implement their own version.
+* `rng.h` is almost certainly insufficient as a random number generator! Users are encouraged to implement their own version.
 
 ### multiprecision25519.h & multiprecision1305.h:
 
 * These were created to do multiple-precision arithmetic on 32 and 18-byte numbers respectively. They are specialized for use in X25519 & Poly1305, but it would be relatively trivial to make a generalized version for use with any sized numbers.
 
-* Modulus, addition, multiplication, and subtraction are near constant-time. That being said, there are differences in run time depending on inputs, which is unacceptable for security reasons. If you are planning on using multiprecision25519.h or multiprecision1305.h yourself, I would advise you do some tests of your own to determine if the risks posed by side-channel attacks are not too great. As it is, this is not a safe implementation of multiple-precision arithmetic!
+* Modulus, addition, multiplication, and subtraction are near constant-time. That being said, there are differences in run time depending on inputs, which is unacceptable for security reasons. If you are planning on using `multiprecision25519.h` or `multiprecision1305.h` yourself, I would advise you do some tests of your own to determine if the risks posed by side-channel attacks are not too great. As it is, this is not a safe implementation of multiple-precision arithmetic!
 
 ---
 
@@ -64,9 +67,9 @@
 
 * All functions of LiteChaCha were tested against relevant test vectors. A text file including most of the test vectors used is provided in this repository.
 
-* If you would like to test the ChaCha20 implementation yourself, there is a ManualTestVectorsValidation.ino example file included. It should have enough information to help you get started.
+* If you would like to test the ChaCha20 implementation yourself, there is a `ManualTestVectorsValidation.ino` example file included. It should have enough information to help you get started.
 
-* If you would like to test the X25519 or Poly1305 implementations yourself, there is a TimeTests.ino example file included. TimeTests.ino can also be used to find the approximate runtimes of all of the components of LiteChaCha.
+* If you would like to test the X25519 or Poly1305 implementations yourself, there is a `TimeTests.ino` example file included. `TimeTests.ino` can also be used to find the approximate runtimes of all of the components of LiteChaCha.
 
 ---
 
