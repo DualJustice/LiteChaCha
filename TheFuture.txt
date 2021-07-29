@@ -1,0 +1,6 @@
+EdDSA
+rfc8032
+rfc7748
+
+AEAD
+rfc8439
