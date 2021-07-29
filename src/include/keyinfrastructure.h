@@ -16,6 +16,7 @@ private:
 	char privateSessionKey[KEY_BYTES];
 	char publicSessionKey[KEY_BYTES];
 	const char basePoint[KEY_BYTES] = {0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	char curveScalar[KEY_BYTES];
 
 	char check;
 public:
@@ -51,7 +52,11 @@ void KeyManagement::initialize(char* IDOut, char* keyOut) {
 		publicSessionKey[i] = basePoint[i];
 	}
 
-	ecdhe.curve25519(privateSessionKey, publicSessionKey);
+	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+		curveScalar[i] = privateSessionKey[i];
+	}
+
+	ecdhe.curve25519(curveScalar, publicSessionKey);
 
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 		keyOut[i] = publicSessionKey[i];
@@ -71,7 +76,11 @@ bool KeyManagement::IDUnique(char* userID, char* peerID) {
 
 
 void KeyManagement::createSessionKey(char* peerPubKey) {
-	ecdhe.curve25519(privateSessionKey, peerPubKey);
+	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+		curveScalar[i] = privateSessionKey[i];
+	}
+
+	ecdhe.curve25519(curveScalar, peerPubKey);
 }
 
 #endif

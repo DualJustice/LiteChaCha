@@ -31,7 +31,7 @@ public:
 
 	void initialize(char[KEY_BYTES], char[FIXED_NONCE_BYTES], char[FIXED_NONCE_BYTES]);
 
-	void encryptAndTagMessage(unsigned long long, char[TAG_BYTES], char*, unsigned long long);
+	void encryptAndTagMessage(unsigned long long&, char[TAG_BYTES], char*, unsigned long long);
 	bool messageAuthentic(char*, unsigned long long, unsigned long long, char[TAG_BYTES]);
 	void decryptAuthenticatedMessage(char*, unsigned long long, unsigned long long);
 };
@@ -62,7 +62,7 @@ void CipherManagement::createPolyKey() {
 }
 
 
-void CipherManagement::encryptAndTagMessage(unsigned long long messageCountOut, char* tagOut, char* message, unsigned long long messageBytes) {
+void CipherManagement::encryptAndTagMessage(unsigned long long& messageCountOut, char* tagOut, char* message, unsigned long long messageBytes) {
 	if(messageBytes > 0) {
 		polyKeyMaterial = cipher.generateEndState();
 		createPolyKey();
