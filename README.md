@@ -41,6 +41,8 @@
 
      * Every time a new session is set up, a *new* shared private session key, ID (for each user), or both *must* be used. It is recommended that an unused shared private session key be used for each session.
 
+5. In order to fulfill the requirements in step 4 above, and thus to use litechacha safely, it is recommended that users have a way to store and compare keys.
+
 ---
 
 ## "In-Depth" Implementation Info:
@@ -70,6 +72,8 @@
 * If you would like to test the ChaCha20 implementation yourself, there is a `ManualTestVectorsValidation.ino` example file included. It should have enough information to help you get started.
 
 * If you would like to test the X25519 or Poly1305 implementations yourself, there is a `TimeTests.ino` example file included. `TimeTests.ino` can also be used to find the approximate runtimes of all of the components of LiteChaCha.
+
+* One note worth mentioning is that, whichever method is chosen to send data, it must be able to successfully send null characters (`0x00`). It was found during testing that some Arduino libraries which aid in the sending and receiving of data may handle null characters differentially, and any users of LiteChaCha should be aware of this.
 
 ---
 
