@@ -18,6 +18,9 @@ void setup() {
 	char userPubKey[pki.getKeyBytes()];
 	char peerPubKey[pki.getKeyBytes()];
 
+	char sessionID[pki.getKeyBytes()];
+	char peerSessionID[pki.getKeyBytes()];
+
 	unsigned long long messageCount; // Used to increment a nonce for each new message sent. Will be sent with each encrypted message.
 
 	char tag[ae.getTagBytes()]; // Used to authenticate encrypted messages. Will be sent with each encrypted message.
@@ -34,11 +37,17 @@ void setup() {
 
 //	Ensure that the shared private session key has never been used by you before!
 
-//	To confirm a secure connection, compare shared private session keys out-of-band. If they match, the session is secure. This could be done in the future using RSA or ECDSA.
+	ae.initialize(peerPubKey, userID, peerID);
+
+//	To confirm a secure connection, compare session IDs out-of-band. If they match, the session is secure. This check is only useful if the out-of-band communication method
+//	chosen is through a connection that is already known to be secure! sessionIDs are compared, not shared private session keys, as a security measure to keep the key secret.
+//	This check could be done in the future using RSA or ECDSA:
+	ae.getSessionID(sessionID); // Creates a Session ID derived from the shared private session key. This is to be sent to the other user.
+	if(ae.sameSessionID(peerSessionID)) {
+		// The connection is secure, assuming sessionIDs were exchanged over an alternative, already-secure connection...
+	}
 
 // -------------------- Encrypt and Decrypt (CipherManagement) --------------------
-
-	ae.initialize(peerPubKey, userID, peerID);
 
 	// Input message and the number of bytes in message:
 	unsigned long long messageBytes = 0;
