@@ -39,7 +39,7 @@
 
    * It is absolutely vital that **no two messages, whether from the same user or two peers, ever be sent using the same key & nonce pair**!
 
-     * Every time a new session is set up, a *new* shared private session key, ID (for each user), or both *must* be used. It is recommended that an unused shared private session key be used for each session.
+     * Every time a new session is set up, a *new* shared private session key, ID (for each user), or both *must* be used. It is recommended that a new shared private session key be used for each session.
 
 5. In order to fulfill the requirements in step 4 above, and thus to use litechacha safely, it is recommended that users have a way to store and compare keys.
 
