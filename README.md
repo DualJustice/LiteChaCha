@@ -41,7 +41,7 @@
 
      * Every time a new session is set up, a *new* shared private session key, ID (for each user), or both *must* be used. It is recommended that a new shared private session key be used for each session.
 
-5. In order to fulfill the requirements in step 4 above, and thus to use litechacha safely, it is recommended that users have a way to store and compare keys.
+5. In order to fulfill the requirements in step 4 above, and thus to use litechacha safely, it is recommended that users have a way to store and compare keys between sessions.
 
 6. The implementation of RNG that LiteChaCha uses to generate a random ID and private session key each new session requires there be a floating analog pin! By default, pin A0 is used. The pin that is read from can be changed in `rng.h`.
 
