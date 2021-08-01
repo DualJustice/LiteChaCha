@@ -25,7 +25,7 @@ void setup() {
 
 	char tag[ae.getTagBytes()]; // Used to authenticate encrypted messages. Will be sent with each encrypted message.
 
-// -------------------- Establish Connection (KeyManagement) --------------------
+// -------------------- Establish Connection --------------------
 
 	pki.initialize(userID, userPubKey); // Generates a random user ID and public key.
 
@@ -47,7 +47,7 @@ void setup() {
 		// The connection is secure, assuming sessionIDs were exchanged over an alternative, already-secure connection...
 	}
 
-// -------------------- Encrypt and Decrypt (CipherManagement) --------------------
+// -------------------- Encrypt and Decrypt --------------------
 
 	// Input message and the number of bytes in message:
 	unsigned long long messageBytes = 0;
