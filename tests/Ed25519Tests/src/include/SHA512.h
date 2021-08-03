@@ -58,7 +58,7 @@ void SHA512Hash::initialize(unsigned long long messageBytes) {
 	}
 
 	messageRemainderBits = (messageBytes % HASH_BYTES)*BIT_CONVERSION;
-	zeroBits = BITS - ((messageRemainderBits + APPEND_BIT + MESSAGE_LENGTH_BITS) % BITS);
+	zeroBits = BITS - ((((messageRemainderBits + APPEND_BIT + MESSAGE_LENGTH_BITS) - 1) % BITS) + 1);
 }
 
 
