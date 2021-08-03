@@ -81,14 +81,14 @@ append K '0' bits, where K is the minimum number >= 0 such that L + 1 + K + 64 i
 append L as a 64-bit big-endian integer, making the total post-processed length a multiple of 512 bits
 such that the bits in the message are L 1 00..<K 0's>..00 <L as 64 bit integer> = k*512 total bits
 
-Process the message in successive 512-bit chunks:
-break message into 512-bit chunks
+Process the message in successive 1024-bit chunks:
+break message into 1024-bit chunks
 for each chunk
-    create a 64-entry message schedule array w[0..63] of 32-bit words
-    (The initial values in w[0..63] don't matter, so many implementations zero them here)
+    create a 80-entry message schedule array w[0..79] of 64-bit words
+    (The initial values in w[0..79] don't matter, so many implementations zero them here)
     copy chunk into first 16 words w[0..15] of the message schedule array
 
-    Extend the first 16 words into the remaining 48 words w[16..63] of the message schedule array:
+    Extend the first 16 words into the remaining 48 words w[16..79] of the message schedule array:
     for i from 16 to 63
         s0 := (w[i-15] rightrotate  7) xor (w[i-15] rightrotate 18) xor (w[i-15] rightshift  3)
         s1 := (w[i- 2] rightrotate 17) xor (w[i- 2] rightrotate 19) xor (w[i- 2] rightshift 10)

@@ -9,8 +9,9 @@ private:
 	static const constexpr unsigned short HASH_BYTES = 64;
 	static const constexpr unsigned short HASH_LENGTH = 8;
 	static const constexpr unsigned short ROUNDS = 80;
+	static const constexpr unsigned short BLOCK_BYTES = 128;
 	static const constexpr unsigned short BIT_CONVERSION = 8;
-	static const constexpr unsigned short BITS = 512;
+	static const constexpr unsigned short BITS = 1024;
 	static const constexpr unsigned short APPEND_BIT = 1;
 	static const constexpr unsigned short MESSAGE_LENGTH_BITS = 128;
 
@@ -32,7 +33,9 @@ private:
 	unsigned short messageRemainderBits;
 	unsigned short zeroBits;
 
-	void initialize(unsigned long long);
+	uint64_t* message;
+
+	void initialize(char*, unsigned long long);
 public:
 	SHA512Hash();
 	~SHA512Hash();
@@ -51,19 +54,21 @@ SHA512Hash::~SHA512Hash() {
 }
 
 
-void SHA512Hash::initialize(unsigned long long messageBytes) {
+void SHA512Hash::initialize(char* messageIn, unsigned long long messageBytes) {
 	for(unsigned short i = 0; i < HASH_LENGTH; i += 1) {
 		h[i] = hInit[i];
 		a[i] = h[i];
 	}
 
-	messageRemainderBits = (messageBytes % HASH_BYTES)*BIT_CONVERSION;
+	messageRemainderBits = (messageBytes % BLOCK_BYTES)*BIT_CONVERSION;
 	zeroBits = BITS - ((((messageRemainderBits + APPEND_BIT + MESSAGE_LENGTH_BITS) - 1) % BITS) + 1);
+
+	
 }
 
 
 void SHA512Hash::hash(char* hashOut, char* message, unsigned long long messageBytes) {
-	initialize(messageBytes);
+	initialize(message, messageBytes);
 }
 
 #endif
