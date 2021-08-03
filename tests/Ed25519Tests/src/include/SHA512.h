@@ -9,7 +9,10 @@ private:
 	static const constexpr unsigned short HASH_BYTES = 64;
 	static const constexpr unsigned short HASH_LENGTH = 8;
 	static const constexpr unsigned short ROUNDS = 80;
+	static const constexpr unsigned short BIT_CONVERSION = 8;
 	static const constexpr unsigned short BITS = 512;
+	static const constexpr unsigned short APPEND_BIT = 1;
+	static const constexpr unsigned short MESSAGE_LENGTH_BITS = 128;
 
 	static const constexpr uint64_t hInit[HASH_LENGTH] = {0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1, 0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179}; // Derived from the first 64 bits of the fractional parts of the square roots of the first 8 primes.
 	static const constexpr uint64_t k[ROUNDS] = {0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc, 0x3956c25bf348b538, 0x59f111f1b605d019, 0x923f82a4af194f9b, 0xab1c5ed5da6d8118, 
@@ -54,8 +57,8 @@ void SHA512Hash::initialize(unsigned long long messageBytes) {
 		a[i] = h[i];
 	}
 
-	messageRemainderBits = (messageBytes % HASH_BYTES)*8;
-	zeroBits = BITS - (messageRemainderBits + 1 + 128);
+	messageRemainderBits = (messageBytes % HASH_BYTES)*BIT_CONVERSION;
+	zeroBits = BITS - ((messageRemainderBits + APPEND_BIT + MESSAGE_LENGTH_BITS) % BITS);
 }
 
 
