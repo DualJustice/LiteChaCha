@@ -3,7 +3,8 @@
 
 //#include "src/include/keyinfrastructure.h"
 //#include "src/include/authenticatedencrypt.h"
-#include "src/include/Ed25519.h"
+//#include "src/include/Ed25519.h"
+#include "src/include/SHA512.h"
 
 
 void setup() {
@@ -17,9 +18,19 @@ void setup() {
 	unsigned long duration = 0;
 
 
+// SHA512 TEST: ---------------------------------------------------------------------------------------
+
+	SHA512Hash hash;
+
+	char cornBeef[64];
+	unsigned long long messageLength = 12;
+	char message[messageLength] = {"Hello world!"};
+
+	hash.hashBytes(cornBeef, message, messageLength);
+
 // Ed25519 TEST: --------------------------------------------------------------------------------------
 
-	Ed25519SignatureAlgorithm dsa;
+//	Ed25519SignatureAlgorithm dsa;
 
 /*
 // PKI & AE TEST: -------------------------------------------------------------------------------------
