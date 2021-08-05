@@ -38,14 +38,15 @@ private:
 	unsigned short zeroBits;
 
 	uint64_t* message; // Not really sure that this is safe to do...
-	unsigned long long wordCount = 0;
+	unsigned long long wordCount;
+	unsigned short wordRemainder;
 
 	void initialize(char*, unsigned long long);
 public:
 	SHA512Hash();
 	~SHA512Hash();
 
-	void hash(char[HASH_BYTES], char*, unsigned long long);
+	void hashBytes(char[HASH_BYTES], char*, unsigned long long);
 };
 
 
@@ -64,27 +65,34 @@ void SHA512Hash::initialize(char* messageIn, unsigned long long messageBytes) {
 		h[i] = hInit[i];
 		a[i] = h[i];
 	}
-
+// Message + 1 bit + zero bits + 128 bit number (2 uint64_t)
 	messageRemainderBits = (messageBytes % BLOCK_BYTES)*BIT_CONVERSION;
-	zeroBits = BLOCK_BITS - ((((messageRemainderBits + APPEND_BIT + MESSAGE_LENGTH_BITS) - 1) % BLOCK_BITS) + 1); // 7 (I think) - 887
+	zeroBits = BLOCK_BITS - ((((messageRemainderBits + APPEND_BIT + MESSAGE_LENGTH_BITS) - 1) % BLOCK_BITS) + 1); // 7 (messageBytes = 111) to 1023 (messageBytes = 112)
 
-	wordCount = 0;
+	wordCount = messageBytes/WORD_CONVERSION;
+	wordRemainder = messageBytes % WORD_CONVERSION;
 
-	for(unsigned long long i = 0; i < (messageBytes/WORD_CONVERSION); i += 1) {
+	for(unsigned long long i = 0; i < wordCount; i += 1) {
+		message[i] = 0x0000000000000000;
 		for(unsigned short j = 0; j < WORD_CONVERSION; j += 1) {
-			message[i] = messageIn[(WORD_CONVERSION*i) + j] << (WORD_SHIFT - (BIT_CONVERSION*j));
+			message[i] |= (messageIn[(WORD_CONVERSION*i) + j] << (WORD_SHIFT - (BIT_CONVERSION*j)));
 		}
-
-		wordCount += 1;
 	}
 
-	for(unsigned short i = 0; i < (messageBytes % WORD_CONVERSION); i += 1) {
-		message[wordCount] = messageIn[(WORD_CONVERSION*wordCount) + i] << (WORD_SHIFT - (BIT_CONVERSION*i));
+	if(wordRemainder == 0) {
+		message[wordCount] = 0x8000000000000000;
+	} else {
+		message[wordCount] = 0x0000000000000000;
+		for(unsigned short i = 0; i < wordRemainder; i += 1) {
+			message[wordCount] |= (messageIn[(WORD_CONVERSION*wordCount) + i] << (WORD_SHIFT - (BIT_CONVERSION*i)));
+		}
+
+		message[wordCount] |= (0x80 << (WORD_SHIFT - (BIT_CONVERSION*wordRemainder)));
 	}
 }
 
 
-void SHA512Hash::hash(char* hashOut, char* message, unsigned long long messageBytes) {
+void SHA512Hash::hashBytes(char* hashOut, char* message, unsigned long long messageBytes) {
 	initialize(message, messageBytes);
 }
 
