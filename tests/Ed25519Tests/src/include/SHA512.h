@@ -7,17 +7,20 @@
 class SHA512Hash {
 private:
 	static const constexpr unsigned short HASH_BYTES = 64;
-	static const constexpr unsigned short HASH_LENGTH = 8;
+	static const constexpr unsigned short WORD_CONVERSION = 8; // 8 bytes/1 word, 1 word/8 bytes.
+	static const constexpr unsigned short HASH_WORDS = HASH_BYTES/WORD_CONVERSION;
 	static const constexpr unsigned short ROUNDS = 80;
-	static const constexpr unsigned short BLOCK_BYTES = 128;
-	static const constexpr unsigned short BIT_CONVERSION = 8;
 	static const constexpr unsigned short BLOCK_BITS = 1024;
+	static const constexpr unsigned short BIT_CONVERSION = 8; // 8 bits/1 byte, 1 byte/8 bits.
+	static const constexpr unsigned short BLOCK_BYTES = BLOCK_BITS/BIT_CONVERSION;
 	static const constexpr unsigned short APPEND_BIT = 1;
 	static const constexpr unsigned short MESSAGE_LENGTH_BITS = 128;
-	static const constexpr unsigned short WORD_CONVERSION = 8;
-	static const constexpr unsigned short WORD_SHIFT = 56;
+	static const constexpr unsigned short WORD_BITS = 64;
+	static const constexpr unsigned short MESSAGE_LENGTH_WORDS = MESSAGE_LENGTH_BITS/WORD_BITS;
+	static const constexpr unsigned short WORD_SHIFT = WORD_BITS - BIT_CONVERSION;
+	static const constexpr unsigned short BLOCK_WORDS = BLOCK_BITS/WORD_BITS;
 
-	static const constexpr uint64_t hInit[HASH_LENGTH] = {0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1, 0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179}; // Derived from the first 64 bits of the fractional parts of the square roots of the first 8 primes.
+	static const constexpr uint64_t hInit[HASH_WORDS] = {0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1, 0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179}; // Derived from the first 64 bits of the fractional parts of the square roots of the first 8 primes.
 	static const constexpr uint64_t k[ROUNDS] = {
 		0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc, 0x3956c25bf348b538, 0x59f111f1b605d019, 0x923f82a4af194f9b, 0xab1c5ed5da6d8118, 
 		0xd807aa98a3030242, 0x12835b0145706fbe, 0x243185be4ee4b28c, 0x550c7dc3d5ffb4e2, 0x72be5d74f27b896f, 0x80deb1fe3b1696b1, 0x9bdc06a725c71235, 0xc19bf174cf692694, 
@@ -31,17 +34,33 @@ private:
 		0x28db77f523047d84, 0x32caab7b40c72493, 0x3c9ebe0a15c9bebc, 0x431d67c49c100d4c, 0x4cc5d4becb3e42b6, 0x597f299cfc657e2a, 0x5fcb6fab3ad6faec, 0x6c44198c4a475817
 	}; // Derived from the first 64 bits of the fractional parts of the cube roots of the first 80 primes.
 
-	uint64_t h[HASH_LENGTH];
-	uint64_t a[HASH_LENGTH]; // Working variables.
+	uint64_t h[HASH_WORDS];
+	uint64_t a[HASH_WORDS]; // Working variables.
 
 	unsigned short messageRemainderBits;
 	unsigned short zeroBits;
+	unsigned short zeroWords;
 
-	uint64_t* message; // Not really sure that this is safe to do...
-	unsigned long long wordCount;
+	unsigned long long messageWords;
 	unsigned short wordRemainder;
+	unsigned long long wordIndex;
+	unsigned long long blockCount;
+	uint64_t* message; // Not really sure that this is safe to do...
+
+	uint64_t rotRBuffer;
+
+	uint64_t w[ROUNDS]; // Message schedule array.
+	uint64_t s0;
+	uint64_t s1;
+	uint64_t t0;
+	uint64_t t1;
 
 	void initialize(char*, unsigned long long);
+
+	void rotR(uint64_t, unsigned short);
+	void hashProcess();
+
+	void outputHash(char[HASH_BYTES]);
 public:
 	SHA512Hash();
 	~SHA512Hash();
@@ -61,18 +80,21 @@ SHA512Hash::~SHA512Hash() {
 
 
 void SHA512Hash::initialize(char* messageIn, unsigned long long messageBytes) {
-	for(unsigned short i = 0; i < HASH_LENGTH; i += 1) {
+	for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
 		h[i] = hInit[i];
-		a[i] = h[i];
 	}
-// Message + 1 bit + zero bits + 128 bit number (2 uint64_t)
+
 	messageRemainderBits = (messageBytes % BLOCK_BYTES)*BIT_CONVERSION;
 	zeroBits = BLOCK_BITS - ((((messageRemainderBits + APPEND_BIT + MESSAGE_LENGTH_BITS) - 1) % BLOCK_BITS) + 1); // 7 (messageBytes = 111) to 1023 (messageBytes = 112)
+	zeroWords = zeroBits/WORD_BITS;
 
-	wordCount = messageBytes/WORD_CONVERSION;
+	messageWords = messageBytes/WORD_CONVERSION;
 	wordRemainder = messageBytes % WORD_CONVERSION;
 
-	for(unsigned long long i = 0; i < wordCount; i += 1) {
+	wordIndex = messageWords + zeroWords + MESSAGE_LENGTH_WORDS;
+	blockCount = (wordIndex + 1)/BLOCK_WORDS;
+
+	for(unsigned long long i = 0; i < messageWords; i += 1) {
 		message[i] = 0x0000000000000000;
 		for(unsigned short j = 0; j < WORD_CONVERSION; j += 1) {
 			message[i] |= (messageIn[(WORD_CONVERSION*i) + j] << (WORD_SHIFT - (BIT_CONVERSION*j)));
@@ -80,20 +102,106 @@ void SHA512Hash::initialize(char* messageIn, unsigned long long messageBytes) {
 	}
 
 	if(wordRemainder == 0) {
-		message[wordCount] = 0x8000000000000000;
+		message[messageWords] = 0x8000000000000000;
 	} else {
-		message[wordCount] = 0x0000000000000000;
+		message[messageWords] = 0x0000000000000000;
 		for(unsigned short i = 0; i < wordRemainder; i += 1) {
-			message[wordCount] |= (messageIn[(WORD_CONVERSION*wordCount) + i] << (WORD_SHIFT - (BIT_CONVERSION*i)));
+			message[messageWords] |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (WORD_SHIFT - (BIT_CONVERSION*i)));
 		}
 
-		message[wordCount] |= (0x80 << (WORD_SHIFT - (BIT_CONVERSION*wordRemainder)));
+		message[messageWords] |= (0x80 << (WORD_SHIFT - (BIT_CONVERSION*wordRemainder)));
+	}
+
+	for(unsigned long long i = 0; i < zeroWords; i += 1) {
+		message[(messageWords + 1) + i] = 0x0000000000000000;
+	}
+
+	message[wordIndex - 1] = (uint64_t)messageBytes >> 61; // Has the effect of multiplying messageBytes by 8 (to convert from bytes to bits).
+	message[wordIndex] = (uint64_t)messageBytes << 3;
+}
+
+
+void SHA512Hash::rotR(uint64_t n, unsigned short c) {
+	rotRBuffer = ((n >> c) | (n << (WORD_BITS - c)));
+}
+
+
+void SHA512Hash::hashProcess() {
+	for(unsigned long long b = 0; b < blockCount; b += 1) {
+		for(unsigned short i = 0; i < BLOCK_WORDS; i += 1) {
+			w[i] = message[(BLOCK_WORDS*b) + i];
+		}
+
+		for(unsigned short i = BLOCK_WORDS; i < ROUNDS; i += 1) {
+			rotR(w[i - 15], 1);
+			s0 = rotRBuffer;
+			rotR(w[i - 15], 8);
+			s0 ^= rotRBuffer;
+			s0 ^= (w[i - 15] >> 7);
+
+			rotR(w[i - 2], 19);
+			s1 = rotRBuffer;
+			rotR(w[i - 2], 61);
+			s1 ^= rotRBuffer;
+			s1 ^= (w[i - 2] >> 6);
+
+			w[i] = w[i - 16] + s0 + w[i - 7] + s1;
+		}
+
+		for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
+			a[i] = h[i];
+		}
+
+		for(unsigned short i = 0; i < ROUNDS; i += 1) {
+			rotR(a[4], 14);
+			s1 = rotRBuffer;
+			rotR(a[4], 18);
+			s1 ^= rotRBuffer;
+			rotR(a[4], 41);
+			s1 ^= rotRBuffer;
+
+			s0 = (a[4] & a[5]) ^ ((~a[4]) & a[6]); // Used in place of ch.
+
+			t0 = a[7] + s1 + s0 + k[i] + w[i];
+
+			rotR(a[0], 28);
+			s0 = rotRBuffer;
+			rotR(a[0], 34);
+			s0 ^= rotRBuffer;
+			rotR(a[0], 39);
+			s0 ^= rotRBuffer;
+
+			s1 = (a[0] & a[1]) ^ (a[0] & a[2]) ^ (a[1] & a[2]); // Used in place of maj.
+			t1 = s0 + s1;
+
+			a[7] = a[6];
+			a[6] = a[5];
+			a[5] = a[4];
+			a[4] = a[3] + t0;
+			a[3] = a[2];
+			a[2] = a[1];
+			a[1] = a[0];
+			a[0] = t0 + t1;
+		}
+
+		for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
+			h[i] += a[i];
+		}
+	}
+}
+
+
+void SHA512Hash::outputHash(char* hashOut) {
+	for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
+		hashOut[(WORD_CONVERSION*i)] = h[i] >> WORD_SHIFT; // Come back to this.
 	}
 }
 
 
 void SHA512Hash::hashBytes(char* hashOut, char* message, unsigned long long messageBytes) {
 	initialize(message, messageBytes);
+	hashProcess();
+	outputHash(hashOut);
 }
 
 #endif
