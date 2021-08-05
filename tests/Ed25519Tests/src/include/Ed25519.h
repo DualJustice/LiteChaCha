@@ -1,6 +1,7 @@
 #ifndef ED25519_H
 #define ED25519_H
 
+#include "SHA512.h"
 #include "multiprecision25519.h"
 
 #include <stdint.h>
@@ -8,6 +9,7 @@
 
 class Ed25519SignatureAlgorithm {
 private:
+	SHA512Hash hash;
 	MultiPrecisionArithmetic25519 math;
 
 	static const constexpr unsigned short BYTE_LENGTH = 32;
