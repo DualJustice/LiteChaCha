@@ -193,7 +193,9 @@ void SHA512Hash::hashProcess() {
 
 void SHA512Hash::outputHash(char* hashOut) {
 	for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
-		hashOut[(WORD_CONVERSION*i)] = h[i] >> WORD_SHIFT; // Come back to this.
+		for(unsigned short j = 0; j < WORD_CONVERSION; j += 1) {
+			hashOut[(WORD_CONVERSION*i) + j] = h[i] >> (WORD_SHIFT - (BIT_CONVERSION*j));
+		}
 	}
 }
 
