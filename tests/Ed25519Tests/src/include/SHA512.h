@@ -122,11 +122,33 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 		message[messageWords] = 0x8000000000000000;
 	} else {
 		message[messageWords] = 0x0000000000000000;
-		for(unsigned short i = 0; i < wordRemainder; i += 1) {
-			message[messageWords] |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (WORD_SHIFT - (BIT_CONVERSION*i)));
-		}
+		if(wordRemainder < HALF_WORD_CONVERSION) {
+			for(unsigned short i = 0; i < wordRemainder; i += 1) {
+				message[messageWords] |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
+			}
+			message[messageWords] |= (0x80 << (HALF_WORD_SHIFT - (BIT_CONVERSION*wordRemainder)));
+			message[messageWords] = message[messageWords] << HALF_WORD_BITS;
 
-		message[messageWords] |= (0x80 << (WORD_SHIFT - (BIT_CONVERSION*wordRemainder)));
+		} else if(wordRemainder == HALF_WORD_CONVERSION) {
+			for(unsigned short i = 0; i < wordRemainder; i += 1) {
+				message[messageWords] |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
+			}
+			message[messageWords] = message[messageWords] << HALF_WORD_BITS;
+			buildBuffer = 0x80000000;
+			message[messageWords] |= buildBuffer;
+
+		} else {
+			for(unsigned short i = 0; i < HALF_WORD_CONVERSION; i += 1) {
+				message[messageWords] |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
+			}
+			message[messageWords] = message[messageWords] << HALF_WORD_BITS;
+			buildBuffer = 0x00000000;
+			for(unsigned short i = 0; i < (wordRemainder % HALF_WORD_CONVERSION); i += 1) {
+				buildBuffer |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
+			}
+			buildBuffer |= (0x80 << (HALF_WORD_SHIFT - (BIT_CONVERSION*(wordRemainder % HALF_WORD_CONVERSION))));
+			message[messageWords] |= buildBuffer;
+		}
 	}
 
 	for(unsigned long long i = 0; i < zeroWords; i += 1) {
