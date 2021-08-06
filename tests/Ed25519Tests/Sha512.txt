@@ -88,7 +88,7 @@ for each chunk
     (The initial values in w[0..79] don't matter, so many implementations zero them here)
     copy chunk into first 16 words w[0..15] of the message schedule array
 
-    Extend the first 16 words into the remaining 54 words w[16..79] of the message schedule array:
+    Extend the first 16 words into the remaining 64 words w[16..79] of the message schedule array:
     for i from 16 to 79
 		s0 := (w[i-15] rightrotate 1) xor (w[i-15] rightrotate 8) xor (w[i-15] rightshift 7)
 		s1 := (w[i-2] rightrotate 19) xor (w[i-2] rightrotate 61) xor (w[i-2] rightshift 6)
@@ -134,3 +134,14 @@ for each chunk
 
 Produce the final hash value (big-endian):
 digest := hash := h0 append h1 append h2 append h3 append h4 append h5 append h6 append h7
+
+TEST RESULTS:
+
+What I Got:
+204A8FC6DDA82F0A0CED7BEB8E08A41657C16EF468B228A8279BE331A703C33596FD15C13B1B07F9AA1D3BEA57789CA031AD85C7A71DD70354EC631238CA3445
+ECCD38B7AEAE8CB66C3B41B8106B00F3A656306F5CCFC14FCD5DC9306FF2334975E0A15F99B76B65B2699A8B026AEDF7325FE053F88F8693E0213A2A01B3F8A7
+
+What I Should Get:
+204a8fc6dda82f0a0ced7beb8e08a41657c16ef468b228a8279be331a703c33596fd15c13b1b07f9aa1d3bea57789ca031ad85c7a71dd70354ec631238ca3445
+8e959b75dae313da8cf4f72814fc143f8f7779c6eb9f7fa17299aeadb6889018501d289e4900f7e4331b99dec4b5433ac7d329eeb6dd26545e96e55b874be909
+

@@ -1,6 +1,9 @@
 #ifndef SHA512_H
 #define SHA512_H
 
+#include "Arduino.h" // DELETE ME!!
+#include "HardwareSerial.h" // DELETE ME!!
+
 #include <stdint.h>
 
 
@@ -8,6 +11,7 @@ class SHA512Hash {
 private:
 	static const constexpr unsigned short HASH_BYTES = 64;
 	static const constexpr unsigned short WORD_CONVERSION = 8; // 8 bytes/1 word, 1 word/8 bytes.
+	static const constexpr unsigned short HALF_WORD_CONVERSION = WORD_CONVERSION/2;
 	static const constexpr unsigned short HASH_WORDS = HASH_BYTES/WORD_CONVERSION;
 	static const constexpr unsigned short ROUNDS = 80;
 	static const constexpr unsigned short BLOCK_BITS = 1024;
@@ -16,8 +20,10 @@ private:
 	static const constexpr unsigned short APPEND_BIT = 1;
 	static const constexpr unsigned short MESSAGE_LENGTH_BITS = 128;
 	static const constexpr unsigned short WORD_BITS = 64;
+	static const constexpr unsigned short HALF_WORD_BITS = WORD_BITS/2;
 	static const constexpr unsigned short MESSAGE_LENGTH_WORDS = MESSAGE_LENGTH_BITS/WORD_BITS;
 	static const constexpr unsigned short WORD_SHIFT = WORD_BITS - BIT_CONVERSION;
+	static const constexpr unsigned short HALF_WORD_SHIFT = 24;
 	static const constexpr unsigned short BLOCK_WORDS = BLOCK_BITS/WORD_BITS;
 
 	const uint64_t hInit[HASH_WORDS] = {0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1, 0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179}; // Derived from the first 64 bits of the fractional parts of the square roots of the first 8 primes.
@@ -45,7 +51,7 @@ private:
 	unsigned short wordRemainder;
 	unsigned long long wordIndex;
 	unsigned long long blockCount;
-//	uint64_t* message; // Not really sure that this is safe to do...
+	uint32_t buildBuffer;
 
 	uint64_t rotRBuffer;
 
@@ -101,9 +107,15 @@ void SHA512Hash::initialize(char* messageIn, unsigned long long messageBytes) {
 void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long long messageBytes) {
 	for(unsigned long long i = 0; i < messageWords; i += 1) {
 		message[i] = 0x0000000000000000;
-		for(unsigned short j = 0; j < WORD_CONVERSION; j += 1) {
-			message[i] |= (messageIn[(WORD_CONVERSION*i) + j] << (WORD_SHIFT - (BIT_CONVERSION*j)));
+		for(unsigned short j = 0; j < HALF_WORD_CONVERSION; j += 1) {
+			message[i] |= (messageIn[(WORD_CONVERSION*i) + j] << (HALF_WORD_SHIFT - (BIT_CONVERSION*j)));
 		}
+		message[i] = message[i] << HALF_WORD_BITS;
+		buildBuffer = 0x00000000;
+		for(unsigned short j = HALF_WORD_CONVERSION; j < WORD_CONVERSION; j += 1) {
+			buildBuffer |= (messageIn[(WORD_CONVERSION*i) + j] << (HALF_WORD_SHIFT - (BIT_CONVERSION*(j - HALF_WORD_CONVERSION))));
+		}
+		message[i] |= buildBuffer;
 	}
 
 	if(wordRemainder == 0) {
@@ -123,6 +135,16 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 
 	message[wordIndex - 1] = (uint64_t)messageBytes >> 61; // Has the effect of multiplying messageBytes by 8 (to convert from bytes to bits).
 	message[wordIndex] = (uint64_t)messageBytes << 3;
+
+	for(unsigned long long i = 0; i < (wordIndex + 1); i += 1) {
+		if(message[i] == 0) {
+			Serial.print('0');
+		} else {
+			Serial.print(message[i], HEX);
+		}
+		Serial.print(' ');
+	}
+	Serial.println();
 }
 
 
@@ -132,10 +154,20 @@ void SHA512Hash::rotR(uint64_t n, unsigned short c) {
 
 
 void SHA512Hash::hashProcess(uint64_t* message) {
+	Serial.print("blockCount: ");
+	Serial.println(blockCount);
+
 	for(unsigned long long b = 0; b < blockCount; b += 1) {
 		for(unsigned short i = 0; i < BLOCK_WORDS; i += 1) {
 			w[i] = message[(BLOCK_WORDS*b) + i];
+			if(w[i] == 0) {
+				Serial.print('0');
+			} else {
+				Serial.print(w[i], HEX);
+			}
+			Serial.print(' ');
 		}
+		Serial.println();
 
 		for(unsigned short i = BLOCK_WORDS; i < ROUNDS; i += 1) {
 			rotR(w[i - 15], 1);

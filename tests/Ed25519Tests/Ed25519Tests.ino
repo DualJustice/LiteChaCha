@@ -23,13 +23,18 @@ void setup() {
 	SHA512Hash hash;
 
 	char cornedBeef[64];
-	unsigned long long messageLength = 12;
-	char message[messageLength] = {"Hello world!"};
+	unsigned long long messageLength = 112;
+	char message[messageLength] = {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
 
 	hash.hashBytes(cornedBeef, message, messageLength);
 
 	for(unsigned short i = 0; i < 64; i += 1) {
-		Serial.print(cornedBeef[i], HEX);
+		if(cornedBeef[i] > 0x0f) {
+			Serial.print(cornedBeef[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(cornedBeef[i], HEX);
+		}
 	}
 	Serial.println();
 
