@@ -23,8 +23,8 @@ void setup() {
 	SHA512Hash hash;
 
 	char cornedBeef[64];
-	unsigned long long messageLength = 112;
-	char message[messageLength] = {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
+	unsigned long long messageLength = 57;
+	char message[messageLength] = {"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopqa"};
 
 	hash.hashBytes(cornedBeef, message, messageLength);
 
