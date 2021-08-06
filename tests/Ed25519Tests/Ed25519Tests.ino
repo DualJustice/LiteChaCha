@@ -22,11 +22,16 @@ void setup() {
 
 	SHA512Hash hash;
 
-	char cornBeef[64];
+	char cornedBeef[64];
 	unsigned long long messageLength = 12;
 	char message[messageLength] = {"Hello world!"};
 
-	hash.hashBytes(cornBeef, message, messageLength);
+	hash.hashBytes(cornedBeef, message, messageLength);
+
+	for(unsigned short i = 0; i < 64; i += 1) {
+		Serial.print(cornedBeef[i], HEX);
+	}
+	Serial.println();
 
 // Ed25519 TEST: --------------------------------------------------------------------------------------
 
