@@ -23,11 +23,10 @@ void setup() {
 	SHA512Hash hash;
 
 	char cornedBeef[64];
-	unsigned long long messageLength = 57;
-	char message[messageLength] = {"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopqa"};
 
+	unsigned long long messageLength = 3;
+	char message[messageLength] = {"abc"};
 	hash.hashBytes(cornedBeef, message, messageLength);
-
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(cornedBeef[i] > 0x0f) {
 			Serial.print(cornedBeef[i], HEX);
@@ -36,7 +35,46 @@ void setup() {
 			Serial.print(cornedBeef[i], HEX);
 		}
 	}
-	Serial.println();
+	Serial.println('\n');
+
+	messageLength = 0;
+	char message1[messageLength] = {""};
+	hash.hashBytes(cornedBeef, message1, messageLength);
+	for(unsigned short i = 0; i < 64; i += 1) {
+		if(cornedBeef[i] > 0x0f) {
+			Serial.print(cornedBeef[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(cornedBeef[i], HEX);
+		}
+	}
+	Serial.println('\n');
+
+	messageLength = 56;
+	char message2[messageLength] = {"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"};
+	hash.hashBytes(cornedBeef, message2, messageLength);
+	for(unsigned short i = 0; i < 64; i += 1) {
+		if(cornedBeef[i] > 0x0f) {
+			Serial.print(cornedBeef[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(cornedBeef[i], HEX);
+		}
+	}
+	Serial.println('\n');
+
+	messageLength = 112; // FAILS THIS TEST!
+	char message3[messageLength] = {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
+	hash.hashBytes(cornedBeef, message3, messageLength);
+	for(unsigned short i = 0; i < 64; i += 1) {
+		if(cornedBeef[i] > 0x0f) {
+			Serial.print(cornedBeef[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(cornedBeef[i], HEX);
+		}
+	}
+	Serial.println('\n');
 
 // Ed25519 TEST: --------------------------------------------------------------------------------------
 
