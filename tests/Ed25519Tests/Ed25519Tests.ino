@@ -25,7 +25,7 @@ void setup() {
 	char cornedBeef[64];
 
 	unsigned long long messageLength = 3;
-	char message[messageLength] = {"abc"};
+/*	char message[messageLength] = {"abc"};
 	hash.hashBytes(cornedBeef, message, messageLength);
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(cornedBeef[i] > 0x0f) {
@@ -62,7 +62,7 @@ void setup() {
 		}
 	}
 	Serial.println('\n');
-
+*/
 	messageLength = 112; // FAILS THIS TEST!
 	char message3[messageLength] = {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
 	hash.hashBytes(cornedBeef, message3, messageLength);

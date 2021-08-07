@@ -1,8 +1,8 @@
 #ifndef SHA512_H
 #define SHA512_H
 
-//#include "Arduino.h" // DELETE ME!!
-//#include "HardwareSerial.h" // DELETE ME!!
+#include "Arduino.h" // DELETE ME!!
+#include "HardwareSerial.h" // DELETE ME!!
 
 #include <stdint.h>
 
@@ -158,7 +158,7 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 	message[wordIndex - 1] = (uint64_t)messageBytes >> 61; // Has the effect of multiplying messageBytes by 8 (to convert from bytes to bits).
 	message[wordIndex] = (uint64_t)messageBytes << 3;
 
-/*	for(unsigned long long i = 0; i < (wordIndex + 1); i += 1) {
+	for(unsigned long long i = 0; i < (wordIndex + 1); i += 1) {
 		if(message[i] == 0) {
 			Serial.print('0');
 		} else {
@@ -166,7 +166,7 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 		}
 		Serial.print(' ');
 	}
-	Serial.println();*/
+	Serial.println();
 }
 
 
@@ -176,20 +176,20 @@ void SHA512Hash::rotR(uint64_t n, unsigned short c) {
 
 
 void SHA512Hash::hashProcess(uint64_t* message) {
-//	Serial.print("blockCount: ");
-//	Serial.println(blockCount);
+	Serial.print("blockCount: ");
+	Serial.println(blockCount);
 
 	for(unsigned long long b = 0; b < blockCount; b += 1) {
 		for(unsigned short i = 0; i < BLOCK_WORDS; i += 1) {
 			w[i] = message[(BLOCK_WORDS*b) + i];
-/*			if(w[i] == 0) {
+			if(w[i] == 0) {
 				Serial.print('0');
 			} else {
 				Serial.print(w[i], HEX);
 			}
-			Serial.print(' ');*/
+			Serial.print(' ');
 		}
-//		Serial.println();
+		Serial.println();
 
 		for(unsigned short i = BLOCK_WORDS; i < ROUNDS; i += 1) {
 			rotR(w[i - 15], 1);
