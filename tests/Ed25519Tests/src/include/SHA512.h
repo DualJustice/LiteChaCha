@@ -143,8 +143,8 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 			}
 			message[messageWords] = message[messageWords] << HALF_WORD_BITS;
 			buildBuffer = 0x00000000;
-			for(unsigned short i = 0; i < (wordRemainder % HALF_WORD_CONVERSION); i += 1) {
-				buildBuffer |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
+			for(unsigned short i = HALF_WORD_CONVERSION; i < wordRemainder; i += 1) {
+				buildBuffer |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*(i - HALF_WORD_CONVERSION))));
 			}
 			buildBuffer |= (0x80 << (HALF_WORD_SHIFT - (BIT_CONVERSION*(wordRemainder % HALF_WORD_CONVERSION))));
 			message[messageWords] |= buildBuffer;
@@ -176,9 +176,6 @@ void SHA512Hash::rotR(uint64_t n, unsigned short c) {
 
 
 void SHA512Hash::hashProcess(uint64_t* message) {
-	Serial.print("blockCount: ");
-	Serial.println(blockCount);
-
 	for(unsigned long long b = 0; b < blockCount; b += 1) {
 		for(unsigned short i = 0; i < BLOCK_WORDS; i += 1) {
 			w[i] = message[(BLOCK_WORDS*b) + i];
