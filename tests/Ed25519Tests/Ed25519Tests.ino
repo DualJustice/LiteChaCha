@@ -75,10 +75,23 @@ void setup() {
 		}
 	}
 	Serial.println('\n');
-*/
-	messageLength = 112; // FAILS THIS TEST!
+
+	messageLength = 112;
 	char message4[messageLength] = {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
 	hash.hashBytes(cornedBeef, message4, messageLength);
+	for(unsigned short i = 0; i < 64; i += 1) {
+		if(cornedBeef[i] > 0x0f) {
+			Serial.print(cornedBeef[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(cornedBeef[i], HEX);
+		}
+	}
+	Serial.println('\n');
+*/
+	messageLength = 240;
+	char message5[messageLength] = {"apovabapouea198asa8d91f15efgpoasohidoiea89a9da8f1a32sdf4ado8ivha1a6s8e68868668asefadhajfshacasedlkjadADAIPHLKJAzzzzlakdf97165g00abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
+	hash.hashBytes(cornedBeef, message5, messageLength);
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(cornedBeef[i] > 0x0f) {
 			Serial.print(cornedBeef[i], HEX);
