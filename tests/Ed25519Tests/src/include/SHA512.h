@@ -88,12 +88,24 @@ SHA512Hash::~SHA512Hash() {
 
 
 void SHA512Hash::initialize(char* messageIn, unsigned long long messageBytes) {
-	for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
+/*	for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
 		h[i] = hInit[i];
 		Serial.print(h[i], HEX);
 		Serial.print(' ');
 	}
-	Serial.println();
+	Serial.println();*/
+
+// 0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,
+// 0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179
+
+	h[0] = 0x6a09e667f3bcc908;
+	h[1] = 0xbb67ae8584caa73b;
+	h[2] = 0x3c6ef372fe94f82b;
+	h[3] = 0xa54ff53a5f1d36f1;
+	h[4] = 0x510e527fade682d1;
+	h[5] = 0x9b05688c2b3e6c1f;
+	h[6] = 0x1f83d9abfb41bd6b;
+	h[7] = 0x5be0cd19137e2179;
 
 	messageRemainderBits = (messageBytes % BLOCK_BYTES)*BIT_CONVERSION;
 	zeroBits = BLOCK_BITS - ((((messageRemainderBits + APPEND_BIT + MESSAGE_LENGTH_BITS) - 1) % BLOCK_BITS) + 1); // 7 (messageBytes = 111) to 1023 (messageBytes = 112)
