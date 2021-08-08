@@ -90,7 +90,10 @@ SHA512Hash::~SHA512Hash() {
 void SHA512Hash::initialize(char* messageIn, unsigned long long messageBytes) {
 	for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
 		h[i] = hInit[i];
+		Serial.print(h[i], HEX);
+		Serial.print(' ');
 	}
+	Serial.println();
 
 	messageRemainderBits = (messageBytes % BLOCK_BYTES)*BIT_CONVERSION;
 	zeroBits = BLOCK_BITS - ((((messageRemainderBits + APPEND_BIT + MESSAGE_LENGTH_BITS) - 1) % BLOCK_BITS) + 1); // 7 (messageBytes = 111) to 1023 (messageBytes = 112)
@@ -206,7 +209,10 @@ void SHA512Hash::hashProcess(uint64_t* message) {
 
 		for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
 			a[i] = h[i];
+			Serial.print(a[i], HEX);
+			Serial.print(' ');
 		}
+		Serial.println();
 
 		for(unsigned short i = 0; i < ROUNDS; i += 1) {
 			rotR(a[4], 14);
@@ -242,7 +248,10 @@ void SHA512Hash::hashProcess(uint64_t* message) {
 
 		for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
 			h[i] += a[i];
+			Serial.print(h[i], HEX);
+			Serial.print(' ');
 		}
+		Serial.println();
 	}
 }
 
