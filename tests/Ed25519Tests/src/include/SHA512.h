@@ -1,6 +1,9 @@
 #ifndef SHA512_H
 #define SHA512_H
 
+#include "Arduino.h" // DELETE ME!!
+#include "HardwareSerial.h" // DELETE ME!!
+
 #include <stdint.h>
 
 
@@ -23,6 +26,7 @@ private:
 	static const constexpr unsigned short HALF_WORD_SHIFT = 24;
 	static const constexpr unsigned short BLOCK_WORDS = BLOCK_BITS/WORD_BITS;
 
+	const uint64_t hInit[HASH_WORDS] = {0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1, 0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179}; // Derived from the first 64 bits of the fractional parts of the square roots of the first 8 primes.
 	const uint64_t k[ROUNDS] = {
 		0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0xe9b5dba58189dbbc, 0x3956c25bf348b538, 0x59f111f1b605d019, 0x923f82a4af194f9b, 0xab1c5ed5da6d8118, 
 		0xd807aa98a3030242, 0x12835b0145706fbe, 0x243185be4ee4b28c, 0x550c7dc3d5ffb4e2, 0x72be5d74f27b896f, 0x80deb1fe3b1696b1, 0x9bdc06a725c71235, 0xc19bf174cf692694, 
@@ -84,8 +88,17 @@ SHA512Hash::~SHA512Hash() {
 
 
 void SHA512Hash::initialize(char* messageIn, unsigned long long messageBytes) {
+/*	for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
+		h[i] = hInit[i];
+		Serial.print(h[i], HEX);
+		Serial.print(' ');
+	}
+	Serial.println();*/
 
-	h[0] = 0x6a09e667f3bcc908; // Derived from the first 64 bits of the fractional parts of the square roots of the first 8 primes.
+// 0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,
+// 0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179
+
+	h[0] = 0x6a09e667f3bcc908; // Why does this work, when the previous method failed? Maybe try the previous method without error messages?
 	h[1] = 0xbb67ae8584caa73b;
 	h[2] = 0x3c6ef372fe94f82b;
 	h[3] = 0xa54ff53a5f1d36f1;
@@ -159,6 +172,16 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 
 	message[wordIndex - 1] = (uint64_t)messageBytes >> 61; // Has the effect of multiplying messageBytes by 8 (to convert from bytes to bits).
 	message[wordIndex] = (uint64_t)messageBytes << 3;
+
+	for(unsigned long long i = 0; i < (wordIndex + 1); i += 1) {
+		if(message[i] == 0) {
+			Serial.print('0');
+		} else {
+			Serial.print(message[i], HEX);
+		}
+		Serial.print(' ');
+	}
+	Serial.println();
 }
 
 
@@ -171,7 +194,14 @@ void SHA512Hash::hashProcess(uint64_t* message) {
 	for(unsigned long long b = 0; b < blockCount; b += 1) {
 		for(unsigned short i = 0; i < BLOCK_WORDS; i += 1) {
 			w[i] = message[(BLOCK_WORDS*b) + i];
+			if(w[i] == 0) {
+				Serial.print('0');
+			} else {
+				Serial.print(w[i], HEX);
+			}
+			Serial.print(' ');
 		}
+		Serial.println();
 
 		for(unsigned short i = BLOCK_WORDS; i < ROUNDS; i += 1) {
 			rotR(w[i - 15], 1);
@@ -191,7 +221,10 @@ void SHA512Hash::hashProcess(uint64_t* message) {
 
 		for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
 			a[i] = h[i];
+			Serial.print(a[i], HEX);
+			Serial.print(' ');
 		}
+		Serial.println();
 
 		for(unsigned short i = 0; i < ROUNDS; i += 1) {
 			rotR(a[4], 14);
@@ -201,7 +234,7 @@ void SHA512Hash::hashProcess(uint64_t* message) {
 			rotR(a[4], 41);
 			s1 ^= rotRBuffer;
 
-			s0 = (a[4] & a[5]) ^ ((~a[4]) & a[6]);
+			s0 = (a[4] & a[5]) ^ ((~a[4]) & a[6]); // Used in place of ch.
 
 			t0 = a[7] + s1 + s0 + k[i] + w[i];
 
@@ -212,7 +245,7 @@ void SHA512Hash::hashProcess(uint64_t* message) {
 			rotR(a[0], 39);
 			s0 ^= rotRBuffer;
 
-			s1 = (a[0] & a[1]) ^ (a[0] & a[2]) ^ (a[1] & a[2]);
+			s1 = (a[0] & a[1]) ^ (a[0] & a[2]) ^ (a[1] & a[2]); // Used in place of maj.
 			t1 = s0 + s1;
 
 			a[7] = a[6];
@@ -227,7 +260,10 @@ void SHA512Hash::hashProcess(uint64_t* message) {
 
 		for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
 			h[i] += a[i];
+			Serial.print(h[i], HEX);
+			Serial.print(' ');
 		}
+		Serial.println();
 	}
 }
 
