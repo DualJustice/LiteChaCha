@@ -1,6 +1,9 @@
-EdDSA
+EdDSA:
 rfc8032
 rfc7748
 
-AEAD
+SHA-512:
+rfc6234
+
+AEAD:
 rfc8439
