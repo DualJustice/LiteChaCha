@@ -24,8 +24,12 @@ void setup() {
 
 	char cornedBeef[64];
 
-//	unsigned long long messageLength = 3;
-/*	char message[messageLength] = {"abc"};
+	const size_t messageLength = 3;
+	char messageBuffer[messageLength + 1] = {"abc"};
+	char message[messageLength];
+	for(unsigned long long i = 0; i < messageLength; i += 1) {
+		message[i] = messageBuffer[i];
+	}
 	hash.hashBytes(cornedBeef, message, messageLength);
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(cornedBeef[i] > 0x0f) {
@@ -37,9 +41,13 @@ void setup() {
 	}
 	Serial.println('\n');
 
-	messageLength = 0;
-	char message1[messageLength] = {""};
-	hash.hashBytes(cornedBeef, message1, messageLength);
+	const size_t messageLength1 = 0;
+	char messageBuffer1[messageLength1 + 1] = {""};
+	char message1[messageLength1];
+	for(unsigned long long i = 0; i < messageLength1; i += 1) {
+		message1[i] = messageBuffer1[i];
+	}
+	hash.hashBytes(cornedBeef, message1, messageLength1);
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(cornedBeef[i] > 0x0f) {
 			Serial.print(cornedBeef[i], HEX);
@@ -50,9 +58,13 @@ void setup() {
 	}
 	Serial.println('\n');
 
-	messageLength = 56;
-	char message2[messageLength] = {"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"};
-	hash.hashBytes(cornedBeef, message2, messageLength);
+	const size_t messageLength2 = 56;
+	char messageBuffer2[messageLength2 + 1] = {"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"};
+	char message2[messageLength2];
+	for(unsigned long long i = 0; i < messageLength2; i += 1) {
+		message2[i] = messageBuffer2[i];
+	}
+	hash.hashBytes(cornedBeef, message2, messageLength2);
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(cornedBeef[i] > 0x0f) {
 			Serial.print(cornedBeef[i], HEX);
@@ -63,9 +75,13 @@ void setup() {
 	}
 	Serial.println('\n');
 
-	messageLength = 111; // PASSES THIS TEST, BUT...
-	char message3[messageLength] = {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrst"};
-	hash.hashBytes(cornedBeef, message3, messageLength);
+	const size_t messageLength3 = 111;
+	char messageBuffer3[messageLength3 + 1] = {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrst"};
+	char message3[messageLength3];
+	for(unsigned long long i = 0; i < messageLength3; i += 1) {
+		message3[i] = messageBuffer3[i];
+	}
+	hash.hashBytes(cornedBeef, message3, messageLength3);
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(cornedBeef[i] > 0x0f) {
 			Serial.print(cornedBeef[i], HEX);
@@ -76,9 +92,13 @@ void setup() {
 	}
 	Serial.println('\n');
 
-	messageLength = 112;
-	char message4[messageLength] = {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
-	hash.hashBytes(cornedBeef, message4, messageLength);
+	const size_t messageLength4 = 112;
+	char messageBuffer4[messageLength4 + 1] = {"abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
+	char message4[messageLength4];
+	for(unsigned long long i = 0; i < messageLength4; i += 1) {
+		message4[i] = messageBuffer4[i];
+	}
+	hash.hashBytes(cornedBeef, message4, messageLength4);
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(cornedBeef[i] > 0x0f) {
 			Serial.print(cornedBeef[i], HEX);
@@ -88,16 +108,14 @@ void setup() {
 		}
 	}
 	Serial.println('\n');
-*/
-	const size_t messageLength = 240;
-	char message5[messageLength + 1] = {"apovabapouea198asa8d91f15efgpoasohidoiea89a9da8f1a32sdf4ado8ivha1a6s8e68868668asefadhajfshacasedlkjadADAIPHLKJAzzzzlakdf97165g00abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
 
-	char message6[messageLength];
-	for(unsigned long long i = 0; i < messageLength; i += 1) {
-		message6[i] = message5[i];
+	const size_t messageLength5 = 240;
+	char messageBuffer5[messageLength5 + 1] = {"apovabapouea198asa8d91f15efgpoasohidoiea89a9da8f1a32sdf4ado8ivha1a6s8e68868668asefadhajfshacasedlkjadADAIPHLKJAzzzzlakdf97165g00abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
+	char message5[messageLength5];
+	for(unsigned long long i = 0; i < messageLength5; i += 1) {
+		message5[i] = messageBuffer5[i];
 	}
-
-	hash.hashBytes(cornedBeef, message6, messageLength);
+	hash.hashBytes(cornedBeef, message5, messageLength5);
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(cornedBeef[i] > 0x0f) {
 			Serial.print(cornedBeef[i], HEX);
