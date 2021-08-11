@@ -24,7 +24,7 @@ void setup() {
 
 	char cornedBeef[64];
 
-	unsigned long long messageLength = 3;
+//	unsigned long long messageLength = 3;
 /*	char message[messageLength] = {"abc"};
 	hash.hashBytes(cornedBeef, message, messageLength);
 	for(unsigned short i = 0; i < 64; i += 1) {
@@ -89,9 +89,15 @@ void setup() {
 	}
 	Serial.println('\n');
 */
-	messageLength = 240;
-	char message5[messageLength] = {"apovabapouea198asa8d91f15efgpoasohidoiea89a9da8f1a32sdf4ado8ivha1a6s8e68868668asefadhajfshacasedlkjadADAIPHLKJAzzzzlakdf97165g00abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
-	hash.hashBytes(cornedBeef, message5, messageLength);
+	const size_t messageLength = 240;
+	char message5[messageLength + 1] = {"apovabapouea198asa8d91f15efgpoasohidoiea89a9da8f1a32sdf4ado8ivha1a6s8e68868668asefadhajfshacasedlkjadADAIPHLKJAzzzzlakdf97165g00abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"};
+
+	char message6[messageLength];
+	for(unsigned long long i = 0; i < messageLength; i += 1) {
+		message6[i] = message5[i];
+	}
+
+	hash.hashBytes(cornedBeef, message6, messageLength);
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(cornedBeef[i] > 0x0f) {
 			Serial.print(cornedBeef[i], HEX);
