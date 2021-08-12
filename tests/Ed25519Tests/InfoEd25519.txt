@@ -20,6 +20,29 @@ ED25519 INFORMATION:
        secret scalar s.  Perform a fixed-base scalar multiplication
        [s]B.
 
+		A = point_compress(point_mul(a, G))
+
+		def point_mul(s, P):
+    		Q = (0, 1, 1, 0)  # Neutral element
+    		while s > 0:
+        		if s & 1:
+           			Q = point_add(Q, P)
+        		P = point_add(P, P)
+        		s >>= 1
+    		return Q
+		
+		def point_add(P, Q):
+    		A, B = (P[1]-P[0]) * (Q[1]-Q[0]) % p, (P[1]+P[0]) * (Q[1]+Q[0]) % p;
+    		C, D = 2 * P[3] * Q[3] * d % p, 2 * P[2] * Q[2] % p;
+    		E, F, G, H = B-A, D-C, D+C, B+A;
+    		return (E*F, G*H, F*G, E*H);
+
+		def point_compress(P):
+    		zinv = modp_inv(P[2])
+    		x = P[0] * zinv % p
+    		y = P[1] * zinv % p
+   			return int.to_bytes(y | ((x & 1) << 255), 32, "little")
+
    4.  The public key A is the encoding of the point [s]B.  First,
        encode the y-coordinate (in the range 0 <= y < p) as a little-
        endian string of 32 octets.  The most significant bit of the
@@ -216,6 +239,12 @@ T:	6787 5F0F D78B 7665 66EA 4E8E 64AB E37D 20F0 9F80 7751 52F5 6DDE 8AB3 A5B7 DD
                  Y3 = G*H
                  T3 = E*H
                  Z3 = F*G
+
+		def point_add(P, Q):
+    		A, B = (P[1]-P[0]) * (Q[1]-Q[0]) % p, (P[1]+P[0]) * (Q[1]+Q[0]) % p;
+    		C, D = 2 * P[3] * Q[3] * d % p, 2 * P[2] * Q[2] % p;
+    		E, F, G, H = B-A, D-C, D+C, B+A;
+    		return (E*F, G*H, F*G, E*H);
 
    For point doubling, (x3,y3) = (x1,y1)+(x1,y1), one could just
    substitute equal points in the above (because of completeness, such
