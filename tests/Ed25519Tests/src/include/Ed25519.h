@@ -7,6 +7,17 @@
 #include <stdint.h>
 
 
+static const constexpr unsigned short INT_LENGTH = 8;
+static const constexpr unsigned short INT_LENGTH_MULTI = 2*INT_LENGTH;
+
+struct Point {
+	uint32_t X[INT_LENGTH_MULTI];
+	uint32_t Y[INT_LENGTH_MULTI];
+	uint32_t Z[INT_LENGTH_MULTI];
+	uint32_t T[INT_LENGTH_MULTI];
+};
+
+
 class Ed25519SignatureAlgorithm {
 private:
 	SHA512Hash hash;
@@ -14,11 +25,20 @@ private:
 
 	static const constexpr unsigned short HASH_BYTES = 64;
 	static const constexpr unsigned short KEY_BYTES = 32;
+//	static const constexpr unsigned short INT_LENGTH = 8;
+//	static const constexpr unsigned short INT_LENGTH_MULTI = 2*INT_LENGTH;
 
 	char h[HASH_BYTES]; // Hash buffer.
 
 	char s[KEY_BYTES]; // Secret scalar.
 	char prefix[KEY_BYTES];
+
+	Point B;
+	const uint32_t BX[INT_LENGTH_MULTI] = {0x00002169, 0x000036d3, 0x0000cd6e, 0x000053fe, 0x0000c0a4, 0x0000e231, 0x0000fdd6, 0x0000dc5c, 0x0000692c, 0x0000c760, 0x00009525, 0x0000a7b2, 0x0000c956, 0x00002d60, 0x00008f25, 0x0000d51a};
+	const uint32_t BY[INT_LENGTH_MULTI] = {0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006658};
+	const uint32_t BZ[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
+	const uint32_t BT[INT_LENGTH_MULTI] = {0x00006787, 0x00005f0f, 0x0000d78b, 0x00007665, 0x000066ea, 0x00004e8e, 0x000064ab, 0x0000e37d, 0x000020f0, 0x00009f80, 0x00007751, 0x000052f5, 0x00006dde, 0x00008ab3, 0x0000a5b7, 0x0000dda3};
+
 	char publicKey[KEY_BYTES];
 
 	void pruneHashBuffer();
@@ -61,7 +81,12 @@ void Ed25519SignatureAlgorithm::initialize(char* privateKey) {
 		prefix[i - KEY_BYTES] = h[i];
 	}
 
-	
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		B.X[i] = BX[i];
+		B.Y[i] = BY[i];
+		B.Z[i] = BZ[i];
+		B.T[i] = BT[i];
+	}
 }
 
 

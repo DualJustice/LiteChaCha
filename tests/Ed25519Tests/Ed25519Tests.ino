@@ -3,8 +3,8 @@
 
 //#include "src/include/keyinfrastructure.h"
 //#include "src/include/authenticatedencrypt.h"
-//#include "src/include/Ed25519.h"
-#include "src/include/SHA512.h"
+#include "src/include/Ed25519.h"
+//#include "src/include/SHA512.h"
 
 
 void setup() {
@@ -17,7 +17,7 @@ void setup() {
 	unsigned long timeStamp = 0;
 	unsigned long duration = 0;
 
-
+/*
 // SHA512 TEST: ---------------------------------------------------------------------------------------
 
 	SHA512Hash hash;
@@ -125,10 +125,10 @@ void setup() {
 		}
 	}
 	Serial.println('\n');
-
+*/
 // Ed25519 TEST: --------------------------------------------------------------------------------------
 
-//	Ed25519SignatureAlgorithm dsa;
+	Ed25519SignatureAlgorithm dsa;
 
 /*
 // PKI & AE TEST: -------------------------------------------------------------------------------------
