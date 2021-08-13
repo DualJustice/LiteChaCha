@@ -187,7 +187,7 @@ void X25519KeyExchange::montgomeryLadder() {
 }
 
 
-void X25519KeyExchange::inverse() { // Copied directly from Daniel J. Bernstein. 
+void X25519KeyExchange::inverse() { // Copied directly from Daniel J. Bernstein.
 	math.base16Mul(A, Z2, Z2);
 	math.base16Mul(Z3, A, A);
 	math.base16Mul(X3, Z3, Z3);
