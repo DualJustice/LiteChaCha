@@ -127,6 +127,12 @@ ED25519 INFORMATION:
    +-----------+-------------------------------------------------------+
 
 
+d:	37095705934669439343138083508754565189542113879843219016388785533085940283555
+2d:	16295367250680780974490674513165176452449235426866156013048779062215315747161
+	2406 D9DC 56DF FCE7 198E 80F2 EEF3 D130 00E0 149A 8283 B156 EBD6 9B94 26B2 F159
+	2406 d9dc 56df fce7 198e 80f2 eef3 d130 00e0 149a 8283 b156 ebd6 9b94 26b2 f159
+
+
 B:
 X:	15112221349535400772501151409588531511454012693041857206046113283949847762202
 	2169 36D3 CD6E 53FE C0A4 E231 FDD6 DC5C 692C C760 9525 A7B2 C956 2D60 8F25 D51A
@@ -227,7 +233,7 @@ T:	6787 5F0F D78B 7665 66EA 4E8E 64AB E37D 20F0 9F80 7751 52F5 6DDE 8AB3 A5B7 DD
    in [EFD-TWISTED-ADD].  They are complete, i.e., they work for any
    pair of valid input points.
 
-                 A = (Y1-X1)*(Y2-X2)
+                 A = (Y1-X1)*(Y2-X2) (1 = Q | 2 = P).
                  B = (Y1+X1)*(Y2+X2)
                  C = T1*2*d*T2
                  D = Z1*2*Z2
@@ -240,7 +246,7 @@ T:	6787 5F0F D78B 7665 66EA 4E8E 64AB E37D 20F0 9F80 7751 52F5 6DDE 8AB3 A5B7 DD
                  T3 = E*H
                  Z3 = F*G
 
-		def point_add(P, Q):
+		def point_add(P, Q): SWAP Ps AND Qs!
     		A, B = (P[1]-P[0]) * (Q[1]-Q[0]) % p, (P[1]+P[0]) * (Q[1]+Q[0]) % p;
     		C, D = 2 * P[3] * Q[3] * d % p, 2 * P[2] * Q[2] % p;
     		E, F, G, H = B-A, D-C, D+C, B+A;
@@ -256,11 +262,11 @@ T:	6787 5F0F D78B 7665 66EA 4E8E 64AB E37D 20F0 9F80 7751 52F5 6DDE 8AB3 A5B7 DD
                  A = X1^2
                  B = Y1^2
                  C = 2*Z1^2
-                 H = A+B
-                 E = H-(X1+Y1)^2
-                 G = A-B
-                 F = C+G
-                 X3 = E*F
-                 Y3 = G*H
-                 T3 = E*H
-                 Z3 = F*G
+                 D = A+B
+                 E = D-(X1+Y1)^2
+                 F = A-B
+                 G = C+F
+                 X3 = E*G
+                 Y3 = F*D
+                 Z3 = G*F
+                 T3 = E*D

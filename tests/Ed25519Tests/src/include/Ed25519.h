@@ -40,7 +40,7 @@ private:
 	Point Q;
 
 	char bit;
-	Point C; // Used as a conditional, unused point for contant-time.
+	Point Conditional; // Used as a conditional, unused point for contant-time.
 
 //	Base point.
 	const uint32_t BX[INT_LENGTH_MULTI] = {0x00002169, 0x000036d3, 0x0000cd6e, 0x000053fe, 0x0000c0a4, 0x0000e231, 0x0000fdd6, 0x0000dc5c, 0x0000692c, 0x0000c760, 0x00009525, 0x0000a7b2, 0x0000c956, 0x00002d60, 0x00008f25, 0x0000d51a};
@@ -53,6 +53,17 @@ private:
 	const uint32_t NY[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
 	const uint32_t NZ[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
 	const uint32_t NT[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
+
+	uint32_t A[INT_LENGTH_MULTI];
+	uint32_t B[INT_LENGTH_MULTI];
+	uint32_t C[INT_LENGTH_MULTI];
+	uint32_t D[INT_LENGTH_MULTI];
+	uint32_t E[INT_LENGTH_MULTI];
+	uint32_t F[INT_LENGTH_MULTI];
+	uint32_t G[INT_LENGTH_MULTI];
+	uint32_t H[INT_LENGTH_MULTI];
+
+	uint32_t d[INT_LENGTH_MULTI] = {0x00002406, 0x0000d9dc, 0x000056df, 0x0000fce7, 0x0000198e, 0x000080f2, 0x0000eef3, 0x0000d130, 0x000000e0, 0x0000149a, 0x00008283, 0x0000b156, 0x0000ebd6, 0x00009b94, 0x000026b2, 0x0000f159}; // 2*d, technically.
 
 	char publicKey[KEY_BYTES];
 
@@ -93,21 +104,49 @@ void Ed25519SignatureAlgorithm::pruneHashBuffer() {
 
 void Ed25519SignatureAlgorithm::bytesToMulti() {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		s[i] = sByte[(i*4)] << 24;
-		s[i] |= (sByte[(i*4) + 1] << 16);
-		s[i] |= (sByte[(i*4) + 2] << 8);
-		s[i] |= sByte[(i*4) + 3];
+		s[i] = sByte[i*2] << 8;
+		s[i] |= sByte[(i*2) + 1];
 	}
 }
 
 
-void Ed25519SignatureAlgorithm::ladderAdd(Point Out) {
-
+void Ed25519SignatureAlgorithm::ladderAdd(Point out) {
+	math.base16Sub(A, Q.Y, Q.X);
+	math.base16Sub(B, P.Y, P.X);
+	math.base16Mul(A, A, B);
+	math.base16Add(B, Q.X, Q.Y);
+	math.base16Add(C, P.X, P.Y);
+	math.base16Mul(B, B, C);
+	math.base16Mul(C, d, Q.T);
+	math.base16Mul(C, C, P.T);
+	math.base16Add(D, Q.Z, Q.Z);
+	math.base16Mul(D, D, P.Z);
+	math.base16Sub(E, B, A);
+	math.base16Sub(F, D, C);
+	math.base16Add(G, C, D);
+	math.base16Add(H, A, B);
+	math.base16Mul(out.X, E, F);
+	math.base16Mul(out.Y, G, H);
+	math.base16Mul(out.Z, F, G);
+	math.base16Mul(out.T, E, H);
 }
 
 
 void Ed25519SignatureAlgorithm::ladderDouble() {
-
+	math.base16Mul(A, P.X, P.X);
+	math.base16Mul(B, P.Y, P.Y);
+	math.base16Mul(C, P.Z, P.Z);
+	math.base16Add(C, C, C);
+	math.base16Add(D, A, B);
+	math.base16Add(E, P.X, P.Y);
+	math.base16Mul(E, E, E);
+	math.base16Sub(E, D, E);
+	math.base16Sub(F, A, B);
+	math.base16Add(G, C, F);
+	math.base16Mul(P.X, E, G);
+	math.base16Mul(P.Y, D, F);
+	math.base16Mul(P.Z, F, G);
+	math.base16Mul(P.T, D, E);
 }
 
 
@@ -123,14 +162,10 @@ void Ed25519SignatureAlgorithm::Ed25519() {
 		bit = ((sByte[(BITS - i)/8]) >> (i % 8)) & 0x01;
 
 		if(bit == 0x01) {
-//			Q = Q[P] (point addition)
 			ladderAdd(Q);
 		} else {
-//			C = Q[P] (point addition)
-			ladderAdd(C); // This is not elegant, nor is it efficient, but it should be constant time.
+			ladderAdd(Conditional); // This is not elegant, nor is it efficient, but it should be constant time.
 		}
-
-//		P = P[P] (point doubling)
 		ladderDouble();
 	}
 }
