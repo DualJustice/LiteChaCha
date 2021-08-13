@@ -39,6 +39,7 @@ private:
 	Point P;
 	Point Q;
 
+	char bit;
 	Point C; // Used as a conditional, unused point for contant-time.
 
 //	Base point.
@@ -59,6 +60,8 @@ private:
 
 	void bytesToMulti();
 
+	void ladderAdd(Point);
+	void ladderDouble();
 	void Ed25519();
 public:
 	Ed25519SignatureAlgorithm();
@@ -98,6 +101,16 @@ void Ed25519SignatureAlgorithm::bytesToMulti() {
 }
 
 
+void Ed25519SignatureAlgorithm::ladderAdd(Point Out) {
+
+}
+
+
+void Ed25519SignatureAlgorithm::ladderDouble() {
+
+}
+
+
 void Ed25519SignatureAlgorithm::Ed25519() {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		Q.X[i] = NX[i];
@@ -106,8 +119,19 @@ void Ed25519SignatureAlgorithm::Ed25519() {
 		Q.T[i] = NT[i];
 	}
 
-	for(unsigned short i = (BITS - 1); i < BITS; i -= 1) {
-		// How am I going to make this constant time?
+	for(unsigned short i = 0; i < BITS; i -= 1) {
+		bit = ((sByte[(BITS - i)/8]) >> (i % 8)) & 0x01;
+
+		if(bit == 0x01) {
+//			Q = Q[P] (point addition)
+			ladderAdd(Q);
+		} else {
+//			C = Q[P] (point addition)
+			ladderAdd(C); // This is not elegant, nor is it efficient, but it should be constant time.
+		}
+
+//		P = P[P] (point doubling)
+		ladderDouble();
 	}
 }
 
