@@ -1,6 +1,9 @@
 #ifndef ED25519_H
 #define ED25519_H
 
+#include "Arduino.h" // DELETE ME!
+#include "HardwareSerial.h" // DELETE ME!
+
 #include "SHA512.h"
 #include "multiprecision25519.h"
 
@@ -65,7 +68,7 @@ private:
 
 	uint32_t d[INT_LENGTH_MULTI] = {0x00002406, 0x0000d9dc, 0x000056df, 0x0000fce7, 0x0000198e, 0x000080f2, 0x0000eef3, 0x0000d130, 0x000000e0, 0x0000149a, 0x00008283, 0x0000b156, 0x0000ebd6, 0x00009b94, 0x000026b2, 0x0000f159}; // 2*d, technically.
 
-	char publicKey[KEY_BYTES];
+	char pubKey[KEY_BYTES];
 
 	void pruneHashBuffer();
 
@@ -259,16 +262,24 @@ void Ed25519SignatureAlgorithm::inverse() { // Copied directly from Daniel J. Be
 
 void Ed25519SignatureAlgorithm::encodePoint() {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		publicKey[(i*2)] = Q.Y[(INT_LENGTH_MULTI - 1) - i];
-		publicKey[(i*2) + 1] = Q.Y[(INT_LENGTH_MULTI - 1) - i] >> 8;
+		pubKey[(i*2)] = Q.Y[(INT_LENGTH_MULTI - 1) - i];
+		pubKey[(i*2) + 1] = Q.Y[(INT_LENGTH_MULTI - 1) - i] >> 8;
 	}
 
-	publicKey[0] |= ((Q.X[INT_LENGTH_MULTI - 1] & 0x00000001) << 7);
+	pubKey[0] |= ((Q.X[INT_LENGTH_MULTI - 1] & 0x00000001) << 7);
 }
 
 
-void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey) {
-	hash.hashBytes(h, privateKey, KEY_BYTES);
+void Ed25519SignatureAlgorithm::initialize(char* pubKeyOut, char* privKey) {
+	hash.hashBytes(h, privKey, KEY_BYTES);
+
+	Serial.print("Hashed privKey:");
+	for(unsigned short i = 0; i < 64; i += 1) {
+		Serial.print(' ');
+		Serial.print(h[i], HEX);
+	}
+	Serial.println();
+
 	pruneHashBuffer();
 
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
@@ -296,7 +307,7 @@ void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey)
 	encodePoint();
 
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
-		publicKeyOut[i] = publicKey[i];
+		pubKeyOut[i] = pubKey[i];
 	}
 }
 
