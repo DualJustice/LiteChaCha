@@ -76,11 +76,13 @@ private:
 	void Ed25519();
 
 	void inverse();
+
+	void encodePoint();
 public:
 	Ed25519SignatureAlgorithm();
 	~Ed25519SignatureAlgorithm();
 
-	void initialize(char[KEY_BYTES]);
+	void initialize(char[KEY_BYTES], char[KEY_BYTES]);
 
 	void sign();
 	void verify();
@@ -175,87 +177,97 @@ void Ed25519SignatureAlgorithm::Ed25519() {
 
 /*
 What you have:
-A - H | 8 buffers. Use P.X, P.Y, and P.Z
+A - H | 8 buffers. Use P.X and P.Y.
 
 what you need:
-A, Z3, X3, AA, B, X3, BB, DA, E, C, D | 11 buffers.
+A, Z3, X3, AA, B, BB, DA, E, C, D | 10 buffers.
 */
 
 
 void Ed25519SignatureAlgorithm::inverse() { // Copied directly from Daniel J. Bernstein.
-	math.base16Mul(A, Z2, Z2);
-	math.base16Mul(Z3, A, A);
-	math.base16Mul(X3, Z3, Z3);
-	math.base16Mul(AA, X3, Z2);
-	math.base16Mul(B, AA, A);
-	math.base16Mul(X3, B, B);
-	math.base16Mul(BB, X3, AA);
+	math.base16Mul(A, Q.Z, Q.Z);
+	math.base16Mul(B, A, A);
+	math.base16Mul(C, B, B);
+	math.base16Mul(D, C, Q.Z);
+	math.base16Mul(E, D, A);
+	math.base16Mul(C, E, E);
+	math.base16Mul(F, C, D);
 
-	math.base16Mul(X3, BB, BB);
-	math.base16Mul(Z3, X3, X3);
-	math.base16Mul(X3, Z3, Z3);
-	math.base16Mul(Z3, X3, X3);
-	math.base16Mul(X3, Z3, Z3);
-	math.base16Mul(E, X3, BB);
+	math.base16Mul(C, F, F);
+	math.base16Mul(B, C, C);
+	math.base16Mul(C, B, B);
+	math.base16Mul(B, C, C);
+	math.base16Mul(C, B, B);
+	math.base16Mul(G, C, F);
 
-	math.base16Mul(X3, E, E);
-	math.base16Mul(Z3, X3, X3);
+	math.base16Mul(C, G, G);
+	math.base16Mul(B, C, C);
 	for(unsigned short i = 2; i < 10; i += 2) {
-		math.base16Mul(X3, Z3, Z3);
-		math.base16Mul(Z3, X3, X3);
+		math.base16Mul(C, B, B);
+		math.base16Mul(B, C, C);
 	}
-	math.base16Mul(C, Z3, E);
+	math.base16Mul(H, B, G);
 
-	math.base16Mul(X3, C, C);
-	math.base16Mul(Z3, X3, X3);
+	math.base16Mul(C, H, H);
+	math.base16Mul(B, C, C);
 	for(unsigned short i = 2; i < 20; i += 2) {
-		math.base16Mul(X3, Z3, Z3);
-		math.base16Mul(Z3, X3, X3);
+		math.base16Mul(C, B, B);
+		math.base16Mul(B, C, C);
 	}
-	math.base16Mul(X3, Z3, C);
+	math.base16Mul(C, B, H);
 
-	math.base16Mul(Z3, X3, X3);
-	math.base16Mul(X3, Z3, Z3);
+	math.base16Mul(B, C, C);
+	math.base16Mul(C, B, B);
 	for(unsigned short i = 2; i < 10; i += 2) {
-		math.base16Mul(Z3, X3, X3);
-		math.base16Mul(X3, Z3, Z3);
+		math.base16Mul(B, C, C);
+		math.base16Mul(C, B, B);
 	}
-	math.base16Mul(D, X3, E);
+	math.base16Mul(P.X, C, G);
 
-	math.base16Mul(X3, D, D);
-	math.base16Mul(Z3, X3, X3);
+	math.base16Mul(C, P.X, P.X);
+	math.base16Mul(B, C, C);
 	for(unsigned short i = 2; i < 50; i += 2) {
-		math.base16Mul(X3, Z3, Z3);
-		math.base16Mul(Z3, X3, X3);
+		math.base16Mul(C, B, B);
+		math.base16Mul(B, C, C);
 	}
-	math.base16Mul(DA, Z3, D);
+	math.base16Mul(P.Y, B, P.X);
 
-	math.base16Mul(Z3, DA, DA);
-	math.base16Mul(X3, Z3, Z3);
+	math.base16Mul(B, P.Y, P.Y);
+	math.base16Mul(C, B, B);
 	for(unsigned short i = 2; i < 100; i += 2) {
-		math.base16Mul(Z3, X3, X3);
-		math.base16Mul(X3, Z3, Z3);
+		math.base16Mul(B, C, C);
+		math.base16Mul(C, B, B);
 	}
-	math.base16Mul(Z3, X3, DA);
+	math.base16Mul(B, C, P.Y);
 
-	math.base16Mul(X3, Z3, Z3);
-	math.base16Mul(Z3, X3, X3);
+	math.base16Mul(C, B, B);
+	math.base16Mul(B, C, C);
 	for(unsigned short i = 2; i < 50; i += 2) {
-		math.base16Mul(X3, Z3, Z3);
-		math.base16Mul(Z3, X3, X3);
+		math.base16Mul(C, B, B);
+		math.base16Mul(B, C, C);
 	}
-	math.base16Mul(X3, Z3, D);
+	math.base16Mul(C, B, P.X);
 
-	math.base16Mul(Z3, X3, X3);
-	math.base16Mul(X3, Z3, Z3);
-	math.base16Mul(Z3, X3, X3);
-	math.base16Mul(X3, Z3, Z3);
-	math.base16Mul(Z3, X3, X3);
-	math.base16Mul(Z2, Z3, B);
+	math.base16Mul(B, C, C);
+	math.base16Mul(C, B, B);
+	math.base16Mul(B, C, C);
+	math.base16Mul(C, B, B);
+	math.base16Mul(B, C, C);
+	math.base16Mul(Q.Z, B, E);
 }
 
 
-void Ed25519SignatureAlgorithm::initialize(char* privateKey) {
+void Ed25519SignatureAlgorithm::encodePoint() {
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		publicKey[(i*2)] = Q.Y[(INT_LENGTH_MULTI - 1) - i];
+		publicKey[(i*2) + 1] = Q.Y[(INT_LENGTH_MULTI - 1) - i] >> 8;
+	}
+
+	publicKey[0] |= ((Q.X[INT_LENGTH_MULTI - 1] & 0x00000001) << 7);
+}
+
+
+void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey) {
 	hash.hashBytes(h, privateKey, KEY_BYTES);
 	pruneHashBuffer();
 
@@ -278,6 +290,14 @@ void Ed25519SignatureAlgorithm::initialize(char* privateKey) {
 	Ed25519();
 
 	inverse();
+	math.base16Mul(B, Q.X, Q.Z);
+	math.base16Mul(C, Q.Y, Q.Z);
+
+	encodePoint();
+
+	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+		publicKeyOut[i] = publicKey[i];
+	}
 }
 
 

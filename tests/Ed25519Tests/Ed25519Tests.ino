@@ -14,7 +14,7 @@ void setup() {
 		delay(250);
 	}
 
-	unsigned long timeStamp = 0;
+	unsigned long timestamp = 0;
 	unsigned long duration = 0;
 
 /*
@@ -129,6 +129,26 @@ void setup() {
 // Ed25519 TEST: --------------------------------------------------------------------------------------
 
 	Ed25519SignatureAlgorithm dsa;
+
+	char privateKey[32] = {0x9d, 0x61, 0xb1, 0x9d, 0xef, 0xfd, 0x5a, 0x60, 0xba, 0x84, 0x4a, 0xf4, 0x92, 0xec, 0x2c, 0xc4, 0x44, 0x49, 0xc5, 0x69, 0x7b, 0x32, 0x69, 0x19, 0x70, 0x3b, 0xac, 0x03, 0x1c, 0xae, 0x7f, 0x60};
+	char publicKey[32];
+
+	timestamp = millis();
+	dsa.initialize(publicKey, privateKey);
+	duration = millis() - timestamp;
+
+	Serial.print("runtime: ");
+	Serial.println(duration);
+
+	for(unsigned short i = 0; i < 32; i += 1) {
+		if(publicKey[i] > 0x0f) {
+			Serial.print(publicKey[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(publicKey[i], HEX);
+		}
+	}
+	Serial.println('\n');
 
 /*
 // PKI & AE TEST: -------------------------------------------------------------------------------------
