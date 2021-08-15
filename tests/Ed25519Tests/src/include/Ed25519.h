@@ -10,14 +10,11 @@
 #include <stdint.h>
 
 
-static const constexpr unsigned short INT_LENGTH = 8;
-static const constexpr unsigned short INT_LENGTH_MULTI = 2*INT_LENGTH;
-
 struct Point {
-	uint32_t X[INT_LENGTH_MULTI];
-	uint32_t Y[INT_LENGTH_MULTI];
-	uint32_t Z[INT_LENGTH_MULTI];
-	uint32_t T[INT_LENGTH_MULTI];
+	uint32_t X[16]; // INT_LENGTH_MULTI.
+	uint32_t Y[16];
+	uint32_t Z[16];
+	uint32_t T[16];
 };
 
 
@@ -28,8 +25,8 @@ private:
 
 	static const constexpr unsigned short HASH_BYTES = 64;
 	static const constexpr unsigned short KEY_BYTES = 32;
-//	static const constexpr unsigned short INT_LENGTH = 8;
-//	static const constexpr unsigned short INT_LENGTH_MULTI = 2*INT_LENGTH;
+	static const constexpr unsigned short INT_LENGTH = 8;
+	static const constexpr unsigned short INT_LENGTH_MULTI = 2*INT_LENGTH;
 	static const constexpr unsigned short BITS = 255;
 
 	char h[HASH_BYTES]; // Hash buffer.
@@ -37,13 +34,8 @@ private:
 	char sByte[KEY_BYTES]; // Secret scalar.
 	char prefix[KEY_BYTES];
 
-//	uint32_t s[INT_LENGTH_MULTI];
-
 	Point P;
 	Point Q;
-
-	char bit;
-	Point Conditional; // Used as a conditional, unused point for contant-time.
 
 //	Base point.
 	const uint32_t BX[INT_LENGTH_MULTI] = {0x00002169, 0x000036d3, 0x0000cd6e, 0x000053fe, 0x0000c0a4, 0x0000e231, 0x0000fdd6, 0x0000dc5c, 0x0000692c, 0x0000c760, 0x00009525, 0x0000a7b2, 0x0000c956, 0x00002d60, 0x00008f25, 0x0000d51a};
@@ -57,6 +49,8 @@ private:
 	const uint32_t NZ[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
 	const uint32_t NT[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
 
+	char bit;
+
 	uint32_t A[INT_LENGTH_MULTI];
 	uint32_t B[INT_LENGTH_MULTI];
 	uint32_t C[INT_LENGTH_MULTI];
@@ -68,14 +62,13 @@ private:
 
 	uint32_t d[INT_LENGTH_MULTI] = {0x00002406, 0x0000d9dc, 0x000056df, 0x0000fce7, 0x0000198e, 0x000080f2, 0x0000eef3, 0x0000d130, 0x000000e0, 0x0000149a, 0x00008283, 0x0000b156, 0x0000ebd6, 0x00009b94, 0x000026b2, 0x0000f159}; // 2*d, technically.
 
-	char pubKey[KEY_BYTES];
+	Point emptyPoint; // Used as a conditional, unused point for contant-time.
+
+	char publicKey[KEY_BYTES];
 
 	void pruneHashBuffer();
 
-//	void bytesToMulti();
-
-	void ladderAddQ();
-	void ladderAddC();
+	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
 	void ladderDouble();
 	void Ed25519();
 
@@ -109,16 +102,8 @@ void Ed25519SignatureAlgorithm::pruneHashBuffer() {
 	h[31] |= 0x40;
 }
 
-/*
-void Ed25519SignatureAlgorithm::bytesToMulti() {
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		s[i] = sByte[i*2] << 8;
-		s[i] |= sByte[(i*2) + 1];
-	}
-}
-*/
 
-void Ed25519SignatureAlgorithm::ladderAddQ() {
+void Ed25519SignatureAlgorithm::ladderAdd(uint32_t* outX, uint32_t* outY, uint32_t* outZ, uint32_t* outT) {
 	math.base16Sub(A, Q.Y, Q.X);
 	math.base16Sub(B, P.Y, P.X);
 	math.base16Mul(A, A, B);
@@ -133,32 +118,10 @@ void Ed25519SignatureAlgorithm::ladderAddQ() {
 	math.base16Sub(F, D, C);
 	math.base16Add(G, C, D);
 	math.base16Add(H, A, B);
-	math.base16Mul(Q.X, E, F);
-	math.base16Mul(Q.Y, G, H);
-	math.base16Mul(Q.Z, F, G);
-	math.base16Mul(Q.T, E, H);
-}
-
-
-void Ed25519SignatureAlgorithm::ladderAddC() {
-	math.base16Sub(A, Q.Y, Q.X);
-	math.base16Sub(B, P.Y, P.X);
-	math.base16Mul(A, A, B);
-	math.base16Add(B, Q.X, Q.Y);
-	math.base16Add(C, P.X, P.Y);
-	math.base16Mul(B, B, C);
-	math.base16Mul(C, d, Q.T);
-	math.base16Mul(C, C, P.T);
-	math.base16Add(D, Q.Z, Q.Z);
-	math.base16Mul(D, D, P.Z);
-	math.base16Sub(E, B, A);
-	math.base16Sub(F, D, C);
-	math.base16Add(G, C, D);
-	math.base16Add(H, A, B);
-	math.base16Mul(Conditional.X, E, F);
-	math.base16Mul(Conditional.Y, G, H);
-	math.base16Mul(Conditional.Z, F, G);
-	math.base16Mul(Conditional.T, E, H);
+	math.base16Mul(outX, E, F);
+	math.base16Mul(outY, G, H);
+	math.base16Mul(outZ, F, G);
+	math.base16Mul(outT, E, H);
 }
 
 
@@ -190,32 +153,15 @@ void Ed25519SignatureAlgorithm::Ed25519() {
 
 	for(unsigned short i = 0; i < BITS; i += 1) {
 		bit = ((sByte[(BITS - i)/8]) >> (i % 8)) & 0x01;
-//		Serial.print(bit, HEX);
 
 		if(bit == 0x01) {
-			ladderAddQ();
-/*	Serial.print("Q.Z:");
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Serial.print(' ');
-		Serial.print(Q.Z[i], HEX);
-	}
-	Serial.println();*/
+			ladderAdd(Q.X, Q.Y, Q.Z, Q.T);
 		} else {
-			ladderAddC(); // This is not elegant, nor is it efficient, but it should be constant time.
+			ladderAdd(emptyPoint.X, emptyPoint.Y, emptyPoint.Z, emptyPoint.T); // This is not elegant, nor is it efficient, but it should be constant time.
 		}
 		ladderDouble();
 	}
-//	Serial.println();
 }
-
-
-/*
-What you have:
-A - H | 8 buffers. Use P.X and P.Y.
-
-what you need:
-A, Z3, X3, AA, B, BB, DA, E, C, D | 10 buffers.
-*/
 
 
 void Ed25519SignatureAlgorithm::inverse() { // Copied directly from Daniel J. Bernstein.
@@ -293,23 +239,16 @@ void Ed25519SignatureAlgorithm::inverse() { // Copied directly from Daniel J. Be
 
 void Ed25519SignatureAlgorithm::encodePoint() {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		pubKey[(i*2)] = C[(INT_LENGTH_MULTI - 1) - i];
-		pubKey[(i*2) + 1] = C[(INT_LENGTH_MULTI - 1) - i] >> 8;
+		publicKey[(i*2)] = C[(INT_LENGTH_MULTI - 1) - i];
+		publicKey[(i*2) + 1] = C[(INT_LENGTH_MULTI - 1) - i] >> 8;
 	}
 
-	pubKey[0] |= ((B[INT_LENGTH_MULTI - 1] & 0x00000001) << 7);
+	publicKey[0] |= ((B[INT_LENGTH_MULTI - 1] & 0x00000001) << 7);
 }
 
 
-void Ed25519SignatureAlgorithm::initialize(char* pubKeyOut, char* privKey) {
-	hash.hashBytes(h, privKey, KEY_BYTES);
-
-	Serial.print("Hashed privKey:");
-	for(unsigned short i = 0; i < 64; i += 1) {
-		Serial.print(' ');
-		Serial.print(h[i], HEX);
-	}
-	Serial.println();
+void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey) {
+	hash.hashBytes(h, privateKey, KEY_BYTES);
 
 	pruneHashBuffer();
 
@@ -320,15 +259,6 @@ void Ed25519SignatureAlgorithm::initialize(char* pubKeyOut, char* privKey) {
 		prefix[i - KEY_BYTES] = h[i];
 	}
 
-	Serial.print("sByte:");
-	for(unsigned short i = 0; i < 32; i += 1) {
-		Serial.print(' ');
-		Serial.print(sByte[i], HEX);
-	}
-	Serial.println();
-
-//	bytesToMulti();
-
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		P.X[i] = BX[i];
 		P.Y[i] = BY[i];
@@ -336,75 +266,17 @@ void Ed25519SignatureAlgorithm::initialize(char* pubKeyOut, char* privKey) {
 		P.T[i] = BT[i];
 	}
 
-	Serial.print("P.X:");
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Serial.print(' ');
-		Serial.print(P.X[i], HEX);
-	}
-	Serial.println();
-
 	Ed25519();
-
-	Serial.print("Q.Y:");
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Serial.print(' ');
-		Serial.print(Q.Y[i], HEX);
-	}
-	Serial.println();
 
 	inverse();
 	math.base16Mul(B, Q.X, Q.Z);
 	math.base16Mul(C, Q.Y, Q.Z);
 
-	Serial.print("Q.Y:");
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Serial.print(' ');
-		Serial.print(Q.Y[i], HEX);
-	}
-	Serial.println();
-
-	Serial.print("Q.Z:");
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Serial.print(' ');
-		Serial.print(Q.Z[i], HEX);
-	}
-	Serial.println();
-
-	Serial.print("C:");
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Serial.print(' ');
-		Serial.print(C[i], HEX);
-	}
-	Serial.println();
-
-	Serial.print("P.X:");
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Serial.print(' ');
-		Serial.print(P.X[i], HEX);
-	}
-	Serial.println();
-
 	encodePoint();
 
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
-		pubKeyOut[i] = pubKey[i];
+		publicKeyOut[i] = publicKey[i];
 	}
-
-// ------------------------------------------------------------------------------------------------
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		A[i] = NY[i];
-		B[i] = NY[i];
-	}
-
-	math.base16Add(P.X, A, B);
-
-	Serial.print("test:");
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Serial.print(' ');
-		Serial.print(P.X[i]);
-	}
-	Serial.println();
-// ------------------------------------------------------------------------------------------------
 }
 
 
