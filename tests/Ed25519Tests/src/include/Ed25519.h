@@ -74,7 +74,8 @@ private:
 
 //	void bytesToMulti();
 
-	void ladderAdd(Point);
+	void ladderAddQ();
+	void ladderAddC();
 	void ladderDouble();
 	void Ed25519();
 
@@ -117,7 +118,7 @@ void Ed25519SignatureAlgorithm::bytesToMulti() {
 }
 */
 
-void Ed25519SignatureAlgorithm::ladderAdd(Point out) {
+void Ed25519SignatureAlgorithm::ladderAddQ() {
 	math.base16Sub(A, Q.Y, Q.X);
 	math.base16Sub(B, P.Y, P.X);
 	math.base16Mul(A, A, B);
@@ -132,10 +133,32 @@ void Ed25519SignatureAlgorithm::ladderAdd(Point out) {
 	math.base16Sub(F, D, C);
 	math.base16Add(G, C, D);
 	math.base16Add(H, A, B);
-	math.base16Mul(out.X, E, F);
-	math.base16Mul(out.Y, G, H);
-	math.base16Mul(out.Z, F, G);
-	math.base16Mul(out.T, E, H);
+	math.base16Mul(Q.X, E, F);
+	math.base16Mul(Q.Y, G, H);
+	math.base16Mul(Q.Z, F, G);
+	math.base16Mul(Q.T, E, H);
+}
+
+
+void Ed25519SignatureAlgorithm::ladderAddC() {
+	math.base16Sub(A, Q.Y, Q.X);
+	math.base16Sub(B, P.Y, P.X);
+	math.base16Mul(A, A, B);
+	math.base16Add(B, Q.X, Q.Y);
+	math.base16Add(C, P.X, P.Y);
+	math.base16Mul(B, B, C);
+	math.base16Mul(C, d, Q.T);
+	math.base16Mul(C, C, P.T);
+	math.base16Add(D, Q.Z, Q.Z);
+	math.base16Mul(D, D, P.Z);
+	math.base16Sub(E, B, A);
+	math.base16Sub(F, D, C);
+	math.base16Add(G, C, D);
+	math.base16Add(H, A, B);
+	math.base16Mul(Conditional.X, E, F);
+	math.base16Mul(Conditional.Y, G, H);
+	math.base16Mul(Conditional.Z, F, G);
+	math.base16Mul(Conditional.T, E, H);
 }
 
 
@@ -165,16 +188,24 @@ void Ed25519SignatureAlgorithm::Ed25519() {
 		Q.T[i] = NT[i];
 	}
 
-	for(unsigned short i = 0; i < BITS; i -= 1) {
+	for(unsigned short i = 0; i < BITS; i += 1) {
 		bit = ((sByte[(BITS - i)/8]) >> (i % 8)) & 0x01;
+//		Serial.print(bit, HEX);
 
 		if(bit == 0x01) {
-			ladderAdd(Q);
+			ladderAddQ();
+/*	Serial.print("Q.Z:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(Q.Z[i], HEX);
+	}
+	Serial.println();*/
 		} else {
-			ladderAdd(Conditional); // This is not elegant, nor is it efficient, but it should be constant time.
+			ladderAddC(); // This is not elegant, nor is it efficient, but it should be constant time.
 		}
 		ladderDouble();
 	}
+//	Serial.println();
 }
 
 
@@ -305,11 +336,53 @@ void Ed25519SignatureAlgorithm::initialize(char* pubKeyOut, char* privKey) {
 		P.T[i] = BT[i];
 	}
 
+	Serial.print("P.X:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(P.X[i], HEX);
+	}
+	Serial.println();
+
 	Ed25519();
+
+	Serial.print("Q.Y:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(Q.Y[i], HEX);
+	}
+	Serial.println();
 
 	inverse();
 	math.base16Mul(B, Q.X, Q.Z);
 	math.base16Mul(C, Q.Y, Q.Z);
+
+	Serial.print("Q.Y:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(Q.Y[i], HEX);
+	}
+	Serial.println();
+
+	Serial.print("Q.Z:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(Q.Z[i], HEX);
+	}
+	Serial.println();
+
+	Serial.print("C:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(C[i], HEX);
+	}
+	Serial.println();
+
+	Serial.print("P.X:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(P.X[i], HEX);
+	}
+	Serial.println();
 
 	encodePoint();
 
@@ -319,16 +392,16 @@ void Ed25519SignatureAlgorithm::initialize(char* pubKeyOut, char* privKey) {
 
 // ------------------------------------------------------------------------------------------------
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		P.X[i] = NY[i];
-		Q.X[i] = NY[i];
+		A[i] = NY[i];
+		B[i] = NY[i];
 	}
 
-	math.base16Add(A, P.X, Q.X);
+	math.base16Add(P.X, A, B);
 
 	Serial.print("test:");
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		Serial.print(' ');
-		Serial.print(A[i]);
+		Serial.print(P.X[i]);
 	}
 	Serial.println();
 // ------------------------------------------------------------------------------------------------
