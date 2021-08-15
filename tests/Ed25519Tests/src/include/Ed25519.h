@@ -262,11 +262,11 @@ void Ed25519SignatureAlgorithm::inverse() { // Copied directly from Daniel J. Be
 
 void Ed25519SignatureAlgorithm::encodePoint() {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		pubKey[(i*2)] = Q.Y[(INT_LENGTH_MULTI - 1) - i];
-		pubKey[(i*2) + 1] = Q.Y[(INT_LENGTH_MULTI - 1) - i] >> 8;
+		pubKey[(i*2)] = C[(INT_LENGTH_MULTI - 1) - i];
+		pubKey[(i*2) + 1] = C[(INT_LENGTH_MULTI - 1) - i] >> 8;
 	}
 
-	pubKey[0] |= ((Q.X[INT_LENGTH_MULTI - 1] & 0x00000001) << 7);
+	pubKey[0] |= ((B[INT_LENGTH_MULTI - 1] & 0x00000001) << 7);
 }
 
 
@@ -289,7 +289,21 @@ void Ed25519SignatureAlgorithm::initialize(char* pubKeyOut, char* privKey) {
 		prefix[i - KEY_BYTES] = h[i];
 	}
 
+	Serial.print("sByte:");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(' ');
+		Serial.print(sByte[i], HEX);
+	}
+	Serial.println();
+
 	bytesToMulti();
+
+	Serial.print("s:");
+	for(unsigned short i = 0; i < 16; i += 1) {
+		Serial.print(' ');
+		Serial.print(s[i], HEX);
+	}
+	Serial.println();
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		P.X[i] = BX[i];
