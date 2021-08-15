@@ -1,91 +1,10 @@
 
 
-What you have:
-A - H | 8 buffers. Use P.X and P.Y.
-
-what you need:
-A, B, C, D, E, F, P.Y, G, H, P.X | 10 buffers.
-
-
-	math.base16Mul(A, Q.Z, Q.Z);
-	math.base16Mul(B, A, A);
-	math.base16Mul(C, B, B);
-	math.base16Mul(D, C, Q.Z);
-	math.base16Mul(E, D, A);
-	math.base16Mul(C, E, E);
-	math.base16Mul(F, C, D);
-
-	math.base16Mul(C, F, F);
-	math.base16Mul(B, C, C);
-	math.base16Mul(C, B, B);
-	math.base16Mul(B, C, C);
-	math.base16Mul(C, B, B);
-	math.base16Mul(G, C, F);
-
-	math.base16Mul(C, G, G);
-	math.base16Mul(B, C, C);
-	for(unsigned short i = 2; i < 10; i += 2) {
-		math.base16Mul(C, B, B);
-		math.base16Mul(B, C, C);
-	}
-	math.base16Mul(H, B, G);
-
-	math.base16Mul(C, H, H);
-	math.base16Mul(B, C, C);
-	for(unsigned short i = 2; i < 20; i += 2) {
-		math.base16Mul(C, B, B);
-		math.base16Mul(B, C, C);
-	}
-	math.base16Mul(C, B, H);
-
-	math.base16Mul(B, C, C);
-	math.base16Mul(C, B, B);
-	for(unsigned short i = 2; i < 10; i += 2) {
-		math.base16Mul(B, C, C);
-		math.base16Mul(C, B, B);
-	}
-	math.base16Mul(P.X, C, G);
-
-	math.base16Mul(C, P.X, P.X);
-	math.base16Mul(B, C, C);
-	for(unsigned short i = 2; i < 50; i += 2) {
-		math.base16Mul(C, B, B);
-		math.base16Mul(B, C, C);
-	}
-	math.base16Mul(P.Y, B, P.X);
-
-	math.base16Mul(B, P.Y, P.Y);
-	math.base16Mul(C, B, B);
-	for(unsigned short i = 2; i < 100; i += 2) {
-		math.base16Mul(B, C, C);
-		math.base16Mul(C, B, B);
-	}
-	math.base16Mul(B, C, P.Y);
-
-	math.base16Mul(C, B, B);
-	math.base16Mul(B, C, C);
-	for(unsigned short i = 2; i < 50; i += 2) {
-		math.base16Mul(C, B, B);
-		math.base16Mul(B, C, C);
-	}
-	math.base16Mul(C, B, P.X);
-
-	math.base16Mul(B, C, C);
-	math.base16Mul(C, B, B);
-	math.base16Mul(B, C, C);
-	math.base16Mul(C, B, B);
-	math.base16Mul(B, C, C);
-	math.base16Mul(Q.Z, B, E);
-
-
 SECRET KEY:
 9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60
+9d 61 b1 9d ef fd 5a 60 ba 84 4a f4 92 ec 2c c4 44 49 c5 69 7b 32 69 19 70 3b ac 03 1c ae 7f 60
+0x9d, 0x61, 0xb1, 0x9d, 0xef, 0xfd, 0x5a, 0x60, 0xba, 0x84, 0x4a, 0xf4, 0x92, 0xec, 0x2c, 0xc4, 0x44, 0x49, 0xc5, 0x69, 0x7b, 0x32, 0x69, 0x19, 0x70, 0x3b, 0xac, 0x03, 0x1c, 0xae, 0x7f, 0x60
 
 PUBLIC KEY:
 d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a
 
-
-78 EC 81 4D FA A7 DE 8D 1B 47 8C 11 E6 5A 1B D9 B3 31 6E AE 7 5D 6F FE C8 23 42 62 2A B4 80 60
-00000110 00000001 00101101 01010100 01000110 01000010 11000100 00010011 01111111 11110110 10111010 11100000011101010111011010001100110011011001101111011000010110100110011110001000001100011110001011011000101100010111101111100101010111111011001010000001001101110001111
-
-7C6BC4982C4EE7EFD26D37D10A1E751C44AEE85D3FBA076B2A985D129A9D74D9

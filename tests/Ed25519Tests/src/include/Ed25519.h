@@ -66,7 +66,7 @@ private:
 
 	char publicKey[KEY_BYTES];
 
-	void pruneHashBuffer();
+	void readAndPruneHash();
 
 	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
 	void ladderDouble();
@@ -96,10 +96,17 @@ Ed25519SignatureAlgorithm::~Ed25519SignatureAlgorithm() {
 }
 
 
-void Ed25519SignatureAlgorithm::pruneHashBuffer() {
-	h[0] &= 0xf8;
-	h[31] &= 0x7f;
-	h[31] |= 0x40;
+void Ed25519SignatureAlgorithm::readAndPruneHash() {
+	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+		sByte[i] = h[(KEY_BYTES - 1) - i];
+	}
+	for(unsigned short i = KEY_BYTES; i < HASH_BYTES; i += 1) {
+		prefix[i - KEY_BYTES] = h[i];
+	}
+
+	sByte[0] &= 0x3f;
+	sByte[0] |= 0x40;
+	sByte[31] &= 0xf8;
 }
 
 
@@ -243,21 +250,14 @@ void Ed25519SignatureAlgorithm::encodePoint() {
 		publicKey[(i*2) + 1] = C[(INT_LENGTH_MULTI - 1) - i] >> 8;
 	}
 
-	publicKey[0] |= ((B[INT_LENGTH_MULTI - 1] & 0x00000001) << 7);
+	publicKey[31] |= ((B[INT_LENGTH_MULTI - 1] & 0x00000001) << 7);
 }
 
 
 void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey) {
 	hash.hashBytes(h, privateKey, KEY_BYTES);
 
-	pruneHashBuffer();
-
-	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
-		sByte[i] = h[(KEY_BYTES - 1) - i];
-	}
-	for(unsigned short i = KEY_BYTES; i < HASH_BYTES; i += 1) {
-		prefix[i - KEY_BYTES] = h[i];
-	}
+	readAndPruneHash();
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		P.X[i] = BX[i];
