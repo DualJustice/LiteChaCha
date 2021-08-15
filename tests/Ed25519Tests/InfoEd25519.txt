@@ -106,26 +106,26 @@ def secret_expand(secret):
     if len(secret) != 32:
         raise Exception("Bad size of private key")
     h = sha512(secret)
-    a = int.from_bytes(h[:32], "little")
-    a &= (1 << 254) - 8
-    a |= (1 << 254)
-    return (a, h[32:])
+    sByte = int.from_bytes(h[:32], "little")
+    sByte &= (1 << 254) - 8
+    sByte |= (1 << 254)
+    return (sByte, h[32:])
 
 def secret_to_public(secret):
-    (a, dummy) = secret_expand(secret)
-    return point_compress(point_mul(a, G))
+    (sByte, dummy) = secret_expand(secret)
+    return point_compress(point_mul(sByte, G))
 
 
 ## The signature function works as below.
 
 def sign(secret, msg):
-    a, prefix = secret_expand(secret)
-    A = point_compress(point_mul(a, G))
+    sByte, prefix = secret_expand(secret)
+    A = point_compress(point_mul(sByte, G))
     r = sha512_modq(prefix + msg)
     R = point_mul(r, G)
     Rs = point_compress(R)
     h = sha512_modq(Rs + A + msg)
-    s = (r + h * a) % q
+    s = (r + h * sByte) % q
     return Rs + int.to_bytes(s, 32, "little")
 
 
@@ -149,4 +149,59 @@ def verify(public, msg, signature):
     sB = point_mul(s, G)
     hA = point_mul(h, A)
     return point_equal(sB, point_add(R, hA))
+
+
+-------------------- START HERE --------------------
+
+			STEP ONE:
+
+    	sByte, prefix = secret_expand(secret)
+
+def secret_expand(secret):
+    if len(secret) != 32:
+        raise Exception("Bad size of private key")
+    h = sha512(secret)
+    sByte = int.from_bytes(h[:32], "little")
+    sByte &= (1 << 254) - 8 (&= 3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8)
+    sByte |= (1 << 254)
+    return (sByte, h[32:])
+
+
+			STEP TWO:
+
+    	A = point_compress(point_mul(sByte, G))
+
+def point_add(P, Q):
+    A, B = (P[1]-P[0]) * (Q[1]-Q[0]) % p, (P[1]+P[0]) * (Q[1]+Q[0]) % p;
+    C, D = 2 * P[3] * Q[3] * d % p, 2 * P[2] * Q[2] % p;
+    E, F, G, H = B-A, D-C, D+C, B+A;
+    return (E*F, G*H, F*G, E*H);
+
+# Computes Q = s * Q
+def point_mul(s, P):
+    Q = (0, 1, 1, 0)  # Neutral element
+    while s > 0:
+        if s & 1:
+            Q = point_add(Q, P)
+        P = point_add(P, P)
+        s >>= 1
+    return Q
+
+def modp_inv(x):
+    return pow(x, p-2, p)
+
+def point_compress(P):
+    zinv = modp_inv(P[2])
+    x = P[0] * zinv % p
+    y = P[1] * zinv % p
+    return int.to_bytes(y | ((x & 1) << 255), 32, "little")
+
+
+SECRET KEY:
+9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60
+9d 61 b1 9d ef fd 5a 60 ba 84 4a f4 92 ec 2c c4 44 49 c5 69 7b 32 69 19 70 3b ac 03 1c ae 7f 60
+0x9d, 0x61, 0xb1, 0x9d, 0xef, 0xfd, 0x5a, 0x60, 0xba, 0x84, 0x4a, 0xf4, 0x92, 0xec, 0x2c, 0xc4, 0x44, 0x49, 0xc5, 0x69, 0x7b, 0x32, 0x69, 0x19, 0x70, 0x3b, 0xac, 0x03, 0x1c, 0xae, 0x7f, 0x60
+
+PUBLIC KEY:
+d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a
 
