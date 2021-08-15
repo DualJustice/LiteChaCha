@@ -37,7 +37,7 @@ private:
 	char sByte[KEY_BYTES]; // Secret scalar.
 	char prefix[KEY_BYTES];
 
-	uint32_t s[INT_LENGTH_MULTI];
+//	uint32_t s[INT_LENGTH_MULTI];
 
 	Point P;
 	Point Q;
@@ -72,7 +72,7 @@ private:
 
 	void pruneHashBuffer();
 
-	void bytesToMulti();
+//	void bytesToMulti();
 
 	void ladderAdd(Point);
 	void ladderDouble();
@@ -108,14 +108,14 @@ void Ed25519SignatureAlgorithm::pruneHashBuffer() {
 	h[31] |= 0x40;
 }
 
-
+/*
 void Ed25519SignatureAlgorithm::bytesToMulti() {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		s[i] = sByte[i*2] << 8;
 		s[i] |= sByte[(i*2) + 1];
 	}
 }
-
+*/
 
 void Ed25519SignatureAlgorithm::ladderAdd(Point out) {
 	math.base16Sub(A, Q.Y, Q.X);
@@ -296,14 +296,7 @@ void Ed25519SignatureAlgorithm::initialize(char* pubKeyOut, char* privKey) {
 	}
 	Serial.println();
 
-	bytesToMulti();
-
-	Serial.print("s:");
-	for(unsigned short i = 0; i < 16; i += 1) {
-		Serial.print(' ');
-		Serial.print(s[i], HEX);
-	}
-	Serial.println();
+//	bytesToMulti();
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		P.X[i] = BX[i];
@@ -323,6 +316,22 @@ void Ed25519SignatureAlgorithm::initialize(char* pubKeyOut, char* privKey) {
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 		pubKeyOut[i] = pubKey[i];
 	}
+
+// ------------------------------------------------------------------------------------------------
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		P.X[i] = NY[i];
+		Q.X[i] = NY[i];
+	}
+
+	math.base16Add(A, P.X, Q.X);
+
+	Serial.print("test:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(A[i]);
+	}
+	Serial.println();
+// ------------------------------------------------------------------------------------------------
 }
 
 
