@@ -29,6 +29,7 @@ private:
 	static const constexpr unsigned short INT_LENGTH_MULTI = 2*INT_LENGTH;
 	static const constexpr unsigned short BITS = 255;
 
+	char hhc[HASH_BYTES] = {0x35, 0x7c, 0x83, 0x86, 0x4f, 0x28, 0x33, 0xcb, 0x42, 0x7a, 0x2e, 0xf1, 0xc0, 0x0a, 0x01, 0x3c, 0xfd, 0xff, 0x27, 0x68, 0xd9, 0x80, 0xc0, 0xa3, 0xa5, 0x20, 0xf0, 0x06, 0x90, 0x4d, 0xe9, 0x0f, 0x9b, 0x4f, 0x0a, 0xfe, 0x28, 0x0b, 0x74, 0x6a, 0x77, 0x86, 0x84, 0xe7, 0x54, 0x42, 0x50, 0x20, 0x57, 0xb7, 0x47, 0x3a, 0x03, 0xf0, 0x8f, 0x96, 0xf5, 0xa3, 0x8e, 0x92, 0x87, 0xe0, 0x1f, 0x8f};
 	char h[HASH_BYTES]; // Hash buffer.
 
 	char sByte[KEY_BYTES]; // Secret scalar.
@@ -311,6 +312,16 @@ void Ed25519SignatureAlgorithm::encodePoint() {
 void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey) {
 	hash.hashBytes(h, privateKey, KEY_BYTES);
 
+	Serial.print("h: ");
+	for(unsigned short i = 0; i < 64; i += 1) {
+		Serial.print(h[i], HEX);
+	}
+	Serial.println();
+
+	for(unsigned short i = 0; i < 64; i += 1) {
+		h[i] = hhc[i];
+	}
+
 	readAndPruneHash();
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
@@ -323,14 +334,41 @@ void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey)
 	Ed25519();
 
 	inverse();
+
+	Serial.print("Q.Z:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(Q.Z[i], HEX);
+	}
+	Serial.println();
+
 	math.base16Mul(B, Q.X, Q.Z);
+
+	Serial.print("Q.Z:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(Q.Z[i], HEX);
+	}
+	Serial.println();
+
 	math.base16Mul(C, Q.Y, Q.Z);
+
+	Serial.print("Q.Z:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(Q.Z[i], HEX);
+	}
+	Serial.println();
 
 	encodePoint();
 
+	Serial.print("Public Key:");
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+		Serial.print(' ');
+		Serial.print(publicKey[i], HEX);
 		publicKeyOut[i] = publicKey[i];
 	}
+	Serial.println();
 }
 
 
