@@ -74,7 +74,8 @@ private:
 
 	void readAndPruneHash();
 
-	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
+//	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
+	void ladderAdd();
 	void ladderDouble();
 	void Ed25519();
 
@@ -110,8 +111,8 @@ void Ed25519SignatureAlgorithm::readAndPruneHash() {
 		prefix[i - KEY_BYTES] = h[i];
 	}
 
-	sByte[0] &= 0x3f; // This is what is in the python implementation.
-//	sByte[0] &= 0x7f; // This is what is in the algorithm description.
+//	sByte[0] &= 0x3f; // This is what is in the python implementation.
+	sByte[0] &= 0x7f; // This is what is in the algorithm description.
 	sByte[31] &= 0xf8;
 	sByte[0] |= 0x40;
 }
