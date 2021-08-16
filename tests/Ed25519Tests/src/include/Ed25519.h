@@ -117,6 +117,50 @@ void Ed25519SignatureAlgorithm::readAndPruneHash() {
 }
 
 
+void Ed25519SignatureAlgorithm::ladderAdd() {
+	math.base16Sub(A, Q.Y, Q.X);
+	math.base16Sub(B, P.Y, P.X);
+	math.base16Mul(A, A, B);
+	math.base16Add(B, Q.X, Q.Y);
+	math.base16Add(C, P.X, P.Y);
+	math.base16Mul(B, B, C);
+	math.base16Mul(C, d, Q.T);
+	math.base16Mul(C, C, P.T);
+	math.base16Add(D, Q.Z, Q.Z);
+	math.base16Mul(D, D, P.Z);
+	math.base16Sub(E, B, A);
+	math.base16Sub(F, D, C);
+	math.base16Add(G, C, D);
+	math.base16Add(H, A, B);
+	math.base16Mul(Q.X, E, F);
+	math.base16Mul(Q.Y, G, H);
+	math.base16Mul(Q.Z, F, G);
+	math.base16Mul(Q.T, E, H);
+}
+
+
+void Ed25519SignatureAlgorithm::ladderDouble() { // Same as ladderAdd, but adding P instead of Q.
+	math.base16Sub(A, P.Y, P.X);
+	math.base16Sub(B, P.Y, P.X);
+	math.base16Mul(A, A, B);
+	math.base16Add(B, P.X, P.Y);
+	math.base16Add(C, P.X, P.Y);
+	math.base16Mul(B, B, C);
+	math.base16Mul(C, d, P.T);
+	math.base16Mul(C, C, P.T);
+	math.base16Add(D, P.Z, P.Z);
+	math.base16Mul(D, D, P.Z);
+	math.base16Sub(E, B, A);
+	math.base16Sub(F, D, C);
+	math.base16Add(G, C, D);
+	math.base16Add(H, A, B);
+	math.base16Mul(P.X, E, F);
+	math.base16Mul(P.Y, G, H);
+	math.base16Mul(P.Z, F, G);
+	math.base16Mul(P.T, E, H);
+}
+
+/*
 void Ed25519SignatureAlgorithm::ladderAdd(uint32_t* outX, uint32_t* outY, uint32_t* outZ, uint32_t* outT) {
 	math.base16Sub(A, Q.Y, Q.X);
 	math.base16Sub(B, P.Y, P.X);
@@ -155,7 +199,7 @@ void Ed25519SignatureAlgorithm::ladderDouble() {
 	math.base16Mul(P.Z, F, G);
 	math.base16Mul(P.T, D, E);
 }
-
+*/
 
 void Ed25519SignatureAlgorithm::Ed25519() {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
@@ -169,12 +213,13 @@ void Ed25519SignatureAlgorithm::Ed25519() {
 		bit = (sByte[(BITS - i)/8] >> (i % 8)) & 0x01;
 
 		if(bit == 0x01) {
-			ladderAdd(Q.X, Q.Y, Q.Z, Q.T);
+//			ladderAdd(Q.X, Q.Y, Q.Z, Q.T);
+			ladderAdd();
 		}
 /*		} else {
 			ladderAdd(emptyPoint.X, emptyPoint.Y, emptyPoint.Z, emptyPoint.T); // This is not elegant, nor is it efficient, but it should be constant time.
-		}
-		ladderDouble();*/
+		}*/
+		ladderDouble();
 	}
 }
 
