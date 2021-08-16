@@ -37,6 +37,12 @@ private:
 	Point P;
 	Point Q;
 
+//	If these are correct, then the ones down below are too.
+//	BX = 0x00002169, 0x000036D3, 0x0000CD6E, 0x000053FE, 0x0000C0A4, 0x0000E231, 0x0000FDD6, 0x0000DC5C, 0x0000692C, 0x0000C760, 0x00009525, 0x0000A7B2, 0x0000C956, 0x00002D60, 0x00008F25, 0x0000D51A;
+//	BY = 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006658;
+//	BY Test:   6666        6666        6666        6666		   6666		   6666		   6666		   6666		   6666		   6666		   6666		   6666		   6666		   6666		   6666		   6658
+//	BT = 0x00006787, 0x00005F0F, 0x0000D78B, 0x00007665, 0x000066EA, 0x00004E8E, 0x000064AB, 0x0000E37D, 0x000020F0, 0x00009F80, 0x00007751, 0x000052F5, 0x00006DDE, 0x00008AB3, 0x0000A5B7, 0x0000DDA3;
+
 //	Base point.
 	const uint32_t BX[INT_LENGTH_MULTI] = {0x00002169, 0x000036d3, 0x0000cd6e, 0x000053fe, 0x0000c0a4, 0x0000e231, 0x0000fdd6, 0x0000dc5c, 0x0000692c, 0x0000c760, 0x00009525, 0x0000a7b2, 0x0000c956, 0x00002d60, 0x00008f25, 0x0000d51a};
 	const uint32_t BY[INT_LENGTH_MULTI] = {0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006658};
@@ -104,8 +110,8 @@ void Ed25519SignatureAlgorithm::readAndPruneHash() {
 		prefix[i - KEY_BYTES] = h[i];
 	}
 
-//	sByte[0] &= 0x3f; // This is what is in the python implementation.
-	sByte[0] &= 0x7f; // This is what is in the algorithm description.
+	sByte[0] &= 0x3f; // This is what is in the python implementation.
+//	sByte[0] &= 0x7f; // This is what is in the algorithm description.
 	sByte[31] &= 0xf8;
 	sByte[0] |= 0x40;
 }
@@ -160,14 +166,15 @@ void Ed25519SignatureAlgorithm::Ed25519() {
 	}
 
 	for(unsigned short i = 0; i < BITS; i += 1) {
-		bit = ((sByte[(BITS - i)/8]) >> (i % 8)) & 0x01;
+		bit = (sByte[(BITS - i)/8] >> (i % 8)) & 0x01;
 
 		if(bit == 0x01) {
 			ladderAdd(Q.X, Q.Y, Q.Z, Q.T);
-		} else {
+		}
+/*		} else {
 			ladderAdd(emptyPoint.X, emptyPoint.Y, emptyPoint.Z, emptyPoint.T); // This is not elegant, nor is it efficient, but it should be constant time.
 		}
-		ladderDouble();
+		ladderDouble();*/
 	}
 }
 
