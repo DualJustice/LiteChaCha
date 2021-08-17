@@ -165,8 +165,16 @@ void setup() {
 //	   61 b1 9d ef	THIS WORKS!
 //	9d 61 b1 9d ef	THIS DOESN'T!
 
+//	aa aa aa aa aa	THIS DOESN'T!
+//	01 02 03 04 05	THIS WORKS!
+
+//	IT ALMOST CERTAINLY ISN'T MESSAGE SIZE BASED!
+
+//	01 02 03 04 aa AND 
+//	01 02 05 04 aa BOTH PRODUCE THE SAME HASH!
+
 	const size_t messageLength8 = 5;
-	char messageBuffer8[messageLength8 + 1] = {0xaa, 0xaa, 0xaa, 0xaa, 0xaa};
+	char messageBuffer8[messageLength8 + 1] = {0x9d, 0x61, 0xb1, 0x9d, 0xef};
 	char message8[messageLength8];
 	for(unsigned long long i = 0; i < messageLength8; i += 1) {
 		message8[i] = messageBuffer8[i];
