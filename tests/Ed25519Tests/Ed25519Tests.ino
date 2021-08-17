@@ -7,6 +7,30 @@
 //#include "src/include/SHA512.h"
 
 
+void stringToHex(char* out, char* s) {
+	for(unsigned short i = 0; i < 32; i += 1) {
+		if(48 <= s[i*2] && s[i*2] <= 57) {
+			s[i*2] -= 48;
+		} else if(65 <= s[i*2] && s[i*2] <= 70) {
+			s[i*2] -= 55;
+		} else {
+			s[i*2] -= 87;
+		}
+		out[i] = s[i*2];
+		out[i] <<= 4;
+
+		if(48 <= s[(i*2) + 1] && s[(i*2) + 1] <= 57) {
+			s[(i*2) + 1] -= 48;
+		} else if(65 <= s[(i*2) + 1] && s[(i*2) + 1] <= 70) {
+			s[(i*2) + 1] -= 55;
+		} else {
+			s[(i*2) + 1] -= 87;
+		}
+		out[i] |= s[(i*2) + 1];
+	}
+}
+
+
 void setup() {
 
 	Serial.begin(9600);
@@ -182,10 +206,13 @@ void setup() {
 
 	Ed25519SignatureAlgorithm dsa;
 
-	char privateKey[32] = {0x9d, 0x61, 0xb1, 0x9d, 0xef, 0xfd, 0x5a, 0x60, 0xba, 0x84, 0x4a, 0xf4, 0x92, 0xec, 0x2c, 0xc4, 0x44, 0x49, 0xc5, 0x69, 0x7b, 0x32, 0x69, 0x19, 0x70, 0x3b, 0xac, 0x03, 0x1c, 0xae, 0x7f, 0x60};
+	char privateKeyBuffer[65] = {"833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42"};
+	char privateKey[32];
 	char publicKey[32];
 
 	Serial.println("Running");
+
+	stringToHex(privateKey, privateKeyBuffer);
 
 	timestamp = millis();
 	dsa.initialize(publicKey, privateKey);
