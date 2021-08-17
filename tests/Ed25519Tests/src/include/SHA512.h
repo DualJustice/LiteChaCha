@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-#include "Arduino.h" // DELETE ME!
-#include "HardwareSerial.h" // DELETE ME!
-
 
 class SHA512Hash {
 private:
@@ -40,6 +37,7 @@ private:
 	unsigned long long wordIndex;
 	unsigned long long blockCount;
 
+	uint32_t halfWordBuffer;
 	uint64_t wordBuffer;
 
 	uint64_t w[ROUNDS]; // Message schedule array.
@@ -113,11 +111,11 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 			message[i] |= (messageIn[(WORD_CONVERSION*i) + j] << (HALF_WORD_SHIFT - (BIT_CONVERSION*j)));
 		}
 		message[i] = message[i] << HALF_WORD_BITS;
-		wordBuffer = 0x00000000;
+		halfWordBuffer = 0x00000000;
 		for(unsigned short j = HALF_WORD_CONVERSION; j < WORD_CONVERSION; j += 1) {
-			wordBuffer |= (messageIn[(WORD_CONVERSION*i) + j] << (HALF_WORD_SHIFT - (BIT_CONVERSION*(j - HALF_WORD_CONVERSION))));
+			halfWordBuffer |= (messageIn[(WORD_CONVERSION*i) + j] << (HALF_WORD_SHIFT - (BIT_CONVERSION*(j - HALF_WORD_CONVERSION))));
 		}
-		message[i] |= wordBuffer;
+		message[i] |= halfWordBuffer;
 	}
 
 	if(wordRemainder == 0) {
@@ -136,20 +134,20 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 				message[messageWords] |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
 			}
 			message[messageWords] = message[messageWords] << HALF_WORD_BITS;
-			wordBuffer = 0x80000000;
-			message[messageWords] |= wordBuffer;
+			halfWordBuffer = 0x80000000;
+			message[messageWords] |= halfWordBuffer;
 
 		} else {
 			for(unsigned short i = 0; i < HALF_WORD_CONVERSION; i += 1) {
 				message[messageWords] |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
 			}
 			message[messageWords] = message[messageWords] << HALF_WORD_BITS;
-			wordBuffer = 0x00000000;
+			halfWordBuffer = 0x00000000;
 			for(unsigned short i = HALF_WORD_CONVERSION; i < wordRemainder; i += 1) {
-				wordBuffer |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*(i - HALF_WORD_CONVERSION))));
+				halfWordBuffer |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*(i - HALF_WORD_CONVERSION))));
 			}
-			wordBuffer |= (0x80 << (HALF_WORD_SHIFT - (BIT_CONVERSION*(wordRemainder % HALF_WORD_CONVERSION))));
-			message[messageWords] |= wordBuffer;
+			halfWordBuffer |= (0x80 << (HALF_WORD_SHIFT - (BIT_CONVERSION*(wordRemainder % HALF_WORD_CONVERSION))));
+			message[messageWords] |= halfWordBuffer;
 		}
 	}
 
