@@ -4,7 +4,7 @@
 //#include "src/include/keyinfrastructure.h"
 //#include "src/include/authenticatedencrypt.h"
 #include "src/include/Ed25519.h"
-#include "src/include/SHA512.h"
+//#include "src/include/SHA512.h"
 
 
 void setup() {
@@ -17,13 +17,13 @@ void setup() {
 	unsigned long timestamp = 0;
 	unsigned long duration = 0;
 
-
+/*
 // SHA512 TEST: ---------------------------------------------------------------------------------------
 
 	SHA512Hash hash;
 
 	char cornedBeef[64];
-/*
+
 	const size_t messageLength = 3;
 	char messageBuffer[messageLength + 1] = {"abc"};
 	char message[messageLength];
@@ -159,19 +159,6 @@ void setup() {
 		}
 	}
 	Serial.println('\n');
-*/
-//	9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60
-//	9d 61 b1 9d		THIS WORKS!
-//	   61 b1 9d ef	THIS WORKS!
-//	9d 61 b1 9d ef	THIS DOESN'T!
-
-//	aa aa aa aa aa	THIS DOESN'T!
-//	01 02 03 04 05	THIS WORKS!
-
-//	IT ALMOST CERTAINLY ISN'T MESSAGE SIZE BASED!
-
-//	01 02 03 04 aa AND 
-//	01 02 05 04 aa BOTH PRODUCE THE SAME HASH!
 
 	const size_t messageLength8 = 5;
 	char messageBuffer8[messageLength8 + 1] = {0x9d, 0x61, 0xb1, 0x9d, 0xef};
@@ -189,8 +176,8 @@ void setup() {
 		}
 	}
 	Serial.println('\n');
+*/
 
-/*
 // Ed25519 TEST: --------------------------------------------------------------------------------------
 
 	Ed25519SignatureAlgorithm dsa;
@@ -214,7 +201,7 @@ void setup() {
 		}
 	}
 	Serial.println('\n');
-*/
+
 /*
 // PKI & AE TEST: -------------------------------------------------------------------------------------
 

@@ -108,7 +108,7 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 	for(unsigned long long i = 0; i < messageWords; i += 1) {
 		message[i] = 0x0000000000000000;
 		for(unsigned short j = 0; j < HALF_WORD_CONVERSION; j += 1) {
-			message[i] |= (messageIn[(WORD_CONVERSION*i) + j] << (HALF_WORD_SHIFT - (BIT_CONVERSION*j)));
+			message[i] |= (messageIn[(WORD_CONVERSION*i) + j] << (HALF_WORD_SHIFT - (BIT_CONVERSION*j))); // This will not work, for the same reasons shown in uint34Tests!
 		}
 		message[i] = message[i] << HALF_WORD_BITS;
 		halfWordBuffer = 0x00000000;
