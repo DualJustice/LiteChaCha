@@ -17,13 +17,13 @@ void setup() {
 	unsigned long timestamp = 0;
 	unsigned long duration = 0;
 
-/*
+
 // SHA512 TEST: ---------------------------------------------------------------------------------------
 
 	SHA512Hash hash;
 
 	char cornedBeef[64];
-
+/*
 	const size_t messageLength = 3;
 	char messageBuffer[messageLength + 1] = {"abc"};
 	char message[messageLength];
@@ -125,7 +125,64 @@ void setup() {
 		}
 	}
 	Serial.println('\n');
+
+	const size_t messageLength6 = 32;
+	char messageBuffer6[messageLength6 + 1] = {"a9b18f7aioushdskjbdnoapiu5427683"};
+	char message6[messageLength6];
+	for(unsigned long long i = 0; i < messageLength6; i += 1) {
+		message6[i] = messageBuffer6[i];
+	}
+	hash.hashBytes(cornedBeef, message6, messageLength6);
+	for(unsigned short i = 0; i < 64; i += 1) {
+		if(cornedBeef[i] > 0x0f) {
+			Serial.print(cornedBeef[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(cornedBeef[i], HEX);
+		}
+	}
+	Serial.println('\n');
+
+	const size_t messageLength7 = 32;
+	char messageBuffer7[messageLength7 + 1] = {0x01, 0x39, 0x62, 0x31, 0x38, 0x66, 0x37, 0x61, 0x69, 0x6f, 0x75, 0x73, 0x68, 0x64, 0x73, 0x6b, 0x6a, 0x62, 0x64, 0x6e, 0x6f, 0x61, 0x70, 0x69, 0x75, 0x35, 0x34, 0x32, 0x37, 0x36, 0x38, 0x33};
+	char message7[messageLength7];
+	for(unsigned long long i = 0; i < messageLength7; i += 1) {
+		message7[i] = messageBuffer7[i];
+	}
+	hash.hashBytes(cornedBeef, message7, messageLength7);
+	for(unsigned short i = 0; i < 64; i += 1) {
+		if(cornedBeef[i] > 0x0f) {
+			Serial.print(cornedBeef[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(cornedBeef[i], HEX);
+		}
+	}
+	Serial.println('\n');
 */
+//	9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60
+//	9d 61 b1 9d		THIS WORKS!
+//	   61 b1 9d ef	THIS WORKS!
+//	9d 61 b1 9d ef	THIS DOESN'T!
+
+	const size_t messageLength8 = 5;
+	char messageBuffer8[messageLength8 + 1] = {0xaa, 0xaa, 0xaa, 0xaa, 0xaa};
+	char message8[messageLength8];
+	for(unsigned long long i = 0; i < messageLength8; i += 1) {
+		message8[i] = messageBuffer8[i];
+	}
+	hash.hashBytes(cornedBeef, message8, messageLength8);
+	for(unsigned short i = 0; i < 64; i += 1) {
+		if(cornedBeef[i] > 0x0f) {
+			Serial.print(cornedBeef[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(cornedBeef[i], HEX);
+		}
+	}
+	Serial.println('\n');
+
+/*
 // Ed25519 TEST: --------------------------------------------------------------------------------------
 
 	Ed25519SignatureAlgorithm dsa;
@@ -149,7 +206,7 @@ void setup() {
 		}
 	}
 	Serial.println('\n');
-
+*/
 /*
 // PKI & AE TEST: -------------------------------------------------------------------------------------
 
