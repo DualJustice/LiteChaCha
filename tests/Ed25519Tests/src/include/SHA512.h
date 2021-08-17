@@ -108,7 +108,7 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 	for(unsigned long long i = 0; i < messageWords; i += 1) {
 		message[i] = 0x0000000000000000;
 		for(unsigned short j = 0; j < HALF_WORD_CONVERSION; j += 1) {
-			message[i] |= (messageIn[(WORD_CONVERSION*i) + j] << (HALF_WORD_SHIFT - (BIT_CONVERSION*j))); // This will not work, for the same reasons shown in uint34Tests!
+			message[i] |= ((uint64_t)messageIn[(WORD_CONVERSION*i) + j] << (HALF_WORD_SHIFT - (BIT_CONVERSION*j)));
 		}
 		message[i] = message[i] << HALF_WORD_BITS;
 		halfWordBuffer = 0x00000000;
@@ -124,14 +124,14 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 		message[messageWords] = 0x0000000000000000;
 		if(wordRemainder < HALF_WORD_CONVERSION) {
 			for(unsigned short i = 0; i < wordRemainder; i += 1) {
-				message[messageWords] |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
+				message[messageWords] |= ((uint64_t)messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
 			}
-			message[messageWords] |= (0x80 << (HALF_WORD_SHIFT - (BIT_CONVERSION*wordRemainder)));
+			message[messageWords] |= (0x0000000000000080 << (HALF_WORD_SHIFT - (BIT_CONVERSION*wordRemainder)));
 			message[messageWords] = message[messageWords] << HALF_WORD_BITS;
 
 		} else if(wordRemainder == HALF_WORD_CONVERSION) {
 			for(unsigned short i = 0; i < wordRemainder; i += 1) {
-				message[messageWords] |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
+				message[messageWords] |= ((uint64_t)messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
 			}
 			message[messageWords] = message[messageWords] << HALF_WORD_BITS;
 			halfWordBuffer = 0x80000000;
@@ -139,7 +139,7 @@ void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long 
 
 		} else {
 			for(unsigned short i = 0; i < HALF_WORD_CONVERSION; i += 1) {
-				message[messageWords] |= (messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
+				message[messageWords] |= ((uint64_t)messageIn[(WORD_CONVERSION*messageWords) + i] << (HALF_WORD_SHIFT - (BIT_CONVERSION*i)));
 			}
 			message[messageWords] = message[messageWords] << HALF_WORD_BITS;
 			halfWordBuffer = 0x00000000;

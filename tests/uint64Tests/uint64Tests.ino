@@ -142,6 +142,28 @@ void setup() {
 		Serial.println(wordBuffer, HEX);
 	}
 	Serial.println();
+
+// --------------------------------------------------
+
+	Serial.println("-     TEST FOUR:");
+	wordBuffer = 0x0000000000000000;
+
+	Serial.print("wordBuffer: ");
+	if(wordBuffer == 0) {
+		Serial.println("0000000000000000");
+	} else {
+		Serial.println(wordBuffer, HEX);
+	}
+
+	wordBuffer |= (0x0000000000000080 << 24);
+
+	Serial.print("wordBuffer: ");
+	if(wordBuffer == 0) {
+		Serial.println("0000000000000000");
+	} else {
+		Serial.println(wordBuffer, HEX);
+	}
+	Serial.println();
 }
 
 
