@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#include "Arduino.h" // DELETE ME!
+#include "HardwareSerial.h" // DELETE ME!
+
 
 class SHA512Hash {
 private:

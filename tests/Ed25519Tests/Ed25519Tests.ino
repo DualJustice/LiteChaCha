@@ -4,7 +4,7 @@
 //#include "src/include/keyinfrastructure.h"
 //#include "src/include/authenticatedencrypt.h"
 #include "src/include/Ed25519.h"
-//#include "src/include/SHA512.h"
+#include "src/include/SHA512.h"
 
 
 void setup() {
