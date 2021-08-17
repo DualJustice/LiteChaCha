@@ -370,10 +370,10 @@ def secret_to_public(secret):
 def sign(secret, msg):
     sByte, prefix = secret_expand(secret)
     A = point_compress(point_mul(sByte, G))
-    r = sha512_modq(prefix + msg)
+    r = sha512_modq(prefix + msg) Note: pretty sure that + here means concatenation.
     R = point_mul(r, G)
     Rs = point_compress(R)
-    h = sha512_modq(Rs + A + msg)
+    h = sha512_modq(Rs + A + msg) Note: pretty sure that + here means concatenation.
     s = (r + h * sByte) % q
     return Rs + int.to_bytes(s, 32, "little")
 
@@ -394,7 +394,7 @@ def verify(public, msg, signature):
         return False
     s = int.from_bytes(signature[32:], "little")
     if s >= q: return False
-    h = sha512_modq(Rs + public + msg)
+    h = sha512_modq(Rs + public + msg) Note: pretty sure that + here means concatenation.
     sB = point_mul(s, G)
     hA = point_mul(h, A)
     return point_equal(sB, point_add(R, hA))
