@@ -86,7 +86,7 @@ public:
 
 	void initialize(char[KEY_BYTES], char[KEY_BYTES]);
 
-	void sign();
+	void sign(char[KEY_BYTES], char[KEY_BYTES], bool);
 	void verify();
 };
 
@@ -286,7 +286,7 @@ void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey)
 }
 
 
-void Ed25519SignatureAlgorithm::sign() { // Private key, public key, message, and bool to initialize if they haven't yet for inputs.
+void Ed25519SignatureAlgorithm::sign(char* publicKeyInOut, char* privateKeyIn, bool initialize) { // Private key, public key, message, and bool to initialize if they haven't yet for inputs.
 
 }
 // Ideally, the user would be able to either calculate the public key and prefix given
