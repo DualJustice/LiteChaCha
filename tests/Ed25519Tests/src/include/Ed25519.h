@@ -86,7 +86,7 @@ public:
 
 	void initialize(char[KEY_BYTES], char[KEY_BYTES]);
 
-	void sign(char[KEY_BYTES], char[KEY_BYTES], bool);
+	void sign(char[KEY_BYTES], char[KEY_BYTES], char*, bool);
 	void verify();
 };
 
@@ -262,7 +262,6 @@ void Ed25519SignatureAlgorithm::encodePoint() {
 
 void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey) {
 	hash.hashBytes(h, privateKey, KEY_BYTES);
-
 	readAndPruneHash();
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
@@ -286,7 +285,14 @@ void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey)
 }
 
 
-void Ed25519SignatureAlgorithm::sign(char* publicKeyInOut, char* privateKeyIn, bool initialize) { // Private key, public key, message, and bool to initialize if they haven't yet for inputs.
+void Ed25519SignatureAlgorithm::sign(char* publicKeyInOut, char* privateKeyIn, char* message, bool createPublicKey) {
+	if(createPublicKey == true) {
+		initialize(publicKeyInOut, privateKeyIn);
+	} else {
+		hash.hashBytes(h, privateKeyIn, KEY_BYTES);
+		readAndPruneHash();
+	}
+
 
 }
 // Ideally, the user would be able to either calculate the public key and prefix given
