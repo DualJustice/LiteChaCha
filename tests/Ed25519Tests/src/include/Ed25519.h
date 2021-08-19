@@ -66,6 +66,8 @@ private:
 
 	char publicKey[KEY_BYTES];
 
+	char r[INT_LENGTH_MULTI];
+
 // -------------------- Everything above is organized --------------------
 
 //			 const uint32_t p[n] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
@@ -88,7 +90,7 @@ public:
 
 	void initialize(char[KEY_BYTES], char[KEY_BYTES]);
 
-	void sign(char[KEY_BYTES], char[KEY_BYTES], char*, bool);
+	void sign(char[KEY_BYTES], char[KEY_BYTES], char*, bool, unsigned long long);
 	void verify();
 };
 
@@ -287,7 +289,7 @@ void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey)
 }
 
 
-void Ed25519SignatureAlgorithm::sign(char* publicKeyInOut, char* privateKeyIn, char* message, bool createPublicKey) {
+void Ed25519SignatureAlgorithm::sign(char* publicKeyInOut, char* privateKeyIn, char* message, bool createPublicKey, unsigned long long messageBytes = KEY_BYTES) {
 	if(createPublicKey == true) {
 		initialize(publicKeyInOut, privateKeyIn);
 	} else {
@@ -295,14 +297,11 @@ void Ed25519SignatureAlgorithm::sign(char* publicKeyInOut, char* privateKeyIn, c
 		readAndPruneHash();
 	}
 
-
+	char* prefixMsg = new char[KEY_BYTES + messageBytes];
+	hash.hashBytes(h, prefixMsg, (KEY_BYTES + messageBytes));
+	order.base16Mod(); // Up next: prepare multi-length number for mod from h. Write to r.
 }
-// Ideally, the user would be able to either calculate the public key and prefix given
-// a secret value, and then use those, or would be able to input a saved public key. It is
-// trivially easy to calculate prefix, so it is probably acceptable to calculate that regardless.
-// This can probably be done with an input boolean.
 
-// Gonna need multiPrecisionq with mod (public), addition, and multiplicaiton.
 
 void Ed25519SignatureAlgorithm::verify() {
 

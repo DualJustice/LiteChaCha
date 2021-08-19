@@ -27,7 +27,6 @@ private:
 	uint32_t qHat;
 	uint32_t rHat;
 	uint32_t c; // Conditional multiplier used in place of conditional branches to aid in constant-time.
-	uint32_t empty[n] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000}; // Used to prepare standalone modulus.
 
 // ---------- Multiplication Variables ----------
 	uint32_t w[n*2];
@@ -39,6 +38,7 @@ private:
 	uint32_t carry; // carry is used for addition carries, multiplication carries, and division remainders.
 	static const constexpr uint32_t base = 0x00010000;
 
+	void prepareDoubleIn(uint32_t*);
 	void prepareIn(uint32_t*, uint32_t*);
 
 	void base16ModInternal();
@@ -61,6 +61,15 @@ MultiPrecisionArithmetic252ed::MultiPrecisionArithmetic252ed() {
 
 MultiPrecisionArithmetic252ed::~MultiPrecisionArithmetic252ed() {
 
+}
+
+
+void MultiPrecisionArithmetic252ed::prepareDoubleIn(uint32_t* a) {
+	u[1] = 0x00000000;
+
+	for(unsigned short i = 0; i < (2*n); i += 1) {
+		u[i + 2] = a[i];
+	}
 }
 
 
@@ -171,9 +180,9 @@ void MultiPrecisionArithmetic252ed::prepareOut(uint32_t* out) {
 
 
 void MultiPrecisionArithmetic252ed::base16Mod(uint32_t* out, uint32_t* a) {
-	prepareIn(a, empty);
+	prepareDoubleIn(a);
 
-	m = 1;
+	m = n + 1;
 	base16ModInternal();
 
 	prepareOut(out);
