@@ -64,9 +64,13 @@ private:
 
 	Point emptyPoint; // Used as a conditional, unused point for contant-time.
 
+	char encodeBytes[KEY_BYTES]; // Also used to store the value of R.
+
 	char publicKey[KEY_BYTES];
 
-	char r[INT_LENGTH_MULTI];
+	uint32_t hashInt[2*INT_LENGTH_MULTI];
+
+	uint32_t r[INT_LENGTH_MULTI];
 
 // -------------------- Everything above is organized --------------------
 
@@ -256,11 +260,11 @@ void Ed25519SignatureAlgorithm::inverse() { // Copied directly from Daniel J. Be
 
 void Ed25519SignatureAlgorithm::encodePoint() {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		publicKey[(i*2)] = C[(INT_LENGTH_MULTI - 1) - i];
-		publicKey[(i*2) + 1] = C[(INT_LENGTH_MULTI - 1) - i] >> 8;
+		encodeBytes[(i*2)] = C[(INT_LENGTH_MULTI - 1) - i];
+		encodeBytes[(i*2) + 1] = C[(INT_LENGTH_MULTI - 1) - i] >> 8;
 	}
 
-	publicKey[31] |= ((B[INT_LENGTH_MULTI - 1] & 0x00000001) << 7);
+	encodeBytes[31] |= ((B[INT_LENGTH_MULTI - 1] & 0x00000001) << 7);
 }
 
 
@@ -284,6 +288,7 @@ void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey)
 	encodePoint();
 
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+		publicKey[i] = encodeBytes[i];
 		publicKeyOut[i] = publicKey[i];
 	}
 }
@@ -295,11 +300,61 @@ void Ed25519SignatureAlgorithm::sign(char* publicKeyInOut, char* privateKeyIn, c
 	} else {
 		hash.hashBytes(h, privateKeyIn, KEY_BYTES);
 		readAndPruneHash();
+
+		for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+			publicKey[i] = publicKeyInOut[i];
+		}
 	}
 
 	char* prefixMsg = new char[KEY_BYTES + messageBytes];
+	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+		prefixMsg[i] = prefix[i];
+	}
+	for(unsigned long long i = 0; i < messageBytes; i += 1) {
+		prefixMsg[i + KEY_BYTES] = message[i];
+	}
 	hash.hashBytes(h, prefixMsg, (KEY_BYTES + messageBytes));
-	order.base16Mod(); // Up next: prepare multi-length number for mod from h. Write to r.
+	delete[] prefixMsg;
+	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
+		hashInt[i] = h[HASH_BYTES - (i*2)] << 8;
+		hashInt[i] |= h[HASH_BYTES - ((i*2) + 1)];
+	}
+	order.base16Mod(r, hashInt);
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		sByte[i*2] = r[i] >> 8; // This WON'T work! sByte needs to be conserved! Make a copy for sByte that is read into either upon initialization, or upon the else statement (basically in readAndPruneHash).
+		sByte[(i*2) + 1] = r[i]; // I think this will work...
+	}
+
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		P.X[i] = BX[i];
+		P.Y[i] = BY[i];
+		P.Z[i] = BZ[i];
+		P.T[i] = BT[i];
+	}
+
+	Ed25519();
+
+	inverse();
+	math.base16Mul(B, Q.X, Q.Z);
+	math.base16Mul(C, Q.Y, Q.Z);
+
+	encodePoint();
+
+	char* RAMsg = new char[(2*KEY_BYTES) + messageBytes];
+	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+		RAMsg[i] = encodeBytes[i];
+		RAMsg[i + KEY_BYTES] = publicKey[i];
+	}
+	for(unsigned long long i = 0; i < messageBytes; i += 1) {
+		RAMsg[i + (2*KEY_BYTES)] = message[i];
+	}
+	hash.hashBytes(h, RAMsg, ((2*KEY_BYTES) + messageBytes));
+	delete[] RAMsg;
+	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
+		hashInt[i] = h[HASH_BYTES - (i*2)] << 8;
+		hashInt[i] |= h[HASH_BYTES - ((i*2) + 1)];
+	}
+	order.base16Mod(r, hashInt);
 }
 
 
