@@ -30,7 +30,8 @@ private:
 
 	char h[HASH_BYTES]; // Hash buffer.
 
-	char sByte[KEY_BYTES]; // Secret scalar.
+	char sByte[KEY_BYTES];
+	uint32_t sByteInt[INT_LENGTH_MULTI]; // Secret scalar.
 	char prefix[KEY_BYTES];
 
 	Point P;
@@ -121,6 +122,11 @@ void Ed25519SignatureAlgorithm::readAndPruneHash() {
 	sByte[0] &= 0x7f; // This is what is in the algorithm description.
 	sByte[31] &= 0xf8;
 	sByte[0] |= 0x40;
+
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		sByteInt[i] = sByte[i*2] << 8;
+		sByteInt[i] |= sByte[(i*2) + 1]; // I think this will work...
+	}
 }
 
 
@@ -316,12 +322,12 @@ void Ed25519SignatureAlgorithm::sign(char* publicKeyInOut, char* privateKeyIn, c
 	hash.hashBytes(h, prefixMsg, (KEY_BYTES + messageBytes));
 	delete[] prefixMsg;
 	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
-		hashInt[i] = h[HASH_BYTES - (i*2)] << 8;
-		hashInt[i] |= h[HASH_BYTES - ((i*2) + 1)];
+		hashInt[i] = h[(HASH_BYTES - 1) - (i*2)] << 8;
+		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)];
 	}
 	order.base16Mod(r, hashInt);
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		sByte[i*2] = r[i] >> 8; // This WON'T work! sByte needs to be conserved! Make a copy for sByte that is read into either upon initialization, or upon the else statement (basically in readAndPruneHash).
+		sByte[i*2] = r[i] >> 8;
 		sByte[(i*2) + 1] = r[i]; // I think this will work...
 	}
 
@@ -354,7 +360,12 @@ void Ed25519SignatureAlgorithm::sign(char* publicKeyInOut, char* privateKeyIn, c
 		hashInt[i] = h[HASH_BYTES - (i*2)] << 8;
 		hashInt[i] |= h[HASH_BYTES - ((i*2) + 1)];
 	}
-	order.base16Mod(r, hashInt);
+	order.base16Mod(B, hashInt);
+
+	order.base16Mul(C, B, sByteInt);
+	order.base16Add(C, r, C);
+
+	// You're at the home stretch! Just need to "return" encodeBytes (R) || C (S) in little endian.
 }
 
 
