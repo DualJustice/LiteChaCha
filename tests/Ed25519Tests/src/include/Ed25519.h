@@ -27,6 +27,7 @@ private:
 	static const constexpr unsigned short INT_LENGTH = 8;
 	static const constexpr unsigned short INT_LENGTH_MULTI = 2*INT_LENGTH;
 	static const constexpr unsigned short BITS = 255;
+	static const constexpr unsigned short SIGNATURE_BYTES = 64;
 
 	char h[HASH_BYTES]; // Hash buffer.
 
@@ -95,7 +96,7 @@ public:
 
 	void initialize(char[KEY_BYTES], char[KEY_BYTES]);
 
-	void sign(char[KEY_BYTES], char[KEY_BYTES], char*, bool, unsigned long long);
+	void sign(char[SIGNATURE_BYTES], char[KEY_BYTES], char[KEY_BYTES], char*, bool, unsigned long long);
 	void verify();
 };
 
@@ -300,7 +301,7 @@ void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey)
 }
 
 
-void Ed25519SignatureAlgorithm::sign(char* publicKeyInOut, char* privateKeyIn, char* message, bool createPublicKey, unsigned long long messageBytes = KEY_BYTES) {
+void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, char* privateKeyIn, char* message, bool createPublicKey, unsigned long long messageBytes = KEY_BYTES) {
 	if(createPublicKey == true) {
 		initialize(publicKeyInOut, privateKeyIn);
 	} else {
@@ -365,7 +366,13 @@ void Ed25519SignatureAlgorithm::sign(char* publicKeyInOut, char* privateKeyIn, c
 	order.base16Mul(C, B, sByteInt);
 	order.base16Add(C, r, C);
 
-	// You're at the home stretch! Just need to "return" encodeBytes (R) || C (S) in little endian.
+	for(unsigned short i = 0; i < SIGNATURE_BYTES/2; i += 1) {
+		signatureOut[i] = encodeBytes[i];
+	}
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		signatureOut[(i*2) + (SIGNATURE_BYTES/2)] = C[(INT_LENGTH_MULTI - 1) - i];
+		signatureOut[(i*2) + 1 + (SIGNATURE_BYTES/2)] = C[(INT_LENGTH_MULTI - 1) - i] >> 8;
+	}
 }
 
 
