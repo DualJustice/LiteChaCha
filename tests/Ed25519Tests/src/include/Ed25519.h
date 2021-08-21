@@ -374,7 +374,8 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	}
 	Serial.println();
 
-	order.base16Mod(r, hashInt);
+	order.base16Mod(r, hashInt); // Could be going wrong here.
+//	I think that I need r, PRE MOD Q, for when it is added to (k*s) to compute S. Maybe not though!
 
 	Serial.print("mod q (r):");
 	for(unsigned short i = 0; i < 16; i += 1) {
@@ -455,10 +456,19 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	}
 	Serial.println();
 
-	order.base16Mod(B, hashInt);
+	order.base16Mod(B, hashInt); // Could be going wrong here.
 
 	order.base16Mul(C, B, sByteInt);
-	order.base16Add(C, r, C);
+	order.base16Add(C, r, C); // I think this is the wrong r! Maybe use a pre-mod(q) r? IT MIGHT NOT MATTER!
+
+	Serial.print("S (pre-little endian):");
+	for(unsigned short i = 0; i < 16; i += 1) {
+		Serial.print(' ');
+		Serial.print(C[i], HEX);
+	}
+	Serial.println();
+
+	Serial.println("signature is Rs || S (litle-endian)");
 
 	for(unsigned short i = 0; i < SIGNATURE_BYTES/2; i += 1) {
 		signatureOut[i] = encodeBytes[i];
