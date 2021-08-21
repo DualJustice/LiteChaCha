@@ -1,6 +1,9 @@
 #ifndef ED25519_H
 #define ED25519_H
 
+#include "Arduino.h" // DELETE ME!!
+#include "HardwareSerial.h" // DELETE ME!!
+
 #include "SHA512.h"
 #include "multiprecision25519.h"
 #include "multiprecision252ed.h"
@@ -279,6 +282,27 @@ void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey)
 	hash.hashBytes(h, privateKey, KEY_BYTES);
 	readAndPruneHash();
 
+	Serial.print("init prefix:");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(' ');
+		Serial.print(prefix[i], HEX);
+	}
+	Serial.println();
+
+	Serial.print("init sByte:");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(' ');
+		Serial.print(sByte[i], HEX);
+	}
+	Serial.println();
+
+	Serial.print("init sByteInt:");
+	for(unsigned short i = 0; i < 16; i += 1) {
+		Serial.print(' ');
+		Serial.print(sByteInt[i], HEX);
+	}
+	Serial.println();
+
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		P.X[i] = BX[i];
 		P.Y[i] = BY[i];
@@ -320,17 +344,56 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	for(unsigned long long i = 0; i < messageBytes; i += 1) {
 		prefixMsg[i + KEY_BYTES] = message[i];
 	}
+
+	Serial.print("prefixMsg:");
+	for(unsigned short i = 0; i < (KEY_BYTES + messageBytes); i += 1) {
+		Serial.print(' ');
+		Serial.print(prefixMsg[i], HEX);
+	}
+	Serial.println();
+
 	hash.hashBytes(h, prefixMsg, (KEY_BYTES + messageBytes));
+
+	Serial.print("prefixMsg hash:");
+	for(unsigned short i = 0; i < 64; i += 1) {
+		Serial.print(' ');
+		Serial.print(h[i], HEX);
+	}
+	Serial.println();
+
 	delete[] prefixMsg;
 	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
 		hashInt[i] = h[(HASH_BYTES - 1) - (i*2)] << 8;
 		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)];
 	}
+
+	Serial.print("hash to little endian int:");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(' ');
+		Serial.print(hashInt[i], HEX);
+	}
+	Serial.println();
+
 	order.base16Mod(r, hashInt);
+
+	Serial.print("mod q (r):");
+	for(unsigned short i = 0; i < 16; i += 1) {
+		Serial.print(' ');
+		Serial.print(r[i], HEX);
+	}
+	Serial.println();
+
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		sByte[i*2] = r[i] >> 8;
 		sByte[(i*2) + 1] = r[i]; // I think this will work...
 	}
+
+	Serial.print("r (bytes):");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(' ');
+		Serial.print(sByte[i], HEX);
+	}
+	Serial.println();
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		P.X[i] = BX[i];
@@ -347,6 +410,13 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 
 	encodePoint();
 
+	Serial.print("Rs:");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(' ');
+		Serial.print(encodeBytes[i], HEX);
+	}
+	Serial.println();
+
 	char* RAMsg = new char[(2*KEY_BYTES) + messageBytes];
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 		RAMsg[i] = encodeBytes[i];
@@ -355,12 +425,36 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	for(unsigned long long i = 0; i < messageBytes; i += 1) {
 		RAMsg[i + (2*KEY_BYTES)] = message[i];
 	}
+
+	Serial.print("RAMsg:");
+	for(unsigned short i = 0; i < ((2*KEY_BYTES) + messageBytes); i += 1) {
+		Serial.print(' ');
+		Serial.print(RAMsg[i], HEX);
+	}
+	Serial.println();
+
 	hash.hashBytes(h, RAMsg, ((2*KEY_BYTES) + messageBytes));
+
+	Serial.print("RAMsg hash:");
+	for(unsigned short i = 0; i < 64; i += 1) {
+		Serial.print(' ');
+		Serial.print(h[i], HEX);
+	}
+	Serial.println();
+
 	delete[] RAMsg;
 	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
-		hashInt[i] = h[HASH_BYTES - (i*2)] << 8;
-		hashInt[i] |= h[HASH_BYTES - ((i*2) + 1)];
+		hashInt[i] = h[(HASH_BYTES - 1) - (i*2)] << 8;
+		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)]; // ISSUE FOUND HERE! FIXED.
 	}
+
+	Serial.print("hash to little endian int:");
+	for(unsigned short i = 0; i < 32; i += 1) {
+		Serial.print(' ');
+		Serial.print(hashInt[i], HEX);
+	}
+	Serial.println();
+
 	order.base16Mod(B, hashInt);
 
 	order.base16Mul(C, B, sByteInt);

@@ -6,6 +6,7 @@
 
 /*
 order / q:
+2^252+27742317777372353535851937790883648493
 1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED
 0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014DE, 0x0000F9DE, 0x0000A2F7, 0x00009CD6, 0x00005812, 0x0000631A, 0x00005CF5, 0x0000D3ED
 0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014de, 0x0000f9de, 0x0000a2f7, 0x00009cd6, 0x00005812, 0x0000631a, 0x00005cf5, 0x0000d3ed
@@ -23,7 +24,7 @@ private:
 	static const constexpr uint32_t d = 0x00000008; // 8 is the smallest value which satisfies D1.
 	unsigned short m;
 	static const constexpr unsigned short n = 16;
-	const uint32_t pd[n] = {0x00008000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0000A6F7, 0x0000CEF5, 0x000017BC, 0x0000E6B2, 0x0000C093, 0x000018D2, 0x0000E7AE, 0x00009F68}; // p*d with p = (2^252) + 27742317777372353535851937790883648493.
+	const uint32_t pd[n] = {0x00008000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0000a6f7, 0x0000cef5, 0x000017bc, 0x0000e6b2, 0x0000c093, 0x000018d2, 0x0000e7ae, 0x00009f68}; // p*d with p = (2^252) + 27742317777372353535851937790883648493.
 	uint32_t qHat;
 	uint32_t rHat;
 	uint32_t c; // Conditional multiplier used in place of conditional branches to aid in constant-time.
@@ -65,7 +66,7 @@ MultiPrecisionArithmetic252ed::~MultiPrecisionArithmetic252ed() {
 
 
 void MultiPrecisionArithmetic252ed::prepareDoubleIn(uint32_t* a) {
-	u[1] = 0x00000000;
+	u[1] = 0x00000000; // This is probably not necessary.
 
 	for(unsigned short i = 0; i < (2*n); i += 1) {
 		u[i + 2] = a[i];

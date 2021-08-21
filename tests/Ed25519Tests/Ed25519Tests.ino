@@ -206,12 +206,12 @@ void setup() {
 
 	Ed25519SignatureAlgorithm dsa;
 
-	char privateKeyBuffer[65] = {"9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"};
+	char privateKeyBuffer[65] = {"4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb"};
 	char privateKey[32];
 	char publicKey[32];
 
-	const size_t messageSize = 0;
-	char messageBuffer[messageSize + 1] = {""};
+	const size_t messageSize = 1;
+	char messageBuffer[messageSize + 1] = {0x72};
 	char message[messageSize];
 	char signature[64];
 
