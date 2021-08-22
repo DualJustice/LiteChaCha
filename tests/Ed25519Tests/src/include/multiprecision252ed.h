@@ -95,7 +95,7 @@ void MultiPrecisionArithmetic252ed::base16ModInternal() {
 		u[i] %= base;
 	}
 
-	u[1] = carry;
+//	u[1] = carry;
 
 	u[0] = 0x00000000;
 
