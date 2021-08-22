@@ -218,7 +218,7 @@ void setup() {
 	Serial.println("Running");
 
 	stringToHex(privateKey, privateKeyBuffer);
-
+/*
 	timestamp = millis();
 	dsa.initialize(publicKey, privateKey);
 	duration = millis() - timestamp;
@@ -235,14 +235,14 @@ void setup() {
 		}
 	}
 	Serial.println('\n');
-
+*/
 //	for(unsigned short i = 0; i < messageSize; i += 1) {
 //		message[i] = messageBuffer[i];
 //	}
 	stringToHex(message, messageBuffer, messageSize);
 
 	timestamp = millis();
-	dsa.sign(signature, publicKey, privateKey, message, false, messageSize);
+	dsa.sign(signature, publicKey, privateKey, message, true, messageSize);
 	duration = millis() - timestamp;
 
 	Serial.print("runtime: ");
