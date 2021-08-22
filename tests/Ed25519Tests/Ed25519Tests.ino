@@ -7,8 +7,8 @@
 //#include "src/include/SHA512.h"
 
 
-void stringToHex(char* out, char* s) {
-	for(unsigned short i = 0; i < 32; i += 1) {
+void stringToHex(char* out, char* s, unsigned short length = 32) {
+	for(unsigned short i = 0; i < length; i += 1) {
 		if(48 <= s[i*2] && s[i*2] <= 57) {
 			s[i*2] -= 48;
 		} else if(65 <= s[i*2] && s[i*2] <= 70) {
@@ -206,12 +206,12 @@ void setup() {
 
 	Ed25519SignatureAlgorithm dsa;
 
-	char privateKeyBuffer[65] = {"4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb"};
+	char privateKeyBuffer[65] = {"833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42"};
 	char privateKey[32];
 	char publicKey[32];
 
-	const size_t messageSize = 1;
-	char messageBuffer[messageSize + 1] = {0x72};
+	const size_t messageSize = 64;
+	char messageBuffer[(messageSize*2) + 1] = {"ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"};
 	char message[messageSize];
 	char signature[64];
 
@@ -236,9 +236,10 @@ void setup() {
 	}
 	Serial.println('\n');
 
-	for(unsigned short i = 0; i < messageSize; i += 1) {
-		message[i] = messageBuffer[i];
-	}
+//	for(unsigned short i = 0; i < messageSize; i += 1) {
+//		message[i] = messageBuffer[i];
+//	}
+	stringToHex(message, messageBuffer, messageSize);
 
 	timestamp = millis();
 	dsa.sign(signature, publicKey, privateKey, message, false, messageSize);
