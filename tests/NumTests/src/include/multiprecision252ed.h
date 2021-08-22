@@ -1,6 +1,9 @@
 #ifndef MULTIPRECISION252ED_H
 #define MULTIPRECISION252ED_H
 
+#include "Arduino.h"
+#include "HardwareSerial.h"
+
 #include <stdint.h>
 
 
@@ -8,12 +11,14 @@
 order / q:
 2^252+27742317777372353535851937790883648493
 1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED
+1000 0000 0000 0000 0000 0000 0000 0000 14DE F9DE A2F7 9CD6 5812 631A 5CF5 D3ED
 0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014DE, 0x0000F9DE, 0x0000A2F7, 0x00009CD6, 0x00005812, 0x0000631A, 0x00005CF5, 0x0000D3ED
 0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014de, 0x0000f9de, 0x0000a2f7, 0x00009cd6, 0x00005812, 0x0000631a, 0x00005cf5, 0x0000d3ed
 
 d = 8 smallest value which satisfies D1.
 
 pd:
+8000 0000 0000 0000 0000 0000 0000 0000 A6F7 CEF5 17BC E6B2 C093 18D2 E7AE 9F68
 0x00008000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0000A6F7, 0x0000CEF5, 0x000017BC, 0x0000E6B2, 0x0000C093, 0x000018D2, 0x0000E7AE, 0x00009F68
 */
 
@@ -71,6 +76,14 @@ void MultiPrecisionArithmetic252ed::prepareDoubleIn(uint32_t* a) {
 	for(unsigned short i = 0; i < (2*n); i += 1) {
 		u[i + 2] = a[i];
 	}
+
+	Serial.print("a -> u:");
+	for(unsigned short i = 0; i < 34; i += 1) {
+		Serial.print(' ');
+		Serial.print(u[i], HEX);
+	}
+	Serial.println();
+
 }
 
 
@@ -89,15 +102,26 @@ void MultiPrecisionArithmetic252ed::base16ModInternal() {
 // ---------- D1 ----------
 	carry = 0x00000000;
 
+	Serial.print("carry:");
 	for(unsigned short i = (m + n); i > 0; i -= 1) {
 		u[i] = (d*u[i]) + carry;
 		carry = u[i]/base;
+		Serial.print(' ');
+		Serial.print(carry, HEX);
 		u[i] %= base;
 	}
+	Serial.println();
 
-	u[1] = carry;
+//	u[1] = carry; PROBLEMO!!!
 
 	u[0] = 0x00000000;
+
+	Serial.print("u*8:");
+	for(unsigned short i = 0; i < 34; i += 1) {
+		Serial.print(' ');
+		Serial.print(u[i], HEX);
+	}
+	Serial.println();
 
 // ---------- D2 & D7 ----------
 	for(unsigned short i = 0; i < (m + 1); i += 1) {
@@ -174,6 +198,13 @@ void MultiPrecisionArithmetic252ed::base16ModInternal() {
 
 
 void MultiPrecisionArithmetic252ed::prepareOut(uint32_t* out) {
+	Serial.print("u - > out:");
+	for(unsigned short i = 0; i < 34; i += 1) {
+		Serial.print(' ');
+		Serial.print(u[i], HEX);
+	}
+	Serial.println();
+
 	for(unsigned short i = 0; i < n; i += 1) {
 		out[i] = u[i + 2];
 	}

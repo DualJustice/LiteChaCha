@@ -2,7 +2,30 @@
 #include "HardwareSerial.h"
 
 //#include "src\include\multiprecision25519.h"
-#include "src\include\multiprecision1305.h"
+//#include "src\include\multiprecision1305.h"
+#include "src\include\multiprecision252ed.h"
+
+
+void setup() {
+	Serial.begin(9600);
+	while(!Serial) {
+		delay(250);
+	}
+
+	MultiPrecisionArithmetic252ed order;
+
+	uint32_t a[32] = {0x00008000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
+	uint32_t b[16] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
+
+	order.base16Mod(b, a);
+
+	Serial.print("b:");
+	for(unsigned short i = 0; i < 16; i += 1) {
+		Serial.print(' ');
+		Serial.print(b[i], HEX);
+	}
+	Serial.println('\n');
+}
 
 
 /*
@@ -19,7 +42,7 @@ Above sum*d:					c005 ffff ffff ffff ffff ffff ffff ffff 1ff9
 The largest expected product:	0003 ffff ffff ffff ffff ffff ffff ffff fff6 0000 0000 0000 0000 0000 0000 0000 0006
 Above product*d:				8003 ffff ffff ffff ffff ffff ffff fffe bff6 0000 0000 0000 0000 0000 0000 0000 c006
 */
-
+/*
 void setup() {
 	Serial.begin(9600);
 	while(!Serial) {
@@ -40,7 +63,7 @@ void setup() {
 		duration = 0;
 
 //		for(unsigned short t2 = 0; t2 < 500; t2 += 1) {
-/*
+
 //			a[0] = 0xabababab; a[1] = 0xabababab; a[2] = 0xabababab; a[3] = 0xabababab; a[4] = 0xabababab; a[5] = 0xabababab; a[6] = 0xabababab; a[7] = 0xabababab;
 //			b[0] = 0xabababab; b[1] = 0xabababab; b[2] = 0xabababab; b[3] = 0xabababab; b[4] = 0xabababab; b[5] = 0xabababab; b[6] = 0xabababab; b[7] = 0xabababab;
 //		             57575757           57575757           57575757           57575757           57575757           57575757           57575757           5757577C = (a + b) % p.
@@ -57,7 +80,7 @@ void setup() {
 
 //			a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0x00000000; a[3] = 0x00000000; a[4] = 0x00000000; a[5] = 0x00000000; a[6] = 0x00000000; a[7] = 0x00000000;
 //			b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0x00000000; b[3] = 0x00000000; b[4] = 0x00000000; b[5] = 0x00000000; b[6] = 0x00000000; b[7] = 0x00000000;
-*/
+
 
 			a[0] = 0xffffffff; a[1] = 0xffffffff; a[2] = 0xffffffff; a[3] = 0xffffffff;
 			b[0] = 0xffffffff; b[1] = 0xffffffff; b[2] = 0xffffffff; b[3] = 0xfffffffa;
@@ -100,6 +123,6 @@ void setup() {
 		Serial.println('\n');
 //	}
 }
-
+*/
 
 void loop() {}
