@@ -299,7 +299,7 @@ def point_equal(P, Q):
 ## Now follows functions for point compression.
 
 # Square root of -1
-modp_sqrt_m1 = pow(2, (p-1) // 4, p)
+modp_sqrt_m1 = pow(2, (p-1) // 4, p)		2^( ((2^255) - 20)/4 ) mod p = 2B8324804FC1DF0B2B4D00993DFBD7A72F431806AD2FE478C4EE1B274A0EA0B0 = 19681161376707505956807079304988542015446066515923890162744021073123829784752.
 
 # Compute corresponding x-coordinate, with low bit corresponding to
 # sign, or return None on failure
@@ -314,7 +314,7 @@ def recover_x(y, sign):
             return 0
 
     # Compute square root of x2
-    x = pow(x2, (p+3) // 8, p)
+    x = pow(x2, (p+3) // 8, p)			p38p (in TabulaRasa.txt).
     if (x*x - x2) % p != 0:
         x = x * modp_sqrt_m1 % p
     if (x*x - x2) % p != 0:
