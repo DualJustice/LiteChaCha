@@ -100,7 +100,7 @@ public:
 	void initialize(char[KEY_BYTES], char[KEY_BYTES]);
 
 	void sign(char[SIGNATURE_BYTES], char[KEY_BYTES], char[KEY_BYTES], char*, bool, unsigned long long);
-	void verify();
+	void verify(char[KEY_BYTES], char*, char[SIGNATURE_BYTES], unsigned long long);
 };
 
 
@@ -346,7 +346,7 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	}
 
 	Serial.print("prefixMsg:");
-	for(unsigned short i = 0; i < (KEY_BYTES + messageBytes); i += 1) {
+	for(unsigned long long i = 0; i < (KEY_BYTES + messageBytes); i += 1) {
 		Serial.print(' ');
 		Serial.print(prefixMsg[i], HEX);
 	}
@@ -428,7 +428,7 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	}
 
 	Serial.print("RAMsg:");
-	for(unsigned short i = 0; i < ((2*KEY_BYTES) + messageBytes); i += 1) {
+	for(unsigned long long i = 0; i < ((2*KEY_BYTES) + messageBytes); i += 1) {
 		Serial.print(' ');
 		Serial.print(RAMsg[i], HEX);
 	}
@@ -480,7 +480,7 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 }
 
 
-void Ed25519SignatureAlgorithm::verify() {
+void Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) {
 
 }
 
