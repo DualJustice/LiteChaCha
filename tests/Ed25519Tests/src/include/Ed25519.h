@@ -1,9 +1,6 @@
 #ifndef ED25519_H
 #define ED25519_H
 
-#include "Arduino.h" // DELETE ME!!
-#include "HardwareSerial.h" // DELETE ME!!
-
 #include "SHA512.h"
 #include "multiprecision25519.h"
 #include "multiprecision252ed.h"
@@ -29,8 +26,8 @@ private:
 	static const constexpr unsigned short KEY_BYTES = 32;
 	static const constexpr unsigned short INT_LENGTH = 8;
 	static const constexpr unsigned short INT_LENGTH_MULTI = 2*INT_LENGTH;
-	static const constexpr unsigned short BITS = 255;
 	static const constexpr unsigned short SIGNATURE_BYTES = 64;
+	static const constexpr unsigned short BITS = 255;
 
 	char h[HASH_BYTES]; // Hash buffer.
 
@@ -64,25 +61,18 @@ private:
 	uint32_t G[INT_LENGTH_MULTI];
 	uint32_t H[INT_LENGTH_MULTI];
 
-	uint32_t d[INT_LENGTH_MULTI] = {0x00005203, 0x00006cee, 0x00002b6f, 0x0000fe73, 0x00008cc7, 0x00004079, 0x00007779, 0x0000e898, 0x00000070, 0x00000a4d, 0x00004141, 0x0000d8ab, 0x000075eb, 0x00004dca, 0x00001359, 0x000078a3};
+	uint32_t d[INT_LENGTH_MULTI] = {0x00005203, 0x00006cee, 0x00002b6f, 0x0000fe73, 0x00008cc7, 0x00004079, 0x00007779, 0x0000e898, 0x00000070, 0x00000a4d, 0x00004141, 0x0000d8ab, 0x000075eb, 0x00004dca, 0x00001359, 0x000078a3}; // Curve constant.
 	uint32_t d2[INT_LENGTH_MULTI] = {0x00002406, 0x0000d9dc, 0x000056df, 0x0000fce7, 0x0000198e, 0x000080f2, 0x0000eef3, 0x0000d130, 0x000000e0, 0x0000149a, 0x00008283, 0x0000b156, 0x0000ebd6, 0x00009b94, 0x000026b2, 0x0000f159}; // 2*d2 % p.
 
 	Point emptyPoint; // Used as a conditional, unused point for contant-time.
 
-	char encodeBytes[KEY_BYTES]; // Also used to store the value of R.
+	char encodeBytes[KEY_BYTES];
 
 	char publicKey[KEY_BYTES];
 
 	uint32_t hashInt[2*INT_LENGTH_MULTI];
 
 	uint32_t r[INT_LENGTH_MULTI];
-
-// -------------------- Everything above is organized --------------------
-
-//			 const uint32_t p[n] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
-	uint32_t q[INT_LENGTH_MULTI] = {0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014DE, 0x0000F9DE, 0x0000A2F7, 0x00009CD6, 0x00005812, 0x0000631A, 0x00005CF5, 0x0000D3ED}; // Order of the prime-order subgroup.
-
-// -------------------- Everything below is organized --------------------
 
 	void readAndPruneHash();
 
@@ -100,7 +90,7 @@ public:
 	void initialize(char[KEY_BYTES], char[KEY_BYTES]);
 
 	void sign(char[SIGNATURE_BYTES], char[KEY_BYTES], char[KEY_BYTES], char*, bool, unsigned long long);
-	void verify(char[KEY_BYTES], char*, char[SIGNATURE_BYTES], unsigned long long);
+	bool verify(char[KEY_BYTES], char*, char[SIGNATURE_BYTES], unsigned long long);
 };
 
 
@@ -129,7 +119,7 @@ void Ed25519SignatureAlgorithm::readAndPruneHash() {
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		sByteInt[i] = sByte[i*2] << 8;
-		sByteInt[i] |= sByte[(i*2) + 1]; // I think this will work...
+		sByteInt[i] |= sByte[(i*2) + 1];
 	}
 }
 
@@ -282,27 +272,6 @@ void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey)
 	hash.hashBytes(h, privateKey, KEY_BYTES);
 	readAndPruneHash();
 
-	Serial.print("init prefix:");
-	for(unsigned short i = 0; i < 32; i += 1) {
-		Serial.print(' ');
-		Serial.print(prefix[i], HEX);
-	}
-	Serial.println();
-
-	Serial.print("init sByte:");
-	for(unsigned short i = 0; i < 32; i += 1) {
-		Serial.print(' ');
-		Serial.print(sByte[i], HEX);
-	}
-	Serial.println();
-
-	Serial.print("init sByteInt:");
-	for(unsigned short i = 0; i < 16; i += 1) {
-		Serial.print(' ');
-		Serial.print(sByteInt[i], HEX);
-	}
-	Serial.println();
-
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		P.X[i] = BX[i];
 		P.Y[i] = BY[i];
@@ -344,57 +313,20 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	for(unsigned long long i = 0; i < messageBytes; i += 1) {
 		prefixMsg[i + KEY_BYTES] = message[i];
 	}
-
-	Serial.print("prefixMsg:");
-	for(unsigned long long i = 0; i < (KEY_BYTES + messageBytes); i += 1) {
-		Serial.print(' ');
-		Serial.print(prefixMsg[i], HEX);
-	}
-	Serial.println();
-
 	hash.hashBytes(h, prefixMsg, (KEY_BYTES + messageBytes));
-
-	Serial.print("prefixMsg hash:");
-	for(unsigned short i = 0; i < 64; i += 1) {
-		Serial.print(' ');
-		Serial.print(h[i], HEX);
-	}
-	Serial.println();
-
 	delete[] prefixMsg;
+
 	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
 		hashInt[i] = h[(HASH_BYTES - 1) - (i*2)] << 8;
 		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)];
 	}
 
-	Serial.print("hash to little endian int:");
-	for(unsigned short i = 0; i < 32; i += 1) {
-		Serial.print(' ');
-		Serial.print(hashInt[i], HEX);
-	}
-	Serial.println();
-
-	order.base16Mod(r, hashInt); // Could be going wrong here.
-//	I think that I need r, PRE MOD Q, for when it is added to (k*s) to compute S. Maybe not though!
-
-	Serial.print("mod q (r):");
-	for(unsigned short i = 0; i < 16; i += 1) {
-		Serial.print(' ');
-		Serial.print(r[i], HEX);
-	}
-	Serial.println();
+	order.base16Mod(r, hashInt);
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		sByte[i*2] = r[i] >> 8;
-		sByte[(i*2) + 1] = r[i]; // I think this will work...
+		sByte[(i*2) + 1] = r[i];
 	}
-
-	Serial.print("r (bytes):");
-	for(unsigned short i = 0; i < 32; i += 1) {
-		Serial.print(' ');
-		Serial.print(sByte[i], HEX);
-	}
-	Serial.println();
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		P.X[i] = BX[i];
@@ -411,13 +343,6 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 
 	encodePoint();
 
-	Serial.print("Rs:");
-	for(unsigned short i = 0; i < 32; i += 1) {
-		Serial.print(' ');
-		Serial.print(encodeBytes[i], HEX);
-	}
-	Serial.println();
-
 	char* RAMsg = new char[(2*KEY_BYTES) + messageBytes];
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 		RAMsg[i] = encodeBytes[i];
@@ -426,49 +351,18 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	for(unsigned long long i = 0; i < messageBytes; i += 1) {
 		RAMsg[i + (2*KEY_BYTES)] = message[i];
 	}
-
-	Serial.print("RAMsg:");
-	for(unsigned long long i = 0; i < ((2*KEY_BYTES) + messageBytes); i += 1) {
-		Serial.print(' ');
-		Serial.print(RAMsg[i], HEX);
-	}
-	Serial.println();
-
 	hash.hashBytes(h, RAMsg, ((2*KEY_BYTES) + messageBytes));
-
-	Serial.print("RAMsg hash:");
-	for(unsigned short i = 0; i < 64; i += 1) {
-		Serial.print(' ');
-		Serial.print(h[i], HEX);
-	}
-	Serial.println();
-
 	delete[] RAMsg;
+
 	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
 		hashInt[i] = h[(HASH_BYTES - 1) - (i*2)] << 8;
-		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)]; // ISSUE FOUND HERE! FIXED.
+		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)];
 	}
 
-	Serial.print("hash to little endian int:");
-	for(unsigned short i = 0; i < 32; i += 1) {
-		Serial.print(' ');
-		Serial.print(hashInt[i], HEX);
-	}
-	Serial.println();
-
-	order.base16Mod(B, hashInt); // Could be going wrong here.
+	order.base16Mod(B, hashInt);
 
 	order.base16Mul(C, B, sByteInt);
-	order.base16Add(C, r, C); // I think this is the wrong r! Maybe use a pre-mod(q) r? IT MIGHT NOT MATTER!
-
-	Serial.print("S (pre-little endian):");
-	for(unsigned short i = 0; i < 16; i += 1) {
-		Serial.print(' ');
-		Serial.print(C[i], HEX);
-	}
-	Serial.println();
-
-	Serial.println("signature is Rs || S (litle-endian)");
+	order.base16Add(C, r, C);
 
 	for(unsigned short i = 0; i < SIGNATURE_BYTES/2; i += 1) {
 		signatureOut[i] = encodeBytes[i];
@@ -480,7 +374,7 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 }
 
 
-void Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) {
+bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) {
 
 }
 

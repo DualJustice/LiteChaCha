@@ -4,20 +4,6 @@
 #include <stdint.h>
 
 
-/*
-order / q:
-2^252+27742317777372353535851937790883648493
-1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED
-0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014DE, 0x0000F9DE, 0x0000A2F7, 0x00009CD6, 0x00005812, 0x0000631A, 0x00005CF5, 0x0000D3ED
-0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014de, 0x0000f9de, 0x0000a2f7, 0x00009cd6, 0x00005812, 0x0000631a, 0x00005cf5, 0x0000d3ed
-
-d = 8 smallest value which satisfies D1.
-
-pd:
-0x00008000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0000A6F7, 0x0000CEF5, 0x000017BC, 0x0000E6B2, 0x0000C093, 0x000018D2, 0x0000E7AE, 0x00009F68
-*/
-
-
 class MultiPrecisionArithmetic252ed {
 private:
 // ---------- Modulus Variables ----------
@@ -66,8 +52,6 @@ MultiPrecisionArithmetic252ed::~MultiPrecisionArithmetic252ed() {
 
 
 void MultiPrecisionArithmetic252ed::prepareDoubleIn(uint32_t* a) {
-	u[1] = 0x00000000; // This is probably not necessary.
-
 	for(unsigned short i = 0; i < (2*n); i += 1) {
 		u[i + 2] = a[i];
 	}
@@ -94,8 +78,6 @@ void MultiPrecisionArithmetic252ed::base16ModInternal() {
 		carry = u[i]/base;
 		u[i] %= base;
 	}
-
-//	u[1] = carry;
 
 	u[0] = 0x00000000;
 
