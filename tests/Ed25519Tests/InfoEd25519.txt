@@ -316,7 +316,7 @@ def recover_x(y, sign):
     # Compute square root of x2
     x = pow(x2, (p+3) // 8, p)			p38p (in TabulaRasa.txt).
     if (x*x - x2) % p != 0:
-        x = x * modp_sqrt_m1 % p
+        x = x * modp_sqrt_m1 % p		x = x * 2B8324804FC1DF0B2B4D00993DFBD7A72F431806AD2FE478C4EE1B274A0EA0B0 % p.
     if (x*x - x2) % p != 0:
         return None
 
