@@ -107,8 +107,6 @@ void MultiPrecisionArithmetic1305::base16Mod() {
 		u[i] %= base;
 	}
 
-	u[1] = carry;
-
 	u[0] = 0x00000000;
 
 // ---------- D2 & D7 ----------
