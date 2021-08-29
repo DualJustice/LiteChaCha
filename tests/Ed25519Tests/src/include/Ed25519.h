@@ -74,6 +74,9 @@ private:
 
 	uint32_t r[INT_LENGTH_MULTI];
 
+	const uint32_t p[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
+	unsigned short counter;
+
 	void readAndPruneHash();
 
 	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
@@ -83,6 +86,7 @@ private:
 	void inverse();
 
 	void encodePoint();
+	bool decodeXCoord();
 public:
 	Ed25519SignatureAlgorithm();
 	~Ed25519SignatureAlgorithm();
@@ -268,6 +272,15 @@ void Ed25519SignatureAlgorithm::encodePoint() {
 }
 
 
+bool Ed25519SignatureAlgorithm::decodeXCoord() {
+	counter = 0;
+	while(C[counter])
+	if(counter == 16) {
+		return false;
+	}
+}
+
+
 void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey) {
 	hash.hashBytes(h, privateKey, KEY_BYTES);
 	readAndPruneHash();
@@ -375,7 +388,16 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 
 
 bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) {
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		C[i] = publicKey[(KEY_BYTES - 1) - (i*2)] << 8;
+		C[i] |= publicKey[(KEY_BYTES - 1) - ((i*2) + 1)];
+	}
+	C[0] &= 0x00007fff;
+	bit = publicKey[31] >> 7;
 
+	if(decodeXCoord()) {
+
+	}
 }
 
 #endif
