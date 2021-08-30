@@ -274,10 +274,17 @@ void Ed25519SignatureAlgorithm::encodePoint() {
 
 bool Ed25519SignatureAlgorithm::decodeXCoord() {
 	counter = 0;
-	while(C[counter])
+	while((C[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) { // Not sure this will work.
+		counter += 1;
+	}
 	if(counter == 16) {
 		return false;
 	}
+
+	math.base16Mul(Q.Z, C, C);
+	math.base16Mul(Q.Z, d, Q.Z);
+	math.base16Add(Q.Z, N.Y, Q.Z);
+	inverse();
 }
 
 
