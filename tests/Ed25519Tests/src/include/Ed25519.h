@@ -77,6 +77,8 @@ private:
 	const uint32_t p[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
 	unsigned short counter;
 
+	uint32_t oneInt[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
+
 	void readAndPruneHash();
 
 	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
@@ -86,6 +88,8 @@ private:
 	void inverse();
 
 	void encodePoint();
+
+	void p38p();
 	bool decodeXCoord();
 public:
 	Ed25519SignatureAlgorithm();
@@ -272,19 +276,110 @@ void Ed25519SignatureAlgorithm::encodePoint() {
 }
 
 
+void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Calculates Q.Z = (Q.Z)^((p+3)/8) % p.
+	math.base16Mul(A, Q.Z, Q.Z);
+	math.base16Mul(B, A, A);
+	math.base16Mul(C, B, B);
+	math.base16Mul(D, C, Q.Z);
+	math.base16Mul(E, D, A);
+	math.base16Mul(C, E, E);
+	math.base16Mul(F, C, D);
+
+	math.base16Mul(C, F, F);
+	math.base16Mul(B, C, C);
+	math.base16Mul(C, B, B);
+	math.base16Mul(B, C, C);
+	math.base16Mul(C, B, B);
+	math.base16Mul(G, C, F);
+
+	math.base16Mul(C, G, G);
+	math.base16Mul(B, C, C);
+	for(unsigned short i = 2; i < 10; i += 2) {
+		math.base16Mul(C, B, B);
+		math.base16Mul(B, C, C);
+	}
+	math.base16Mul(H, B, G);
+
+	math.base16Mul(C, H, H);
+	math.base16Mul(B, C, C);
+	for(unsigned short i = 2; i < 20; i += 2) {
+		math.base16Mul(C, B, B);
+		math.base16Mul(B, C, C);
+	}
+	math.base16Mul(C, B, H);
+
+	math.base16Mul(B, C, C);
+	math.base16Mul(C, B, B);
+	for(unsigned short i = 2; i < 10; i += 2) {
+		math.base16Mul(B, C, C);
+		math.base16Mul(C, B, B);
+	}
+	math.base16Mul(P.X, C, G);
+
+	math.base16Mul(C, P.X, P.X);
+	math.base16Mul(B, C, C);
+	for(unsigned short i = 2; i < 50; i += 2) {
+		math.base16Mul(C, B, B);
+		math.base16Mul(B, C, C);
+	}
+	math.base16Mul(P.Y, B, P.X);
+
+	math.base16Mul(B, P.Y, P.Y);
+	math.base16Mul(C, B, B);
+	for(unsigned short i = 2; i < 100; i += 2) {
+		math.base16Mul(B, C, C);
+		math.base16Mul(C, B, B);
+	}
+	math.base16Mul(B, C, P.Y);
+
+	math.base16Mul(C, B, B);
+	math.base16Mul(B, C, C);
+	for(unsigned short i = 2; i < 50; i += 2) {
+		math.base16Mul(C, B, B);
+		math.base16Mul(B, C, C);
+	}
+	math.base16Mul(C, B, P.X);
+
+	math.base16Mul(B, C, C);
+	math.base16Mul(C, B, B);
+	math.base16Mul(Q.Z, C, A);
+}
+
+
 bool Ed25519SignatureAlgorithm::decodeXCoord() {
 	counter = 0;
-	while((C[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) { // Not sure this will work.
+	while((Q.Y[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) { // Not sure this will work. Not constant time because Q.Y is derived from the public key.
 		counter += 1;
 	}
 	if(counter == 16) {
 		return false;
 	}
 
-	math.base16Mul(Q.Z, C, C);
-	math.base16Mul(Q.Z, d, Q.Z);
-	math.base16Add(Q.Z, N.Y, Q.Z);
+	math.base16Mul(Q.Z, Q.Y, Q.Y); // Q.Y os being used for y.
+	math.base16Mul(Q.Z, d, Q.Y);
+	math.base16Add(Q.Z, oneInt, Q.Z);
 	inverse();
+	math.base16Mul(Q.T, Q.Y, Q.Y);
+	math.base16Sub(Q.T, Q.T, oneInt);
+	math.base16Mul(Q.Z, Q.T, Q.Z); // Q.Z is being used for x2.
+
+	counter = 0;
+	while((Q.Z[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
+		counter += 1;
+	}
+	if(counter == 16) {
+		if(bit) {
+			return false;
+		}
+
+		for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+			Q.X[i] = 0x00000000; // Q.X is being used for x.
+		}
+		return true;
+	}
+
+	p38p(); // This won't currently work. Don't want to overwrite Q.Z in p38p().
+
 }
 
 
@@ -396,10 +491,10 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 
 bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		C[i] = publicKey[(KEY_BYTES - 1) - (i*2)] << 8;
-		C[i] |= publicKey[(KEY_BYTES - 1) - ((i*2) + 1)];
+		Q.Y[i] = publicKey[(KEY_BYTES - 1) - (i*2)] << 8;
+		Q.Y[i] |= publicKey[(KEY_BYTES - 1) - ((i*2) + 1)];
 	}
-	C[0] &= 0x00007fff;
+	Q.Y[0] &= 0x00007fff;
 	bit = publicKey[31] >> 7;
 
 	if(decodeXCoord()) {
