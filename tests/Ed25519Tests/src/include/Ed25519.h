@@ -79,6 +79,8 @@ private:
 
 	uint32_t oneInt[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
 
+	uint32_t complex[INT_LENGTH_MULTI] = {0x00002b83, 0x00002480, 0x00004fc1, 0x0000df0b, 0x00002b4d, 0x00000099, 0x00003dfb, 0x0000d7a7, 0x00002f43, 0x00001806, 0x0000ad2f, 0x0000e478, 0x0000c4ee, 0x00001b27, 0x00004a0e, 0x0000a0b0};
+
 	void readAndPruneHash();
 
 	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
@@ -276,7 +278,7 @@ void Ed25519SignatureAlgorithm::encodePoint() {
 }
 
 
-void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Calculates Q.Z = (Q.Z)^((p+3)/8) % p.
+void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Calculates Q.X = (Q.Z)^((p+3)/8) % p.
 	math.base16Mul(A, Q.Z, Q.Z);
 	math.base16Mul(B, A, A);
 	math.base16Mul(C, B, B);
@@ -342,7 +344,7 @@ void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Ca
 
 	math.base16Mul(B, C, C);
 	math.base16Mul(C, B, B);
-	math.base16Mul(Q.Z, C, A);
+	math.base16Mul(Q.X, C, A);
 }
 
 
@@ -378,7 +380,16 @@ bool Ed25519SignatureAlgorithm::decodeXCoord() {
 		return true;
 	}
 
-	p38p(); // This won't currently work. Don't want to overwrite Q.Z in p38p().
+	p38p();
+	math.base16Mul(Q.T, Q.X, Q.X);
+	math.base16Sub(Q.T, Q.T, Q.Z);
+	counter = 0;
+	while(Q.T[counter] == 0x00000000) {
+		counter += 1;
+	}
+	if(counter != 0) {
+		math.base16Mul(Q.X, Q.X, complex);
+	}
 
 }
 
