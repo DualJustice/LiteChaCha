@@ -37,6 +37,7 @@ private:
 
 	Point P;
 	Point Q;
+	Point R;
 
 //	Base point.
 	const uint32_t BX[INT_LENGTH_MULTI] = {0x00002169, 0x000036d3, 0x0000cd6e, 0x000053fe, 0x0000c0a4, 0x0000e231, 0x0000fdd6, 0x0000dc5c, 0x0000692c, 0x0000c760, 0x00009525, 0x0000a7b2, 0x0000c956, 0x00002d60, 0x00008f25, 0x0000d51a};
@@ -74,7 +75,7 @@ private:
 
 	uint32_t r[INT_LENGTH_MULTI];
 
-	const uint32_t p[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
+	uint32_t p[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
 	unsigned short counter;
 
 	uint32_t oneInt[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
@@ -353,7 +354,7 @@ bool Ed25519SignatureAlgorithm::decodeXCoord() {
 	while((Q.Y[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) { // Not sure this will work. Not constant time because Q.Y is derived from the public key.
 		counter += 1;
 	}
-	if(counter == 16) {
+	if(counter == INT_LENGTH_MULTI) {
 		return false;
 	}
 
@@ -369,7 +370,7 @@ bool Ed25519SignatureAlgorithm::decodeXCoord() {
 	while((Q.Z[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
 		counter += 1;
 	}
-	if(counter == 16) {
+	if(counter == INT_LENGTH_MULTI) {
 		if(bit) {
 			return false;
 		}
@@ -384,24 +385,27 @@ bool Ed25519SignatureAlgorithm::decodeXCoord() {
 	math.base16Mul(Q.T, Q.X, Q.X);
 	math.base16Sub(Q.T, Q.T, Q.Z);
 	counter = 0;
-	while(Q.T[counter] == 0x00000000) { // THIS WON'T WORK! NEED TO MAKE SURE IT ENDS AT INT_LENGTH_MULTI!
+	while(Q.T[counter] == 0x00000000 && (counter < INT_LENGTH_MULTI)) {
 		counter += 1;
 	}
-	if(counter != 0) { // THIS WON'T WORK! != 16.
+	if(counter != INT_LENGTH_MULTI) {
 		math.base16Mul(Q.X, Q.X, complex); // May want to double check complex.
 	}
 	math.base16Mul(Q.T, Q.X, Q.X);
 	math.base16Sub(Q.T, Q.T, Q.Z);
 	counter = 0;
-	while(Q.T[counter] == 0x00000000) { // THIS WON'T WORK! NEED TO MAKE SURE IT ENDS AT INT_LENGTH_MULTI!
+	while(Q.T[counter] == 0x00000000 && (counter < INT_LENGTH_MULTI)) {
 		counter += 1;
 	}
-	if(counter != 0) { // THIS WON'T WORK! != 16.
+	if(counter != INT_LENGTH_MULTI) {
 		return false;
 	}
 
-	
+	if((Q.X[15] & 0x00000001) != bit) {
+		math.base16Sub(Q.X, p, Q.X);
+	}
 
+	return true;
 }
 
 
@@ -519,9 +523,13 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 	Q.Y[0] &= 0x00007fff;
 	bit = publicKey[31] >> 7;
 
-	if(decodeXCoord()) {
-
+	if(!decodeXCoord()) {
+		return false;
 	}
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Q.Z[i] = oneInt[i];
+	}
+	math.base16Mul(Q.T, Q.X, Q.Y); // Q is now the public key in point form (aka. A).
 }
 
 #endif
