@@ -384,12 +384,23 @@ bool Ed25519SignatureAlgorithm::decodeXCoord() {
 	math.base16Mul(Q.T, Q.X, Q.X);
 	math.base16Sub(Q.T, Q.T, Q.Z);
 	counter = 0;
-	while(Q.T[counter] == 0x00000000) {
+	while(Q.T[counter] == 0x00000000) { // THIS WON'T WORK! NEED TO MAKE SURE IT ENDS AT INT_LENGTH_MULTI!
 		counter += 1;
 	}
-	if(counter != 0) {
-		math.base16Mul(Q.X, Q.X, complex);
+	if(counter != 0) { // THIS WON'T WORK! != 16.
+		math.base16Mul(Q.X, Q.X, complex); // May want to double check complex.
 	}
+	math.base16Mul(Q.T, Q.X, Q.X);
+	math.base16Sub(Q.T, Q.T, Q.Z);
+	counter = 0;
+	while(Q.T[counter] == 0x00000000) { // THIS WON'T WORK! NEED TO MAKE SURE IT ENDS AT INT_LENGTH_MULTI!
+		counter += 1;
+	}
+	if(counter != 0) { // THIS WON'T WORK! != 16.
+		return false;
+	}
+
+	
 
 }
 
