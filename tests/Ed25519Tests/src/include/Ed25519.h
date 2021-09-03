@@ -38,6 +38,7 @@ private:
 	Point P;
 	Point Q;
 	Point R;
+	Point S;
 
 //	Base point.
 	const uint32_t BX[INT_LENGTH_MULTI] = {0x00002169, 0x000036d3, 0x0000cd6e, 0x000053fe, 0x0000c0a4, 0x0000e231, 0x0000fdd6, 0x0000dc5c, 0x0000692c, 0x0000c760, 0x00009525, 0x0000a7b2, 0x0000c956, 0x00002d60, 0x00008f25, 0x0000d51a};
@@ -548,15 +549,22 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		return false;
 	}
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Q.Z[i] = oneInt[i];
+		S.X[i] = Q.X[i];
+		S.Y[i] = Q.Y[i];
 	}
-	math.base16Mul(Q.T, Q.X, Q.Y); // Q is now R.
-
-
-
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		sByteInt[i] = signature[((SIGNATURE_BYTES) - 1) - (i*2)] << 8;
-		sByteInt[i] |= signature[((SIGNATURE_BYTES) - 1) - ((i*2) + 1)];
+		S.Z[i] = oneInt[i];
+	}
+	math.base16Mul(S.T, Q.X, Q.Y); // S is now R.
+
+
+
+	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+		sByte[i] = signature[(SIGNATURE_BYTES - 1) - i];
+	}
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		sByteInt[i] = sByte[i*2] << 8;
+		sByteInt[i] |= sByte[(i*2) + 1];
 	}
 	while((sByteInt[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) { // Not sure this will work. Not constant time because sByteInt is derived from the signature.
 		counter += 1;
@@ -578,9 +586,19 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 	hash.hashBytes(h, RAMsg, ((2*KEY_BYTES) + messageBytes));
 	delete[] RAMsg;
 
+	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
+		hashInt[i] = h[(HASH_BYTES - 1) - (i*2)] << 8;
+		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)];
+	}
+
+	order.base16Mod(r, hashInt); // r is storing h.
 
 
-	// At sB = point_mul(s, G)
+
+	// At sB = point_mul(s, G). Should be trivially easy. All important values are stored in non-working registers.
+	// When you do actually go through and clean this up, it might be nice to think of things in...
+	// working registers and storage registers. Maybe make functions, and specify in comment form...
+	// which working registers it requires.
 }
 
 #endif
