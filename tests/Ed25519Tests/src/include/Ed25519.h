@@ -527,9 +527,60 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		return false;
 	}
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		R.X[i] = Q.X[i];
+		R.Y[i] = Q.Y[i];
+	}
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		R.Z[i] = oneInt[i];
+	}
+	math.base16Mul(R.T, Q.X, Q.Y); // R is now the public key in point form (aka. A). This could be optimized.
+
+
+
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Q.Y[i] = signature[((SIGNATURE_BYTES/2) - 1) - (i*2)] << 8;
+		Q.Y[i] |= signature[((SIGNATURE_BYTES/2) - 1) - ((i*2) + 1)];
+	}
+	Q.Y[0] &= 0x00007fff;
+	bit = signature[31] >> 7;
+
+	if(!decodeXCoord()) {
+		return false;
+	}
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		Q.Z[i] = oneInt[i];
 	}
-	math.base16Mul(Q.T, Q.X, Q.Y); // Q is now the public key in point form (aka. A).
+	math.base16Mul(Q.T, Q.X, Q.Y); // Q is now R.
+
+
+
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		sByteInt[i] = signature[((SIGNATURE_BYTES) - 1) - (i*2)] << 8;
+		sByteInt[i] |= signature[((SIGNATURE_BYTES) - 1) - ((i*2) + 1)];
+	}
+	while((sByteInt[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) { // Not sure this will work. Not constant time because sByteInt is derived from the signature.
+		counter += 1;
+	}
+	if(counter == INT_LENGTH_MULTI) {
+		return false;
+	}
+
+
+
+	char* RAMsg = new char[(2*KEY_BYTES) + messageBytes];
+	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
+		RAMsg[i] = signature[i];
+		RAMsg[i + KEY_BYTES] = publicKey[i];
+	}
+	for(unsigned long long i = 0; i < messageBytes; i += 1) {
+		RAMsg[i + (2*KEY_BYTES)] = message[i];
+	}
+	hash.hashBytes(h, RAMsg, ((2*KEY_BYTES) + messageBytes));
+	delete[] RAMsg;
+
+
+
+	// At sB = point_mul(s, G)
 }
 
 #endif
