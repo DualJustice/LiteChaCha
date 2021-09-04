@@ -360,8 +360,8 @@ bool Ed25519SignatureAlgorithm::decodeXCoord() {
 		return false;
 	}
 
-	math.base16Mul(Q.Z, Q.Y, Q.Y); // Q.Y os being used for y.
-	math.base16Mul(Q.Z, d, Q.Y);
+	math.base16Mul(Q.Z, Q.Y, Q.Y); // Q.Y is being used for y.
+	math.base16Mul(Q.Z, d, Q.Z);
 	math.base16Add(Q.Z, oneInt, Q.Z);
 	inverse();
 	math.base16Mul(Q.T, Q.Y, Q.Y);
@@ -387,7 +387,7 @@ bool Ed25519SignatureAlgorithm::decodeXCoord() {
 	math.base16Mul(Q.T, Q.X, Q.X);
 	math.base16Sub(Q.T, Q.T, Q.Z);
 	counter = 0;
-	while(Q.T[counter] == 0x00000000 && (counter < INT_LENGTH_MULTI)) {
+	while((Q.T[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
 		counter += 1;
 	}
 	if(counter != INT_LENGTH_MULTI) {
@@ -396,7 +396,7 @@ bool Ed25519SignatureAlgorithm::decodeXCoord() {
 	math.base16Mul(Q.T, Q.X, Q.X);
 	math.base16Sub(Q.T, Q.T, Q.Z);
 	counter = 0;
-	while(Q.T[counter] == 0x00000000 && (counter < INT_LENGTH_MULTI)) {
+	while((Q.T[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
 		counter += 1;
 	}
 	if(counter != INT_LENGTH_MULTI) {

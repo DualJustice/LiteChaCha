@@ -206,14 +206,16 @@ void setup() {
 
 	Ed25519SignatureAlgorithm dsa;
 
-	char privateKeyBuffer[65] = {"833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42"};
+	char privateKeyBuffer[65] = {"9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"};
 	char privateKey[32];
 	char publicKey[32];
 
-	const size_t messageSize = 64;
-	char messageBuffer[(messageSize*2) + 1] = {"ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"};
+	const size_t messageSize = 0;
+	char messageBuffer[(messageSize*2) + 1] = {""};
 	char message[messageSize];
 	char signature[64];
+
+	bool valid;
 
 	Serial.println("Running");
 
@@ -255,6 +257,21 @@ void setup() {
 			Serial.print('0');
 			Serial.print(signature[i], HEX);
 		}
+	}
+	Serial.println('\n');
+
+
+	timestamp = millis();
+	valid = dsa.verify(publicKey, message, signature, messageSize);
+	duration = millis() - timestamp;
+
+	Serial.print("runtime: ");
+	Serial.println(duration);
+
+	if(valid) {
+		Serial.print("Valid signature.");
+	} else {
+		Serial.print("Invalid signature.");
 	}
 	Serial.println('\n');
 
