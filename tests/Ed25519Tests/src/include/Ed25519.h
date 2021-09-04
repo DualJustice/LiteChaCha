@@ -39,6 +39,7 @@ private:
 	Point Q;
 	Point R;
 	Point S;
+	Point U;
 
 //	Base point.
 	const uint32_t BX[INT_LENGTH_MULTI] = {0x00002169, 0x000036d3, 0x0000cd6e, 0x000053fe, 0x0000c0a4, 0x0000e231, 0x0000fdd6, 0x0000dc5c, 0x0000692c, 0x0000c760, 0x00009525, 0x0000a7b2, 0x0000c956, 0x00002d60, 0x00008f25, 0x0000d51a};
@@ -595,10 +596,47 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 
 
 
-	// At sB = point_mul(s, G). Should be trivially easy. All important values are stored in non-working registers.
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		P.X[i] = BX[i];
+		P.Y[i] = BY[i];
+		P.Z[i] = BZ[i];
+		P.T[i] = BT[i];
+	}
+
+	Ed25519();
+
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		U.X[i] = Q.X[i];
+		U.Y[i] = Q.Y[i];
+		U.Z[i] = Q.Z[i];
+		U.T[i] = Q.T[i];
+	} // U is storing sB.
+
+
+
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		sByte[i*2] = r[i] >> 8;
+		sByte[(i*2) + 1] = r[i]; // I think this will work...
+	}
+
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		P.X[i] = R.X[i];
+		P.Y[i] = R.Y[i];
+		P.Z[i] = R.Z[i];
+		P.T[i] = R.T[i];
+	}
+
+	Ed25519(); // Q is storing hA.
+
+
+
+
+
+
+
 	// When you do actually go through and clean this up, it might be nice to think of things in...
-	// working registers and storage registers. Maybe make functions, and specify in comment form...
-	// which working registers it requires.
+	// input, working, and storage registers. Maybe make functions, and specify in comment form...
+	// which input and working registers it requires.
 }
 
 #endif
