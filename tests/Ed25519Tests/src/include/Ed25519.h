@@ -185,7 +185,7 @@ void Ed25519SignatureAlgorithm::Ed25519() {
 		Q.T[i] = NT[i];
 	}
 
-	for(unsigned short i = 0; i < BITS; i += 1) {
+	for(unsigned short i = 0; i < BITS; i += 1) { // Potential optimization found in Crypto library for Arduino, Ed25519.cpp! Also, quick modulo using subtraction after additions and subtractions!
 		bit = (sByte[(BITS - i)/8] >> (i % 8)) & 0x01;
 
 		if(bit == 0x01) {
