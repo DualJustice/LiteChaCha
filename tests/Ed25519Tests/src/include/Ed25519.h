@@ -567,6 +567,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		sByteInt[i] = sByte[i*2] << 8;
 		sByteInt[i] |= sByte[(i*2) + 1];
 	}
+	counter = 0;
 	while((sByteInt[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) { // Not sure this will work. Not constant time because sByteInt is derived from the signature.
 		counter += 1;
 	}
@@ -609,7 +610,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		U.X[i] = Q.X[i];
 		U.Y[i] = Q.Y[i];
 		U.Z[i] = Q.Z[i];
-		U.T[i] = Q.T[i];
+		U.T[i] = Q.T[i]; // Might not be necessary.
 	} // U is storing sB.
 
 
@@ -630,13 +631,40 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 
 
 
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		P.X[i] = S.X[i];
+		P.Y[i] = S.Y[i];
+		P.Z[i] = S.Z[i];
+		P.T[i] = S.T[i];
+	}
 
+	ladderAdd(Q.X, Q.Y, Q.Z, Q.T); // Now check if U and Q are equal.
 
+	math.base16Mul(B, U.X, Q.Z);
+	math.base16Mul(C, Q.X, U.Z);
+	math.base16Sub(B, B, C);
 
+	counter = 0;
+	while((B[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
+		counter += 1;
+	}
+	if(counter != INT_LENGTH_MULTI) {
+		return false;
+	}
 
-	// When you do actually go through and clean this up, it might be nice to think of things in...
-	// input, working, and storage registers. Maybe make functions, and specify in comment form...
-	// which input and working registers it requires.
+	math.base16Mul(B, U.Y, Q.Z);
+	math.base16Mul(C, Q.Y, U.Z);
+	math.base16Sub(B, B, C);
+
+	counter = 0;
+	while((B[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
+		counter += 1;
+	}
+	if(counter != INT_LENGTH_MULTI) {
+		return false;
+	}
+
+	return true;
 }
 
 #endif
