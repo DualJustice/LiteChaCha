@@ -10,9 +10,9 @@
 
 struct Point {
 	uint32_t X[16]; // INT_LENGTH_MULTI.
-	uint32_t Y[16];
-	uint32_t Z[16];
-	uint32_t T[16];
+	uint32_t Y[16]; // INT_LENGTH_MULTI.
+	uint32_t Z[16]; // INT_LENGTH_MULTI.
+	uint32_t T[16]; // INT_LENGTH_MULTI.
 };
 
 
@@ -84,7 +84,7 @@ private:
 
 	uint32_t complex[INT_LENGTH_MULTI] = {0x00002b83, 0x00002480, 0x00004fc1, 0x0000df0b, 0x00002b4d, 0x00000099, 0x00003dfb, 0x0000d7a7, 0x00002f43, 0x00001806, 0x0000ad2f, 0x0000e478, 0x0000c4ee, 0x00001b27, 0x00004a0e, 0x0000a0b0};
 
-	void readAndPruneHash();
+	void generateReadAndPruneHash(char[KEY_BYTES]);
 
 	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
 	void ladderDouble();
@@ -117,7 +117,9 @@ Ed25519SignatureAlgorithm::~Ed25519SignatureAlgorithm() {
 }
 
 
-void Ed25519SignatureAlgorithm::readAndPruneHash() {
+void Ed25519SignatureAlgorithm::generateReadAndPruneHash(char* privateKey) {
+	hash.hashBytes(h, privateKey, KEY_BYTES);
+
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 		sByte[i] = h[(KEY_BYTES - 1) - i];
 	}
@@ -412,8 +414,7 @@ bool Ed25519SignatureAlgorithm::decodeXCoord() {
 
 
 void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey) {
-	hash.hashBytes(h, privateKey, KEY_BYTES);
-	readAndPruneHash();
+	generateReadAndPruneHash(privateKey);
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		P.X[i] = BX[i];
@@ -441,8 +442,7 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	if(createPublicKey == true) {
 		initialize(publicKeyInOut, privateKeyIn);
 	} else {
-		hash.hashBytes(h, privateKeyIn, KEY_BYTES);
-		readAndPruneHash();
+		generateReadAndPruneHash(privateKeyIn);
 
 		for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 			publicKey[i] = publicKeyInOut[i];
