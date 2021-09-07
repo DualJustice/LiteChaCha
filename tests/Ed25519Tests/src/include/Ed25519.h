@@ -88,7 +88,7 @@ private:
 
 	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
 	void ladderDouble();
-	void Ed25519(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
+	void Ed25519(const uint32_t*, const uint32_t*, const uint32_t*, const uint32_t*);
 
 	void inverse();
 
@@ -179,7 +179,7 @@ void Ed25519SignatureAlgorithm::ladderDouble() {
 }
 
 
-void Ed25519SignatureAlgorithm::Ed25519(uint32_t* PX, uint32_t* PY, uint32_t* PZ, uint32_t* PT) {
+void Ed25519SignatureAlgorithm::Ed25519(const uint32_t* PX, const uint32_t* PY, const uint32_t* PZ, const uint32_t* PT) {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		P.X[i] = PX[i];
 		P.Y[i] = PY[i];
