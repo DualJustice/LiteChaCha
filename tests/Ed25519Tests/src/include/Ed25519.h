@@ -88,7 +88,7 @@ private:
 
 	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
 	void ladderDouble();
-	void Ed25519();
+	void Ed25519(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
 
 	void inverse();
 
@@ -179,7 +179,14 @@ void Ed25519SignatureAlgorithm::ladderDouble() {
 }
 
 
-void Ed25519SignatureAlgorithm::Ed25519() {
+void Ed25519SignatureAlgorithm::Ed25519(uint32_t* PX, uint32_t* PY, uint32_t* PZ, uint32_t* PT) {
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		P.X[i] = PX[i];
+		P.Y[i] = PY[i];
+		P.Z[i] = PZ[i];
+		P.T[i] = PT[i];
+	}
+
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		Q.X[i] = NX[i];
 		Q.Y[i] = NY[i];
@@ -416,14 +423,7 @@ bool Ed25519SignatureAlgorithm::decodeXCoord() {
 void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey) {
 	generateReadAndPruneHash(privateKey);
 
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		P.X[i] = BX[i];
-		P.Y[i] = BY[i];
-		P.Z[i] = BZ[i];
-		P.T[i] = BT[i];
-	}
-
-	Ed25519();
+	Ed25519(BX, BY, BZ, BT);
 
 	inverse();
 	math.base16Mul(B, Q.X, Q.Z);
@@ -471,14 +471,7 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 		sByte[(i*2) + 1] = r[i];
 	}
 
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		P.X[i] = BX[i];
-		P.Y[i] = BY[i];
-		P.Z[i] = BZ[i];
-		P.T[i] = BT[i];
-	}
-
-	Ed25519();
+	Ed25519(BX, BY, BZ, BT);
 
 	inverse();
 	math.base16Mul(B, Q.X, Q.Z);
@@ -597,14 +590,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 
 
 
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		P.X[i] = BX[i];
-		P.Y[i] = BY[i];
-		P.Z[i] = BZ[i];
-		P.T[i] = BT[i];
-	}
-
-	Ed25519();
+	Ed25519(BX, BY, BZ, BT);
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		U.X[i] = Q.X[i];
@@ -620,14 +606,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		sByte[(i*2) + 1] = r[i]; // I think this will work...
 	}
 
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		P.X[i] = R.X[i];
-		P.Y[i] = R.Y[i];
-		P.Z[i] = R.Z[i];
-		P.T[i] = R.T[i];
-	}
-
-	Ed25519(); // Q is storing hA.
+	Ed25519(R.X, R.Y, R.Z, R.T); // Q is storing hA.
 
 
 
