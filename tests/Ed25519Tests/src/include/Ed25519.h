@@ -438,11 +438,11 @@ void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey)
 }
 
 
-void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, char* privateKeyIn, char* message, bool createPublicKey, unsigned long long messageBytes = KEY_BYTES) {
+void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, char* privateKey, char* message, bool createPublicKey, unsigned long long messageBytes = KEY_BYTES) {
 	if(createPublicKey == true) {
-		initialize(publicKeyInOut, privateKeyIn);
+		initialize(publicKeyInOut, privateKey);
 	} else {
-		generateReadAndPruneHash(privateKeyIn);
+		generateReadAndPruneHash(privateKey);
 
 		for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 			publicKey[i] = publicKeyInOut[i];
