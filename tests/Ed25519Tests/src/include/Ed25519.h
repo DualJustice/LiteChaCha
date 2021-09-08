@@ -94,6 +94,8 @@ private:
 
 	void encodePoint();
 
+	void hashModOrder(uint32_t*, char*, unsigned long long);
+
 	void p38p();
 	bool decodeXCoord();
 public:
@@ -290,6 +292,18 @@ void Ed25519SignatureAlgorithm::encodePoint() {
 }
 
 
+void Ed25519SignatureAlgorithm::hashModOrder(uint32_t* intOut, char* message, unsigned long long messageBytes) {
+	hash.hashBytes(h, message, messageBytes);
+
+	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
+		hashInt[i] = h[(HASH_BYTES - 1) - (i*2)] << 8;
+		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)];
+	}
+
+	order.base16Mod(intOut, hashInt);
+}
+
+
 void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Calculates Q.X = (Q.Z)^((p+3)/8) % p.
 	math.base16Mul(A, Q.Z, Q.Z);
 	math.base16Mul(B, A, A);
@@ -456,15 +470,8 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	for(unsigned long long i = 0; i < messageBytes; i += 1) {
 		prefixMsg[i + KEY_BYTES] = message[i];
 	}
-	hash.hashBytes(h, prefixMsg, (KEY_BYTES + messageBytes));
+	hashModOrder(r, prefixMsg, (KEY_BYTES + messageBytes));
 	delete[] prefixMsg;
-
-	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
-		hashInt[i] = h[(HASH_BYTES - 1) - (i*2)] << 8;
-		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)];
-	}
-
-	order.base16Mod(r, hashInt);
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		sByte[i*2] = r[i] >> 8;
@@ -487,15 +494,8 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	for(unsigned long long i = 0; i < messageBytes; i += 1) {
 		RAMsg[i + (2*KEY_BYTES)] = message[i];
 	}
-	hash.hashBytes(h, RAMsg, ((2*KEY_BYTES) + messageBytes));
+	hashModOrder(B, RAMsg, ((2*KEY_BYTES) + messageBytes));
 	delete[] RAMsg;
-
-	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
-		hashInt[i] = h[(HASH_BYTES - 1) - (i*2)] << 8;
-		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)];
-	}
-
-	order.base16Mod(B, hashInt);
 
 	order.base16Mul(C, B, sByteInt);
 	order.base16Add(C, r, C);
@@ -578,15 +578,8 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 	for(unsigned long long i = 0; i < messageBytes; i += 1) {
 		RAMsg[i + (2*KEY_BYTES)] = message[i];
 	}
-	hash.hashBytes(h, RAMsg, ((2*KEY_BYTES) + messageBytes));
+	hashModOrder(r, RAMsg, ((2*KEY_BYTES) + messageBytes));
 	delete[] RAMsg;
-
-	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
-		hashInt[i] = h[(HASH_BYTES - 1) - (i*2)] << 8;
-		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)];
-	}
-
-	order.base16Mod(r, hashInt); // r is storing h.
 
 
 
