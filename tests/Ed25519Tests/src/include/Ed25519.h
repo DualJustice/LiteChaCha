@@ -96,7 +96,7 @@ private:
 
 	void hashModOrder(uint32_t*, char*, unsigned long long);
 
-	bool decodePoint(Point, char*);
+	bool decodePoint(uint32_t*, uint32_t*, uint32_t*, uint32_t*, char*);
 
 	void p38p();
 	bool recoverXCoord();
@@ -306,7 +306,7 @@ void Ed25519SignatureAlgorithm::hashModOrder(uint32_t* intOut, char* message, un
 }
 
 
-bool decodePoint(Point pointOut, char* encodedPoint) {
+bool Ed25519SignatureAlgorithm::decodePoint(uint32_t* pointOutX, uint32_t* pointOutY, uint32_t* pointOutZ, uint32_t* pointOutT, char* encodedPoint) {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		Q.Y[i] = encodedPoint[(KEY_BYTES - 1) - (i*2)] << 8;
 		Q.Y[i] |= encodedPoint[(KEY_BYTES - 1) - ((i*2) + 1)];
@@ -318,13 +318,15 @@ bool decodePoint(Point pointOut, char* encodedPoint) {
 		return false;
 	}
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		pointOut.X[i] = Q.X[i];
-		pointOut.Y[i] = Q.Y[i];
+		pointOutX[i] = Q.X[i];
+		pointOutY[i] = Q.Y[i];
 	}
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		pointOut.Z[i] = oneInt[i];
+		pointOutZ[i] = oneInt[i];
 	}
-	math.base16Mul(pointOut.T, Q.X, Q.Y); // R is now the public key in point form (aka. A). This could be optimized.
+	math.base16Mul(pointOutT, Q.X, Q.Y);
+
+	return true;
 }
 
 
@@ -535,45 +537,15 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 
 
 bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) { // Not constant time, all parts are public.
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Q.Y[i] = publicKey[(KEY_BYTES - 1) - (i*2)] << 8;
-		Q.Y[i] |= publicKey[(KEY_BYTES - 1) - ((i*2) + 1)];
-	}
-	Q.Y[0] &= 0x00007fff;
-	bit = publicKey[31] >> 7;
-
-	if(!recoverXCoord()) {
+	if(!decodePoint(R.X, R.Y, R.Z, R.T, publicKey)) {
 		return false;
 	}
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		R.X[i] = Q.X[i];
-		R.Y[i] = Q.Y[i];
-	}
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		R.Z[i] = oneInt[i];
-	}
-	math.base16Mul(R.T, Q.X, Q.Y); // R is now the public key in point form (aka. A). This could be optimized.
 
 
 
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Q.Y[i] = signature[((SIGNATURE_BYTES/2) - 1) - (i*2)] << 8;
-		Q.Y[i] |= signature[((SIGNATURE_BYTES/2) - 1) - ((i*2) + 1)];
-	}
-	Q.Y[0] &= 0x00007fff;
-	bit = signature[31] >> 7;
-
-	if(!recoverXCoord()) {
+	if(!decodePoint(S.X, S.Y, S.Z, S.T, signature)) {
 		return false;
 	}
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		S.X[i] = Q.X[i];
-		S.Y[i] = Q.Y[i];
-	}
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		S.Z[i] = oneInt[i];
-	}
-	math.base16Mul(S.T, Q.X, Q.Y); // S is now R.
 
 
 
