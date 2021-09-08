@@ -96,8 +96,10 @@ private:
 
 	void hashModOrder(uint32_t*, char*, unsigned long long);
 
+	bool decodePoint(Point, char*);
+
 	void p38p();
-	bool decodeXCoord();
+	bool recoverXCoord();
 public:
 	Ed25519SignatureAlgorithm();
 	~Ed25519SignatureAlgorithm();
@@ -304,6 +306,28 @@ void Ed25519SignatureAlgorithm::hashModOrder(uint32_t* intOut, char* message, un
 }
 
 
+bool decodePoint(Point pointOut, char* encodedPoint) {
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Q.Y[i] = encodedPoint[(KEY_BYTES - 1) - (i*2)] << 8;
+		Q.Y[i] |= encodedPoint[(KEY_BYTES - 1) - ((i*2) + 1)];
+	}
+	Q.Y[0] &= 0x00007fff;
+	bit = encodedPoint[31] >> 7;
+
+	if(!recoverXCoord()) {
+		return false;
+	}
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		pointOut.X[i] = Q.X[i];
+		pointOut.Y[i] = Q.Y[i];
+	}
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		pointOut.Z[i] = oneInt[i];
+	}
+	math.base16Mul(pointOut.T, Q.X, Q.Y); // R is now the public key in point form (aka. A). This could be optimized.
+}
+
+
 void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Calculates Q.X = (Q.Z)^((p+3)/8) % p.
 	math.base16Mul(A, Q.Z, Q.Z);
 	math.base16Mul(B, A, A);
@@ -374,9 +398,9 @@ void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Ca
 }
 
 
-bool Ed25519SignatureAlgorithm::decodeXCoord() {
+bool Ed25519SignatureAlgorithm::recoverXCoord() {
 	counter = 0;
-	while((Q.Y[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) { // Not sure this will work. Not constant time because Q.Y is derived from the public key.
+	while((Q.Y[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) {
 		counter += 1;
 	}
 	if(counter == INT_LENGTH_MULTI) {
@@ -414,7 +438,7 @@ bool Ed25519SignatureAlgorithm::decodeXCoord() {
 		counter += 1;
 	}
 	if(counter != INT_LENGTH_MULTI) {
-		math.base16Mul(Q.X, Q.X, complex); // May want to double check complex.
+		math.base16Mul(Q.X, Q.X, complex);
 	}
 	math.base16Mul(Q.T, Q.X, Q.X);
 	math.base16Sub(Q.T, Q.T, Q.Z);
@@ -510,7 +534,7 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 }
 
 
-bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) {
+bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) { // Not constant time, all parts are public.
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		Q.Y[i] = publicKey[(KEY_BYTES - 1) - (i*2)] << 8;
 		Q.Y[i] |= publicKey[(KEY_BYTES - 1) - ((i*2) + 1)];
@@ -518,7 +542,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 	Q.Y[0] &= 0x00007fff;
 	bit = publicKey[31] >> 7;
 
-	if(!decodeXCoord()) {
+	if(!recoverXCoord()) {
 		return false;
 	}
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
@@ -539,7 +563,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 	Q.Y[0] &= 0x00007fff;
 	bit = signature[31] >> 7;
 
-	if(!decodeXCoord()) {
+	if(!recoverXCoord()) {
 		return false;
 	}
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
