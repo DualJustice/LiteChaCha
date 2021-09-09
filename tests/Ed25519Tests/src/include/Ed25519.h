@@ -90,6 +90,8 @@ private:
 	void ladderDouble();
 	void Ed25519(const uint32_t*, const uint32_t*, const uint32_t*, const uint32_t*);
 
+	void commonInverse();
+
 	void inverse();
 
 	void encodePoint();
@@ -215,7 +217,7 @@ void Ed25519SignatureAlgorithm::Ed25519(const uint32_t* PX, const uint32_t* PY, 
 }
 
 
-void Ed25519SignatureAlgorithm::inverse() { // Copied directly from Daniel J. Bernstein.
+void Ed25519SignatureAlgorithm::commonInverse() {
 	math.base16Mul(A, Q.Z, Q.Z);
 	math.base16Mul(B, A, A);
 	math.base16Mul(C, B, B);
@@ -281,6 +283,12 @@ void Ed25519SignatureAlgorithm::inverse() { // Copied directly from Daniel J. Be
 
 	math.base16Mul(B, C, C);
 	math.base16Mul(C, B, B);
+}
+
+
+void Ed25519SignatureAlgorithm::inverse() { // Copied directly from Daniel J. Bernstein.
+	commonInverse();
+
 	math.base16Mul(B, C, C);
 	math.base16Mul(C, B, B);
 	math.base16Mul(B, C, C);
@@ -335,71 +343,8 @@ bool Ed25519SignatureAlgorithm::decodePoint(uint32_t* pointOutX, uint32_t* point
 
 
 void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Calculates Q.X = (Q.Z)^((p+3)/8) % p.
-	math.base16Mul(A, Q.Z, Q.Z);
-	math.base16Mul(B, A, A);
-	math.base16Mul(C, B, B);
-	math.base16Mul(D, C, Q.Z);
-	math.base16Mul(E, D, A);
-	math.base16Mul(C, E, E);
-	math.base16Mul(F, C, D);
+	commonInverse();
 
-	math.base16Mul(C, F, F);
-	math.base16Mul(B, C, C);
-	math.base16Mul(C, B, B);
-	math.base16Mul(B, C, C);
-	math.base16Mul(C, B, B);
-	math.base16Mul(G, C, F);
-
-	math.base16Mul(C, G, G);
-	math.base16Mul(B, C, C);
-	for(unsigned short i = 2; i < 10; i += 2) {
-		math.base16Mul(C, B, B);
-		math.base16Mul(B, C, C);
-	}
-	math.base16Mul(H, B, G);
-
-	math.base16Mul(C, H, H);
-	math.base16Mul(B, C, C);
-	for(unsigned short i = 2; i < 20; i += 2) {
-		math.base16Mul(C, B, B);
-		math.base16Mul(B, C, C);
-	}
-	math.base16Mul(C, B, H);
-
-	math.base16Mul(B, C, C);
-	math.base16Mul(C, B, B);
-	for(unsigned short i = 2; i < 10; i += 2) {
-		math.base16Mul(B, C, C);
-		math.base16Mul(C, B, B);
-	}
-	math.base16Mul(P.X, C, G);
-
-	math.base16Mul(C, P.X, P.X);
-	math.base16Mul(B, C, C);
-	for(unsigned short i = 2; i < 50; i += 2) {
-		math.base16Mul(C, B, B);
-		math.base16Mul(B, C, C);
-	}
-	math.base16Mul(P.Y, B, P.X);
-
-	math.base16Mul(B, P.Y, P.Y);
-	math.base16Mul(C, B, B);
-	for(unsigned short i = 2; i < 100; i += 2) {
-		math.base16Mul(B, C, C);
-		math.base16Mul(C, B, B);
-	}
-	math.base16Mul(B, C, P.Y);
-
-	math.base16Mul(C, B, B);
-	math.base16Mul(B, C, C);
-	for(unsigned short i = 2; i < 50; i += 2) {
-		math.base16Mul(C, B, B);
-		math.base16Mul(B, C, C);
-	}
-	math.base16Mul(C, B, P.X);
-
-	math.base16Mul(B, C, C);
-	math.base16Mul(C, B, B);
 	math.base16Mul(Q.X, C, A);
 }
 
