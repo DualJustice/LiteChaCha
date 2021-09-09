@@ -98,6 +98,10 @@ private:
 
 	bool decodePoint(uint32_t*, uint32_t*, uint32_t*, uint32_t*, char*);
 
+	bool greaterThanOrEqualToP(uint32_t*);
+	bool equalToZero(uint32_t*);
+	bool notEqualToZero(uint32_t*);
+
 	void p38p();
 	bool recoverXCoord();
 public:
@@ -400,12 +404,47 @@ void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Ca
 }
 
 
-bool Ed25519SignatureAlgorithm::recoverXCoord() {
+bool Ed25519SignatureAlgorithm::greaterThanOrEqualToP(uint32_t* multiInt) {
 	counter = 0;
-	while((Q.Y[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) {
+	while((multiInt[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) {
 		counter += 1;
 	}
 	if(counter == INT_LENGTH_MULTI) {
+		return true;
+	}
+
+	return false;
+}
+
+
+bool Ed25519SignatureAlgorithm::equalToZero(uint32_t* multiInt) {
+	counter = 0;
+	while((multiInt[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
+		counter += 1;
+	}
+	if(counter == INT_LENGTH_MULTI) {
+		return true;
+	}
+
+	return false;
+}
+
+
+bool Ed25519SignatureAlgorithm::notEqualToZero(uint32_t* multiInt) {
+	counter = 0;
+	while((multiInt[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
+		counter += 1;
+	}
+	if(counter != INT_LENGTH_MULTI) {
+		return true;
+	}
+
+	return false;
+}
+
+
+bool Ed25519SignatureAlgorithm::recoverXCoord() {
+	if(greaterThanOrEqualToP(Q.Y)) {
 		return false;
 	}
 
@@ -417,11 +456,7 @@ bool Ed25519SignatureAlgorithm::recoverXCoord() {
 	math.base16Sub(Q.T, Q.T, oneInt);
 	math.base16Mul(Q.Z, Q.T, Q.Z); // Q.Z is being used for x2.
 
-	counter = 0;
-	while((Q.Z[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
-		counter += 1;
-	}
-	if(counter == INT_LENGTH_MULTI) {
+	if(equalToZero(Q.Z)) {
 		if(bit) {
 			return false;
 		}
@@ -429,26 +464,19 @@ bool Ed25519SignatureAlgorithm::recoverXCoord() {
 		for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 			Q.X[i] = 0x00000000; // Q.X is being used for x.
 		}
+
 		return true;
 	}
 
 	p38p();
 	math.base16Mul(Q.T, Q.X, Q.X);
 	math.base16Sub(Q.T, Q.T, Q.Z);
-	counter = 0;
-	while((Q.T[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
-		counter += 1;
-	}
-	if(counter != INT_LENGTH_MULTI) {
+	if(notEqualToZero(Q.T)) {
 		math.base16Mul(Q.X, Q.X, complex);
 	}
 	math.base16Mul(Q.T, Q.X, Q.X);
 	math.base16Sub(Q.T, Q.T, Q.Z);
-	counter = 0;
-	while((Q.T[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
-		counter += 1;
-	}
-	if(counter != INT_LENGTH_MULTI) {
+	if(notEqualToZero(Q.T)) {
 		return false;
 	}
 
@@ -556,11 +584,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		sByteInt[i] = sByte[i*2] << 8;
 		sByteInt[i] |= sByte[(i*2) + 1];
 	}
-	counter = 0;
-	while((sByteInt[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) { // Not sure this will work. Not constant time because sByteInt is derived from the signature.
-		counter += 1;
-	}
-	if(counter == INT_LENGTH_MULTI) {
+	if(greaterThanOrEqualToP(sByteInt)) {
 		return false;
 	}
 
@@ -612,11 +636,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 	math.base16Mul(C, Q.X, U.Z);
 	math.base16Sub(B, B, C);
 
-	counter = 0;
-	while((B[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
-		counter += 1;
-	}
-	if(counter != INT_LENGTH_MULTI) {
+	if(notEqualToZero(B)) {
 		return false;
 	}
 
@@ -624,11 +644,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 	math.base16Mul(C, Q.Y, U.Z);
 	math.base16Sub(B, B, C);
 
-	counter = 0;
-	while((B[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
-		counter += 1;
-	}
-	if(counter != INT_LENGTH_MULTI) {
+	if(notEqualToZero(B)) {
 		return false;
 	}
 
