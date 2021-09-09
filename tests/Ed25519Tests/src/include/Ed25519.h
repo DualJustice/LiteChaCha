@@ -609,14 +609,13 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		U.X[i] = Q.X[i];
 		U.Y[i] = Q.Y[i];
 		U.Z[i] = Q.Z[i];
-		U.T[i] = Q.T[i]; // Might not be necessary.
 	} // U is storing sB.
 
 
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		sByte[i*2] = r[i] >> 8;
-		sByte[(i*2) + 1] = r[i]; // I think this will work...
+		sByte[(i*2) + 1] = r[i];
 	}
 
 	Ed25519(R.X, R.Y, R.Z, R.T); // Q is storing hA.
