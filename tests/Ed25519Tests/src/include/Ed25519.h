@@ -47,12 +47,6 @@ private:
 	const uint32_t BZ[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
 	const uint32_t BT[INT_LENGTH_MULTI] = {0x00006787, 0x00005f0f, 0x0000d78b, 0x00007665, 0x000066ea, 0x00004e8e, 0x000064ab, 0x0000e37d, 0x000020f0, 0x00009f80, 0x00007751, 0x000052f5, 0x00006dde, 0x00008ab3, 0x0000a5b7, 0x0000dda3};
 
-//	Neutral element.
-	const uint32_t NX[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
-	const uint32_t NY[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
-	const uint32_t NZ[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
-	const uint32_t NT[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
-
 	char bit;
 
 	uint32_t A[INT_LENGTH_MULTI];
@@ -67,7 +61,7 @@ private:
 	uint32_t d[INT_LENGTH_MULTI] = {0x00005203, 0x00006cee, 0x00002b6f, 0x0000fe73, 0x00008cc7, 0x00004079, 0x00007779, 0x0000e898, 0x00000070, 0x00000a4d, 0x00004141, 0x0000d8ab, 0x000075eb, 0x00004dca, 0x00001359, 0x000078a3}; // Curve constant.
 	uint32_t d2[INT_LENGTH_MULTI] = {0x00002406, 0x0000d9dc, 0x000056df, 0x0000fce7, 0x0000198e, 0x000080f2, 0x0000eef3, 0x0000d130, 0x000000e0, 0x0000149a, 0x00008283, 0x0000b156, 0x0000ebd6, 0x00009b94, 0x000026b2, 0x0000f159}; // 2*d2 % p.
 
-	Point emptyPoint; // Used as a conditional, unused point for contant-time.
+	Point emptyPoint; // Used as a conditional, unused point to conserve contant-time.
 
 	char encodeBytes[KEY_BYTES];
 
@@ -78,7 +72,6 @@ private:
 	uint32_t r[INT_LENGTH_MULTI];
 
 	uint32_t p[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
-	unsigned short counter;
 
 	uint32_t oneInt[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
 
@@ -197,11 +190,11 @@ void Ed25519SignatureAlgorithm::Ed25519(const uint32_t* PX, const uint32_t* PY, 
 		P.T[i] = PT[i];
 	}
 
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Q.X[i] = NX[i];
-		Q.Y[i] = NY[i];
-		Q.Z[i] = NZ[i];
-		Q.T[i] = NT[i];
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) { // Neutral element.
+		Q.X[i] = 0x00000000;
+		Q.Y[i] = oneInt[i];
+		Q.Z[i] = oneInt[i];
+		Q.T[i] = 0x00000000;
 	}
 
 	for(unsigned short i = 0; i < BITS; i += 1) { // Potential optimization found in Crypto library for Arduino, Ed25519.cpp! Also, quick modulo using subtraction after additions and subtractions!
@@ -350,11 +343,11 @@ void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Ca
 
 
 bool Ed25519SignatureAlgorithm::greaterThanOrEqualToP(uint32_t* multiInt) {
-	counter = 0;
-	while((multiInt[counter] >= p[counter]) && (counter < INT_LENGTH_MULTI)) {
-		counter += 1;
+	unsigned short i = 0;
+	while((multiInt[i] >= p[i]) && (i < INT_LENGTH_MULTI)) {
+		i += 1;
 	}
-	if(counter == INT_LENGTH_MULTI) {
+	if(i == INT_LENGTH_MULTI) {
 		return true;
 	}
 
@@ -363,11 +356,11 @@ bool Ed25519SignatureAlgorithm::greaterThanOrEqualToP(uint32_t* multiInt) {
 
 
 bool Ed25519SignatureAlgorithm::equalToZero(uint32_t* multiInt) {
-	counter = 0;
-	while((multiInt[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
-		counter += 1;
+	unsigned short i = 0;
+	while((multiInt[i] == 0x00000000) && (i < INT_LENGTH_MULTI)) {
+		i += 1;
 	}
-	if(counter == INT_LENGTH_MULTI) {
+	if(i == INT_LENGTH_MULTI) {
 		return true;
 	}
 
@@ -376,11 +369,11 @@ bool Ed25519SignatureAlgorithm::equalToZero(uint32_t* multiInt) {
 
 
 bool Ed25519SignatureAlgorithm::notEqualToZero(uint32_t* multiInt) {
-	counter = 0;
-	while((multiInt[counter] == 0x00000000) && (counter < INT_LENGTH_MULTI)) {
-		counter += 1;
+	unsigned short i = 0;
+	while((multiInt[i] == 0x00000000) && (i < INT_LENGTH_MULTI)) {
+		i += 1;
 	}
-	if(counter != INT_LENGTH_MULTI) {
+	if(i != INT_LENGTH_MULTI) {
 		return true;
 	}
 
