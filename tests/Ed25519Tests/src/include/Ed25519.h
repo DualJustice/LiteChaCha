@@ -29,10 +29,10 @@ private:
 	static const constexpr unsigned short SIGNATURE_BYTES = 64;
 	static const constexpr unsigned short BITS = 255;
 
-	char h[HASH_BYTES]; // Hash buffer.
+	char hashBuffer[HASH_BYTES];
 
-	char sByte[KEY_BYTES];
-	uint32_t sByteInt[INT_LENGTH_MULTI]; // Secret scalar.
+	char scalarByte[KEY_BYTES];
+	uint32_t scalarInt[INT_LENGTH_MULTI];
 	char prefix[KEY_BYTES];
 
 	Point P;
@@ -121,23 +121,23 @@ Ed25519SignatureAlgorithm::~Ed25519SignatureAlgorithm() {
 
 
 void Ed25519SignatureAlgorithm::generateReadAndPruneHash(char* privateKey) {
-	hash.hashBytes(h, privateKey, KEY_BYTES);
+	hash.hashBytes(hashBuffer, privateKey, KEY_BYTES);
 
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
-		sByte[i] = h[(KEY_BYTES - 1) - i];
+		scalarByte[i] = hashBuffer[(KEY_BYTES - 1) - i];
 	}
 	for(unsigned short i = KEY_BYTES; i < HASH_BYTES; i += 1) {
-		prefix[i - KEY_BYTES] = h[i];
+		prefix[i - KEY_BYTES] = hashBuffer[i];
 	}
 
-//	sByte[0] &= 0x3f; // This is what is in the python implementation.
-	sByte[0] &= 0x7f; // This is what is in the algorithm description.
-	sByte[31] &= 0xf8;
-	sByte[0] |= 0x40;
+//	scalarByte[0] &= 0x3f; // This is what is in the python implementation.
+	scalarByte[0] &= 0x7f; // This is what is in the algorithm description.
+	scalarByte[31] &= 0xf8;
+	scalarByte[0] |= 0x40;
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		sByteInt[i] = sByte[i*2] << 8;
-		sByteInt[i] |= sByte[(i*2) + 1];
+		scalarInt[i] = scalarByte[i*2] << 8;
+		scalarInt[i] |= scalarByte[(i*2) + 1];
 	}
 }
 
@@ -190,7 +190,7 @@ void Ed25519SignatureAlgorithm::Ed25519(const uint32_t* PX, const uint32_t* PY, 
 		P.T[i] = PT[i];
 	}
 
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) { // Neutral element.
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) { // Q = Neutral element.
 		Q.X[i] = 0x00000000;
 		Q.Y[i] = oneInt[i];
 		Q.Z[i] = oneInt[i];
@@ -198,7 +198,7 @@ void Ed25519SignatureAlgorithm::Ed25519(const uint32_t* PX, const uint32_t* PY, 
 	}
 
 	for(unsigned short i = 0; i < BITS; i += 1) { // Potential optimization found in Crypto library for Arduino, Ed25519.cpp! Also, quick modulo using subtraction after additions and subtractions!
-		bit = (sByte[(BITS - i)/8] >> (i % 8)) & 0x01;
+		bit = (scalarByte[(BITS - i)/8] >> (i % 8)) & 0x01;
 
 		if(bit == 0x01) {
 			ladderAdd(Q.X, Q.Y, Q.Z, Q.T);
@@ -300,11 +300,11 @@ void Ed25519SignatureAlgorithm::encodePoint() {
 
 
 void Ed25519SignatureAlgorithm::hashModOrder(uint32_t* intOut, char* message, unsigned long long messageBytes) {
-	hash.hashBytes(h, message, messageBytes);
+	hash.hashBytes(hashBuffer, message, messageBytes);
 
 	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
-		hashInt[i] = h[(HASH_BYTES - 1) - (i*2)] << 8;
-		hashInt[i] |= h[(HASH_BYTES - 1) - ((i*2) + 1)];
+		hashInt[i] = hashBuffer[(HASH_BYTES - 1) - (i*2)] << 8;
+		hashInt[i] |= hashBuffer[(HASH_BYTES - 1) - ((i*2) + 1)];
 	}
 
 	order.base16Mod(intOut, hashInt);
@@ -466,8 +466,8 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	delete[] prefixMsg;
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		sByte[i*2] = r[i] >> 8;
-		sByte[(i*2) + 1] = r[i];
+		scalarByte[i*2] = r[i] >> 8;
+		scalarByte[(i*2) + 1] = r[i];
 	}
 
 	Ed25519(BX, BY, oneInt, BT);
@@ -489,7 +489,7 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 	hashModOrder(B, RAMsg, ((2*KEY_BYTES) + messageBytes));
 	delete[] RAMsg;
 
-	order.base16Mul(C, B, sByteInt);
+	order.base16Mul(C, B, scalarInt);
 	order.base16Add(C, r, C);
 
 	for(unsigned short i = 0; i < SIGNATURE_BYTES/2; i += 1) {
@@ -516,13 +516,13 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 
 
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
-		sByte[i] = signature[(SIGNATURE_BYTES - 1) - i];
+		scalarByte[i] = signature[(SIGNATURE_BYTES - 1) - i];
 	}
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		sByteInt[i] = sByte[i*2] << 8;
-		sByteInt[i] |= sByte[(i*2) + 1];
+		scalarInt[i] = scalarByte[i*2] << 8;
+		scalarInt[i] |= scalarByte[(i*2) + 1];
 	}
-	if(greaterThanOrEqualToP(sByteInt)) {
+	if(greaterThanOrEqualToP(scalarInt)) {
 		return false;
 	}
 
@@ -552,8 +552,8 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		sByte[i*2] = r[i] >> 8;
-		sByte[(i*2) + 1] = r[i];
+		scalarByte[i*2] = r[i] >> 8;
+		scalarByte[(i*2) + 1] = r[i];
 	}
 
 	Ed25519(R.X, R.Y, R.Z, R.T); // Q is storing hA.
