@@ -206,12 +206,12 @@ void setup() {
 
 	Ed25519SignatureAlgorithm dsa;
 
-	char privateKeyBuffer[65] = {"833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42"};
+	char privateKeyBuffer[65] = {"c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7"};
 	char privateKey[32];
 	char publicKey[32];
 
-	const size_t messageSize = 64;
-	char messageBuffer[(messageSize*2) + 1] = {"ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"};
+	const size_t messageSize = 2;
+	char messageBuffer[(messageSize*2) + 1] = {"af82"};
 	char message[messageSize];
 	char signature[64];
 
@@ -250,8 +250,8 @@ void setup() {
 	Serial.print("runtime: ");
 	Serial.println(duration);
 
-	Serial.println("Signature should be:");
-	Serial.println("dc2a4459e7369633a52b1bf277839a00201009a3efbf3ecb69bea2186c26b58909351fc9ac90b3ecfdfbc7c66431e0303dca179c138ac17ad9bef1177331a704");
+//	Serial.println("Signature should be:");
+//	Serial.println("dc2a4459e7369633a52b1bf277839a00201009a3efbf3ecb69bea2186c26b58909351fc9ac90b3ecfdfbc7c66431e0303dca179c138ac17ad9bef1177331a704");
 
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(signature[i] > 0x0f) {
@@ -285,6 +285,9 @@ void setup() {
 //	publicKey[31] += 0x01;
 //	message[messageSize - 1] += 0x01;
 //	signature[63] += 0x01;
+
+//	char signatureBuffer[129] = {"E6AE4F4181184FFBA68F3A3C49507D0CFB805CA87E57D13AE82F445B57A595C8F1838AF7351E2D52A74EC1C5B6FAC1F6DC1D0691993E747C0BCEBF114423D00D"};
+//	stringToHex(signature, signatureBuffer, 64);
 
 	timestamp = millis();
 	valid = dsa.verify(publicKey, message, signature, messageSize);
