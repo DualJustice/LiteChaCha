@@ -36,7 +36,7 @@ private:
 
 	char prefix[KEY_BYTES];
 
-//	Base point.
+//	Base point:
 	const uint32_t BaseX[INT_LENGTH_MULTI] = {0x00002169, 0x000036d3, 0x0000cd6e, 0x000053fe, 0x0000c0a4, 0x0000e231, 0x0000fdd6, 0x0000dc5c, 0x0000692c, 0x0000c760, 0x00009525, 0x0000a7b2, 0x0000c956, 0x00002d60, 0x00008f25, 0x0000d51a};
 	const uint32_t BaseY[INT_LENGTH_MULTI] = {0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006658};
 	const uint32_t BaseT[INT_LENGTH_MULTI] = {0x00006787, 0x00005f0f, 0x0000d78b, 0x00007665, 0x000066ea, 0x00004e8e, 0x000064ab, 0x0000e37d, 0x000020f0, 0x00009f80, 0x00007751, 0x000052f5, 0x00006dde, 0x00008ab3, 0x0000a5b7, 0x0000dda3};
@@ -44,9 +44,11 @@ private:
 
 	const uint32_t oneInt[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
 
+//	Working points:
 	Point ptP;
 	Point ptQ;
 
+//	Storage points:
 	Point ptA;
 	Point ptR;
 	Point ptS;
@@ -55,6 +57,8 @@ private:
 
 	char bit;
 
+//	Working variables (registers):
+//	Used primarily in Ed25519:
 	uint32_t regA[INT_LENGTH_MULTI];
 	uint32_t regB[INT_LENGTH_MULTI];
 	uint32_t regC[INT_LENGTH_MULTI];
@@ -64,13 +68,15 @@ private:
 	uint32_t regG[INT_LENGTH_MULTI];
 	uint32_t regH[INT_LENGTH_MULTI];
 
+//	Used primarily in Ed25519 & commonInverse:
 	uint32_t regI[INT_LENGTH_MULTI];
 	uint32_t regJ[INT_LENGTH_MULTI];
 
+//	Used primarily to store hashes as integers mod L:
 	uint32_t regK[INT_LENGTH_MULTI];
 
 	const uint32_t d[INT_LENGTH_MULTI] = {0x00005203, 0x00006cee, 0x00002b6f, 0x0000fe73, 0x00008cc7, 0x00004079, 0x00007779, 0x0000e898, 0x00000070, 0x00000a4d, 0x00004141, 0x0000d8ab, 0x000075eb, 0x00004dca, 0x00001359, 0x000078a3}; // Curve constant.
-	const uint32_t d2[INT_LENGTH_MULTI] = {0x00002406, 0x0000d9dc, 0x000056df, 0x0000fce7, 0x0000198e, 0x000080f2, 0x0000eef3, 0x0000d130, 0x000000e0, 0x0000149a, 0x00008283, 0x0000b156, 0x0000ebd6, 0x00009b94, 0x000026b2, 0x0000f159}; // 2*d2 % p.
+	const uint32_t d2[INT_LENGTH_MULTI] = {0x00002406, 0x0000d9dc, 0x000056df, 0x0000fce7, 0x0000198e, 0x000080f2, 0x0000eef3, 0x0000d130, 0x000000e0, 0x0000149a, 0x00008283, 0x0000b156, 0x0000ebd6, 0x00009b94, 0x000026b2, 0x0000f159}; // (2*d) % p.
 
 	uint32_t inverseX[INT_LENGTH_MULTI];
 	uint32_t inverseY[INT_LENGTH_MULTI];
@@ -138,8 +144,7 @@ void Ed25519SignatureAlgorithm::generateReadAndPruneHash(char* privateKey) {
 		prefix[i - KEY_BYTES] = hashBuffer[i];
 	}
 
-//	scalarByte[0] &= 0x3f; // This is what is in the python implementation.
-	scalarByte[0] &= 0x7f; // This is what is in the algorithm description.
+	scalarByte[0] &= 0x7f;
 	scalarByte[31] &= 0xf8;
 	scalarByte[0] |= 0x40;
 
@@ -205,7 +210,7 @@ void Ed25519SignatureAlgorithm::Ed25519(const uint32_t* PX, const uint32_t* PY, 
 		ptQ.T[i] = 0x00000000;
 	}
 
-	for(unsigned short i = 0; i < BITS; i += 1) { // Potential optimization found in Crypto library for Arduino, Ed25519.cpp! Also, quick modulo using subtraction after additions and subtractions!
+	for(unsigned short i = 0; i < BITS; i += 1) {
 		bit = (scalarByte[(BITS - i)/8] >> (i % 8)) & 0x01;
 
 		if(bit == 0x01) {
