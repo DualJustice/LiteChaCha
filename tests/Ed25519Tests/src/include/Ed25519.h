@@ -33,7 +33,16 @@ private:
 
 	char scalarByte[KEY_BYTES];
 	uint32_t scalarInt[INT_LENGTH_MULTI];
+
 	char prefix[KEY_BYTES];
+
+//	Base point.
+	const uint32_t BaseX[INT_LENGTH_MULTI] = {0x00002169, 0x000036d3, 0x0000cd6e, 0x000053fe, 0x0000c0a4, 0x0000e231, 0x0000fdd6, 0x0000dc5c, 0x0000692c, 0x0000c760, 0x00009525, 0x0000a7b2, 0x0000c956, 0x00002d60, 0x00008f25, 0x0000d51a};
+	const uint32_t BaseY[INT_LENGTH_MULTI] = {0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006658};
+	const uint32_t BaseT[INT_LENGTH_MULTI] = {0x00006787, 0x00005f0f, 0x0000d78b, 0x00007665, 0x000066ea, 0x00004e8e, 0x000064ab, 0x0000e37d, 0x000020f0, 0x00009f80, 0x00007751, 0x000052f5, 0x00006dde, 0x00008ab3, 0x0000a5b7, 0x0000dda3};
+//	BaseZ = 1, using oneInt.
+
+	const uint32_t oneInt[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
 
 	Point ptP;
 	Point ptQ;
@@ -42,11 +51,7 @@ private:
 	Point ptR;
 	Point ptS;
 
-//	Base point.
-	const uint32_t BaseX[INT_LENGTH_MULTI] = {0x00002169, 0x000036d3, 0x0000cd6e, 0x000053fe, 0x0000c0a4, 0x0000e231, 0x0000fdd6, 0x0000dc5c, 0x0000692c, 0x0000c760, 0x00009525, 0x0000a7b2, 0x0000c956, 0x00002d60, 0x00008f25, 0x0000d51a};
-	const uint32_t BaseY[INT_LENGTH_MULTI] = {0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006666, 0x00006658};
-	const uint32_t BaseT[INT_LENGTH_MULTI] = {0x00006787, 0x00005f0f, 0x0000d78b, 0x00007665, 0x000066ea, 0x00004e8e, 0x000064ab, 0x0000e37d, 0x000020f0, 0x00009f80, 0x00007751, 0x000052f5, 0x00006dde, 0x00008ab3, 0x0000a5b7, 0x0000dda3};
-//	BZ = 1, using oneInt.
+	Point emptyPoint; // Used as a conditional, unused point to conserve contant-time.
 
 	char bit;
 
@@ -58,18 +63,17 @@ private:
 	uint32_t regF[INT_LENGTH_MULTI];
 	uint32_t regG[INT_LENGTH_MULTI];
 	uint32_t regH[INT_LENGTH_MULTI];
+
 	uint32_t regI[INT_LENGTH_MULTI];
 	uint32_t regJ[INT_LENGTH_MULTI];
+
 	uint32_t regK[INT_LENGTH_MULTI];
 
 	const uint32_t d[INT_LENGTH_MULTI] = {0x00005203, 0x00006cee, 0x00002b6f, 0x0000fe73, 0x00008cc7, 0x00004079, 0x00007779, 0x0000e898, 0x00000070, 0x00000a4d, 0x00004141, 0x0000d8ab, 0x000075eb, 0x00004dca, 0x00001359, 0x000078a3}; // Curve constant.
 	const uint32_t d2[INT_LENGTH_MULTI] = {0x00002406, 0x0000d9dc, 0x000056df, 0x0000fce7, 0x0000198e, 0x000080f2, 0x0000eef3, 0x0000d130, 0x000000e0, 0x0000149a, 0x00008283, 0x0000b156, 0x0000ebd6, 0x00009b94, 0x000026b2, 0x0000f159}; // 2*d2 % p.
 
-	Point emptyPoint; // Used as a conditional, unused point to conserve contant-time.
-
 	uint32_t inverseX[INT_LENGTH_MULTI];
 	uint32_t inverseY[INT_LENGTH_MULTI];
-
 	char encodeBytes[KEY_BYTES];
 
 	char publicKey[KEY_BYTES];
@@ -77,10 +81,7 @@ private:
 	uint32_t hashInt[2*INT_LENGTH_MULTI];
 
 	const uint32_t p[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
-
 	const uint32_t L[INT_LENGTH_MULTI] = {0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014de, 0x0000f9de, 0x0000a2f7, 0x00009cd6, 0x00005812, 0x0000631a, 0x00005cf5, 0x0000d3ed}; // Order of the prime-order subgroup.
-
-	const uint32_t oneInt[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000001};
 
 	const uint32_t complex[INT_LENGTH_MULTI] = {0x00002b83, 0x00002480, 0x00004fc1, 0x0000df0b, 0x00002b4d, 0x00000099, 0x00003dfb, 0x0000d7a7, 0x00002f43, 0x00001806, 0x0000ad2f, 0x0000e478, 0x0000c4ee, 0x00001b27, 0x00004a0e, 0x0000a0b0}; // sqrt(-1) = 2^(((2^255) - 20)/4) % p.
 
@@ -91,22 +92,21 @@ private:
 	void Ed25519(const uint32_t*, const uint32_t*, const uint32_t*, const uint32_t*);
 
 	void commonInverse();
-
 	void inverse();
+	void p38p();
 
 	void encodePoint();
 
 	void hashModOrder(uint32_t*, char*, unsigned long long);
-
-	bool decodePoint(uint32_t*, uint32_t*, uint32_t*, uint32_t*, char*);
 
 	bool greaterThanOrEqualToP(uint32_t*);
 	bool equalToZero(uint32_t*);
 	bool notEqualToZero(uint32_t*);
 	bool greaterThanOrEqualToOrder(uint32_t*);
 
-	void p38p();
 	bool recoverXCoord();
+
+	bool decodePoint(uint32_t*, uint32_t*, uint32_t*, uint32_t*, char*);
 public:
 	Ed25519SignatureAlgorithm();
 	~Ed25519SignatureAlgorithm();
@@ -319,27 +319,29 @@ void Ed25519SignatureAlgorithm::hashModOrder(uint32_t* intOut, char* message, un
 }
 
 
-bool Ed25519SignatureAlgorithm::decodePoint(uint32_t* pointOutX, uint32_t* pointOutY, uint32_t* pointOutZ, uint32_t* pointOutT, char* encodedPoint) {
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		ptQ.Y[i] = encodedPoint[(KEY_BYTES - 1) - (i*2)] << 8;
-		ptQ.Y[i] |= encodedPoint[(KEY_BYTES - 1) - ((i*2) + 1)];
+bool Ed25519SignatureAlgorithm::greaterThanOrEqualToP(uint32_t* a) {
+	unsigned short i = 0;
+	while((a[i] >= p[i]) && (i < INT_LENGTH_MULTI)) {
+		i += 1;
 	}
-	ptQ.Y[0] &= 0x00007fff;
-	bit = encodedPoint[31] >> 7;
+	if(i == INT_LENGTH_MULTI) {
+		return true;
+	}
 
-	if(!recoverXCoord()) {
-		return false;
-	}
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		pointOutX[i] = ptQ.X[i];
-		pointOutY[i] = ptQ.Y[i];
-	}
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		pointOutZ[i] = oneInt[i];
-	}
-	math.base16Mul(pointOutT, ptQ.X, ptQ.Y);
+	return false;
+}
 
-	return true;
+
+bool Ed25519SignatureAlgorithm::equalToZero(uint32_t* a) {
+	unsigned short i = 0;
+	while((a[i] == 0x00000000) && (i < INT_LENGTH_MULTI)) {
+		i += 1;
+	}
+	if(i == INT_LENGTH_MULTI) {
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -350,51 +352,12 @@ void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Ca
 }
 
 
-bool Ed25519SignatureAlgorithm::greaterThanOrEqualToP(uint32_t* multiInt) {
+bool Ed25519SignatureAlgorithm::notEqualToZero(uint32_t* a) {
 	unsigned short i = 0;
-	while((multiInt[i] >= p[i]) && (i < INT_LENGTH_MULTI)) {
-		i += 1;
-	}
-	if(i == INT_LENGTH_MULTI) {
-		return true;
-	}
-
-	return false;
-}
-
-
-bool Ed25519SignatureAlgorithm::equalToZero(uint32_t* multiInt) {
-	unsigned short i = 0;
-	while((multiInt[i] == 0x00000000) && (i < INT_LENGTH_MULTI)) {
-		i += 1;
-	}
-	if(i == INT_LENGTH_MULTI) {
-		return true;
-	}
-
-	return false;
-}
-
-
-bool Ed25519SignatureAlgorithm::notEqualToZero(uint32_t* multiInt) {
-	unsigned short i = 0;
-	while((multiInt[i] == 0x00000000) && (i < INT_LENGTH_MULTI)) {
+	while((a[i] == 0x00000000) && (i < INT_LENGTH_MULTI)) {
 		i += 1;
 	}
 	if(i != INT_LENGTH_MULTI) {
-		return true;
-	}
-
-	return false;
-}
-
-
-bool Ed25519SignatureAlgorithm::greaterThanOrEqualToOrder(uint32_t* multiInt) {
-	unsigned short i = 0;
-	while((multiInt[i] >= L[i]) && (i < INT_LENGTH_MULTI)) {
-		i += 1;
-	}
-	if(i == INT_LENGTH_MULTI) {
 		return true;
 	}
 
@@ -428,6 +391,7 @@ bool Ed25519SignatureAlgorithm::recoverXCoord() {
 	}
 
 	p38p();
+
 	math.base16Mul(ptQ.T, ptQ.X, ptQ.X);
 	math.base16Sub(ptQ.T, ptQ.T, ptQ.Z);
 	if(notEqualToZero(ptQ.T)) {
@@ -444,6 +408,43 @@ bool Ed25519SignatureAlgorithm::recoverXCoord() {
 	}
 
 	return true;
+}
+
+
+bool Ed25519SignatureAlgorithm::decodePoint(uint32_t* pointOutX, uint32_t* pointOutY, uint32_t* pointOutZ, uint32_t* pointOutT, char* encodedPoint) {
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		ptQ.Y[i] = encodedPoint[(KEY_BYTES - 1) - (i*2)] << 8;
+		ptQ.Y[i] |= encodedPoint[(KEY_BYTES - 1) - ((i*2) + 1)];
+	}
+	ptQ.Y[0] &= 0x00007fff;
+	bit = encodedPoint[31] >> 7;
+
+	if(!recoverXCoord()) {
+		return false;
+	}
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		pointOutX[i] = ptQ.X[i];
+		pointOutY[i] = ptQ.Y[i];
+	}
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		pointOutZ[i] = oneInt[i];
+	}
+	math.base16Mul(pointOutT, ptQ.X, ptQ.Y);
+
+	return true;
+}
+
+
+bool Ed25519SignatureAlgorithm::greaterThanOrEqualToOrder(uint32_t* a) {
+	unsigned short i = 0;
+	while((a[i] >= L[i]) && (i < INT_LENGTH_MULTI)) {
+		i += 1;
+	}
+	if(i == INT_LENGTH_MULTI) {
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -528,13 +529,9 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		return false;
 	}
 
-
-
 	if(!decodePoint(ptR.X, ptR.Y, ptR.Z, ptR.T, signature)) {
 		return false;
 	}
-
-
 
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 		scalarByte[i] = signature[(SIGNATURE_BYTES - 1) - i];
@@ -547,8 +544,6 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		return false;
 	}
 
-
-
 	char* RAMsg = new char[(2*KEY_BYTES) + messageBytes];
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 		RAMsg[i] = signature[i];
@@ -560,8 +555,6 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 	hashModOrder(regK, RAMsg, ((2*KEY_BYTES) + messageBytes)); // regK is storing k % L.
 	delete[] RAMsg;
 
-
-
 	Ed25519(BaseX, BaseY, oneInt, BaseT);
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
@@ -570,16 +563,12 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		ptS.Z[i] = ptQ.Z[i];
 	} // ptS is storing [S]B.
 
-
-
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		scalarByte[i*2] = regK[i] >> 8;
 		scalarByte[(i*2) + 1] = regK[i];
 	}
 
 	Ed25519(ptA.X, ptA.Y, ptA.Z, ptA.T); // ptQ is storing [k]A.
-
-
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		ptP.X[i] = ptR.X[i];
