@@ -250,6 +250,9 @@ void setup() {
 	Serial.print("runtime: ");
 	Serial.println(duration);
 
+	Serial.println("Signature should be:");
+	Serial.println("dc2a4459e7369633a52b1bf277839a00201009a3efbf3ecb69bea2186c26b58909351fc9ac90b3ecfdfbc7c66431e0303dca179c138ac17ad9bef1177331a704");
+
 	for(unsigned short i = 0; i < 64; i += 1) {
 		if(signature[i] > 0x0f) {
 			Serial.print(signature[i], HEX);
