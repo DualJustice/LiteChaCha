@@ -7,9 +7,6 @@
 
 #include <stdint.h>
 
-#include "Arduino.h" // DELETE ME!
-#include "HardwareSerial.h"// DELETE ME!
-
 
 struct Point {
 	uint32_t X[16]; // INT_LENGTH_MULTI.
@@ -533,23 +530,6 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 
 
 bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) { // Not constant time, all parts are public.
-	Serial.println("Variables passed into verify():");
-	Serial.println("publicKey: ");
-	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
-		Serial.print(publicKey[i], HEX);
-	}
-	Serial.println();
-	Serial.println("message: ");
-	for(unsigned short i = 0; i < messageBytes; i += 1) {
-		Serial.print(message[i], HEX);
-	}
-	Serial.println();
-	Serial.println("signature: ");
-	for(unsigned short i = 0; i < SIGNATURE_BYTES; i += 1) {
-		Serial.print(signature[i], HEX);
-	}
-	Serial.println();
-
 	if(!decodePoint(ptA.X, ptA.Y, ptA.Z, ptA.T, publicKey)) {
 		return false;
 	}

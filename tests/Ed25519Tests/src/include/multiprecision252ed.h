@@ -52,6 +52,8 @@ MultiPrecisionArithmetic252ed::~MultiPrecisionArithmetic252ed() {
 
 
 void MultiPrecisionArithmetic252ed::prepareDoubleIn(const uint32_t* a) {
+	u[1] = 0x00000000;
+
 	for(unsigned short i = 0; i < (2*n); i += 1) {
 		u[i + 2] = a[i];
 	}
