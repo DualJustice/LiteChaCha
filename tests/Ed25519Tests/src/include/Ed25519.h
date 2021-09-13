@@ -418,8 +418,8 @@ bool Ed25519SignatureAlgorithm::recoverXCoord() {
 
 bool Ed25519SignatureAlgorithm::decodePoint(uint32_t* pointOutX, uint32_t* pointOutY, uint32_t* pointOutZ, uint32_t* pointOutT, char* encodedPoint) {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		ptQ.Y[i] = encodedPoint[(KEY_BYTES - 1) - (i*2)] << 8;
-		ptQ.Y[i] |= encodedPoint[(KEY_BYTES - 1) - ((i*2) + 1)];
+		ptQ.Y[i] = encodedPoint[31 - (i*2)] << 8; // 31 = KEY_BYTES - 1, or (SIGNATURE_BYTES/2) - 1.
+		ptQ.Y[i] |= encodedPoint[31 - ((i*2) + 1)];
 	}
 	ptQ.Y[0] &= 0x00007fff;
 	bit = encodedPoint[31] >> 7;
