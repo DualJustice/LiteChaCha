@@ -527,8 +527,8 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 		signatureOut[(i*2) + 1 + (SIGNATURE_BYTES/2)] = regC[(INT_LENGTH_MULTI - 1) - i] >> 8;
 	}
 }
-
-
+// I believe that this resource will prove to be very valuable to you:
+// https://hdevalence.ca/blog/2020-10-04-its-25519am
 bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) { // Not constant time, all parts are public.
 	if(!decodePoint(ptA.X, ptA.Y, ptA.Z, ptA.T, publicKey)) {
 		return false;
