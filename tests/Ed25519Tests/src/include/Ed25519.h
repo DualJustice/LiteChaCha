@@ -529,6 +529,7 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 }
 // I believe that this resource will prove to be very valuable to you:
 // https://hdevalence.ca/blog/2020-10-04-its-25519am
+// Here's the rub: Is this behavior a result of non-canonical signatures, or I am simply doing something wrong?
 bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) { // Not constant time, all parts are public.
 	if(!decodePoint(ptA.X, ptA.Y, ptA.Z, ptA.T, publicKey)) {
 		return false;
