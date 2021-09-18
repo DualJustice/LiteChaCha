@@ -211,7 +211,7 @@ void setup() {
 	char publicKey[32];
 
 	const size_t messageSize = 32; // FIX ME!
-	char messageBuffer[(messageSize*2) + 1] = {"e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c"};
+	char messageBuffer[(messageSize*2) + 1] = {"39a591f5321bbe07fd5a23dc2f39d025d74526615746727ceefd6e82ae65c06f"};
 	char message[messageSize];
 	char signature[64];
 
@@ -286,10 +286,10 @@ void setup() {
 //	char signatureBuffer[129] = {"E6AE4F4181184FFBA68F3A3C49507D0CFB805CA87E57D13AE82F445B57A595C8F1838AF7351E2D52A74EC1C5B6FAC1F6DC1D0691993E747C0BCEBF114423D00D"};
 //	char signatureBuffer[129] = {"E6AE4F4181184FFBA68F3A3C49507D0CFB805CA87E57D13AE82F445B57A595C8F1838AF7351E2D52A74EC1C5B6FAC1F6DC1D0691993E747C0BCEBF114423D00E"};
 
-	char signatureBuffer[129] = {"160a1cb0dc9c0258cd0a7d23e94d8fa878bcb1925f2c64246b2dee1796bed5125ec6bc982a269b723e0668e540911a9a6a58921d6925e434ab10aa7940551a09"};
+	char signatureBuffer[129] = {"a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04"};
 	stringToHex(signature, signatureBuffer, 64);
 
-	char publicKeyBuffer[65] = {"cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d"}; // COMMENT ME OUT!
+	char publicKeyBuffer[65] = {"ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}; // COMMENT ME OUT!
 	stringToHex(publicKey, publicKeyBuffer, 32); // COMMENT ME OUT!
 
 	timestamp = millis();
