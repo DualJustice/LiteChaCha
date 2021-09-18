@@ -27,6 +27,24 @@ bool greaterThanOrEqualToOrder(uint32_t* a) { // WARNING: BROKEN!
 	Serial.println("false");
 	return false;
 }
+
+
+bool greaterThanOrEqualToOrder(uint32_t* a) {
+	unsigned short i = 0;
+	while((i < 16) && (a[i] >= L[i])) {
+		i += 1;
+	}
+
+	Serial.println(i);
+
+	if(i == 16) {
+		Serial.println("true");
+		return true;
+	}
+
+	Serial.println("false");
+	return false;
+}
 */
 
 bool greaterThanOrEqualToOrder(uint32_t* a) {
@@ -53,7 +71,7 @@ void setup() {
 
 //	order.base16Mod(b, a);
 
-	uint32_t a[16] = {0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014de, 0x0000f9de, 0x0000a2f7, 0x00009cd6, 0x00005812, 0x0000631a, 0x00005cf5, 0x0000d3ee};
+	uint32_t a[16] = {0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014de, 0x0000f9de, 0x0000a2f7, 0x00009cd6, 0x00005812, 0x0000631a, 0x00005cf5, 0x0000d3ed};
 
 	if(greaterThanOrEqualToOrder(a)) {
 		Serial.println("true");
