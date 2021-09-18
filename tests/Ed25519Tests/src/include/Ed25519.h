@@ -107,7 +107,6 @@ private:
 
 	bool greaterThanOrEqualToP(uint32_t*);
 	bool equalToZero(uint32_t*);
-	bool notEqualToZero(uint32_t*);
 	bool greaterThanOrEqualToOrder(uint32_t*);
 
 	bool recoverXCoord();
@@ -325,28 +324,24 @@ void Ed25519SignatureAlgorithm::hashModOrder(uint32_t* intOut, char* message, un
 
 
 bool Ed25519SignatureAlgorithm::greaterThanOrEqualToP(uint32_t* a) {
-	unsigned short i = 0;
-	while((a[i] >= p[i]) && (i < INT_LENGTH_MULTI)) {
-		i += 1;
-	}
-	if(i == INT_LENGTH_MULTI) {
-		return true;
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		if(a[i] < p[i]) {
+			return false;
+		}
 	}
 
-	return false;
+	return true;
 }
 
 
 bool Ed25519SignatureAlgorithm::equalToZero(uint32_t* a) {
-	unsigned short i = 0;
-	while((a[i] == 0x00000000) && (i < INT_LENGTH_MULTI)) {
-		i += 1;
-	}
-	if(i == INT_LENGTH_MULTI) {
-		return true;
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		if(a[i] != 0x00000000) {
+			return false;
+		}
 	}
 
-	return false;
+	return true;
 }
 
 
@@ -354,19 +349,6 @@ void Ed25519SignatureAlgorithm::p38p() { // Adapted from Daniel J. Bernstein. Ca
 	commonInverse();
 
 	math.base16Mul(ptQ.X, regC, regA);
-}
-
-
-bool Ed25519SignatureAlgorithm::notEqualToZero(uint32_t* a) {
-	unsigned short i = 0;
-	while((a[i] == 0x00000000) && (i < INT_LENGTH_MULTI)) {
-		i += 1;
-	}
-	if(i != INT_LENGTH_MULTI) {
-		return true;
-	}
-
-	return false;
 }
 
 
@@ -399,12 +381,12 @@ bool Ed25519SignatureAlgorithm::recoverXCoord() {
 
 	math.base16Mul(ptQ.T, ptQ.X, ptQ.X);
 	math.base16Sub(ptQ.T, ptQ.T, ptQ.Z);
-	if(notEqualToZero(ptQ.T)) {
+	if(!(equalToZero(ptQ.T))) {
 		math.base16Mul(ptQ.X, ptQ.X, complex);
 	}
 	math.base16Mul(ptQ.T, ptQ.X, ptQ.X);
 	math.base16Sub(ptQ.T, ptQ.T, ptQ.Z);
-	if(notEqualToZero(ptQ.T)) {
+	if(!(equalToZero(ptQ.T))) {
 		return false;
 	}
 
@@ -441,15 +423,13 @@ bool Ed25519SignatureAlgorithm::decodePoint(uint32_t* pointOutX, uint32_t* point
 
 
 bool Ed25519SignatureAlgorithm::greaterThanOrEqualToOrder(uint32_t* a) {
-	unsigned short i = 0;
-	while((a[i] >= L[i]) && (i < INT_LENGTH_MULTI)) {
-		i += 1;
-	}
-	if(i == INT_LENGTH_MULTI) {
-		return true;
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		if(a[i] < L[i]) {
+			return false;
+		}
 	}
 
-	return false;
+	return true;
 }
 
 
@@ -591,7 +571,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 	math.base16Mul(regC, ptQ.X, ptS.Z);
 	math.base16Sub(regB, regB, regC);
 
-	if(notEqualToZero(regB)) {
+	if(!(equalToZero(regB))) {
 		return false;
 	}
 
@@ -599,7 +579,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 	math.base16Mul(regC, ptQ.Y, ptS.Z);
 	math.base16Sub(regB, regB, regC);
 
-	if(notEqualToZero(regB)) {
+	if(!(equalToZero(regB))) {
 		return false;
 	}
 
