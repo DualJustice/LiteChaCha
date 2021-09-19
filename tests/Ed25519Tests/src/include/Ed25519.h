@@ -571,7 +571,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		ptP.T[i] = ptR.T[i];
 	}
 
-	ladderAdd(ptQ.X, ptQ.Y, ptQ.Z, ptQ.T);
+	ladderAdd(ptQ.X, ptQ.Y, ptQ.Z, ptQ.T); // ptQ is storing R + [k]A.
 
 	math.base16Mul(regB, ptS.X, ptQ.Z);
 	math.base16Mul(regC, ptQ.X, ptS.Z);
