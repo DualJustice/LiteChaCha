@@ -206,12 +206,12 @@ void setup() {
 
 	Ed25519SignatureAlgorithm dsa;
 
-	char privateKeyBuffer[65] = {"c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7"};
+//	char privateKeyBuffer[65] = {"c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7"}; UNCOMMENT ME!
 	char privateKey[32];
 	char publicKey[32];
 
 	const size_t messageSize = 32; // FIX ME!
-	char messageBuffer[(messageSize*2) + 1] = {"85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40"};
+	char messageBuffer[(messageSize*2) + 1] = {"39a591f5321bbe07fd5a23dc2f39d025d74526615746727ceefd6e82ae65c06f"};
 	char message[messageSize];
 	char signature[64];
 
@@ -219,7 +219,7 @@ void setup() {
 
 	Serial.println("Running");
 
-	stringToHex(privateKey, privateKeyBuffer);
+//	stringToHex(privateKey, privateKeyBuffer); UNCOMMENT ME!
 /*
 	timestamp = millis();
 	dsa.initialize(publicKey, privateKey);
@@ -286,11 +286,11 @@ void setup() {
 //	char signatureBuffer[129] = {"E6AE4F4181184FFBA68F3A3C49507D0CFB805CA87E57D13AE82F445B57A595C8F1838AF7351E2D52A74EC1C5B6FAC1F6DC1D0691993E747C0BCEBF114423D00D"};
 //	char signatureBuffer[129] = {"E6AE4F4181184FFBA68F3A3C49507D0CFB805CA87E57D13AE82F445B57A595C8F1838AF7351E2D52A74EC1C5B6FAC1F6DC1D0691993E747C0BCEBF114423D00E"};
 
-	char signatureBuffer[129] = {"e96f66be976d82e60150baecff9906684aebb1ef181f67a7189ac78ea23b6c0e547f7690a0e2ddcd04d87dbc3490dc19b3b3052f7ff0538cb68afb369ba3a514"};
-	stringToHex(signature, signatureBuffer, 64);
-
-	char publicKeyBuffer[65] = {"442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623"}; // COMMENT ME OUT!
+	char publicKeyBuffer[65] = {"ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}; // COMMENT ME OUT!
 	stringToHex(publicKey, publicKeyBuffer, 32); // COMMENT ME OUT!
+
+	char signatureBuffer[129] = {"a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04"};
+	stringToHex(signature, signatureBuffer, 64);
 
 	timestamp = millis();
 	valid = dsa.verify(publicKey, message, signature, messageSize);
