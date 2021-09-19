@@ -283,14 +283,14 @@ void setup() {
 //	message[messageSize - 1] += 0x01;
 //	signature[63] += 0x01;
 
-	char signatureBuffer[129] = {"E6AE4F4181184FFBA68F3A3C49507D0CFB805CA87E57D13AE82F445B57A595C8F1838AF7351E2D52A74EC1C5B6FAC1F6DC1D0691993E747C0BCEBF114423D00D"};
+//	char signatureBuffer[129] = {"E6AE4F4181184FFBA68F3A3C49507D0CFB805CA87E57D13AE82F445B57A595C8F1838AF7351E2D52A74EC1C5B6FAC1F6DC1D0691993E747C0BCEBF114423D00D"};
 //	char signatureBuffer[129] = {"E6AE4F4181184FFBA68F3A3C49507D0CFB805CA87E57D13AE82F445B57A595C8F1838AF7351E2D52A74EC1C5B6FAC1F6DC1D0691993E747C0BCEBF114423D00E"};
 
 //	char publicKeyBuffer[65] = {"ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}; // COMMENT ME OUT!
 //	stringToHex(publicKey, publicKeyBuffer, 32); // COMMENT ME OUT!
 
 //	char signatureBuffer[129] = {"a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04"};
-	stringToHex(signature, signatureBuffer, 64);
+//	stringToHex(signature, signatureBuffer, 64);
 
 	timestamp = millis();
 	valid = dsa.verify(publicKey, message, signature, messageSize);
