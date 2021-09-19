@@ -206,12 +206,12 @@ void setup() {
 
 	Ed25519SignatureAlgorithm dsa;
 
-//	char privateKeyBuffer[65] = {"c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7"}; UNCOMMENT ME!
+	char privateKeyBuffer[65] = {"c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7"};
 	char privateKey[32];
 	char publicKey[32];
 
-	const size_t messageSize = 32; // FIX ME!
-	char messageBuffer[(messageSize*2) + 1] = {"39a591f5321bbe07fd5a23dc2f39d025d74526615746727ceefd6e82ae65c06f"};
+	const size_t messageSize = 2;
+	char messageBuffer[(messageSize*2) + 1] = {"af82"};
 	char message[messageSize];
 	char signature[64];
 
@@ -219,7 +219,7 @@ void setup() {
 
 	Serial.println("Running");
 
-//	stringToHex(privateKey, privateKeyBuffer); UNCOMMENT ME!
+	stringToHex(privateKey, privateKeyBuffer);
 /*
 	timestamp = millis();
 	dsa.initialize(publicKey, privateKey);
@@ -242,7 +242,7 @@ void setup() {
 //		message[i] = messageBuffer[i];
 //	}
 	stringToHex(message, messageBuffer, messageSize);
-/*																	COME BACK TO ME!
+
 	timestamp = millis();
 	dsa.sign(signature, publicKey, privateKey, message, true, messageSize);
 	duration = millis() - timestamp;
@@ -258,7 +258,7 @@ void setup() {
 			Serial.print(signature[i], HEX);
 		}
 	}
-	Serial.println('\n');*/										// COME BACK TO ME!
+	Serial.println('\n');
 /*
 	for(unsigned short i = 0; i < 32; i += 1) {
 		if(publicKey[i] > 0x0f) {
@@ -283,13 +283,13 @@ void setup() {
 //	message[messageSize - 1] += 0x01;
 //	signature[63] += 0x01;
 
-//	char signatureBuffer[129] = {"E6AE4F4181184FFBA68F3A3C49507D0CFB805CA87E57D13AE82F445B57A595C8F1838AF7351E2D52A74EC1C5B6FAC1F6DC1D0691993E747C0BCEBF114423D00D"};
+	char signatureBuffer[129] = {"E6AE4F4181184FFBA68F3A3C49507D0CFB805CA87E57D13AE82F445B57A595C8F1838AF7351E2D52A74EC1C5B6FAC1F6DC1D0691993E747C0BCEBF114423D00D"};
 //	char signatureBuffer[129] = {"E6AE4F4181184FFBA68F3A3C49507D0CFB805CA87E57D13AE82F445B57A595C8F1838AF7351E2D52A74EC1C5B6FAC1F6DC1D0691993E747C0BCEBF114423D00E"};
 
-	char publicKeyBuffer[65] = {"ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}; // COMMENT ME OUT!
-	stringToHex(publicKey, publicKeyBuffer, 32); // COMMENT ME OUT!
+//	char publicKeyBuffer[65] = {"ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}; // COMMENT ME OUT!
+//	stringToHex(publicKey, publicKeyBuffer, 32); // COMMENT ME OUT!
 
-	char signatureBuffer[129] = {"a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04"};
+//	char signatureBuffer[129] = {"a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04"};
 	stringToHex(signature, signatureBuffer, 64);
 
 	timestamp = millis();
