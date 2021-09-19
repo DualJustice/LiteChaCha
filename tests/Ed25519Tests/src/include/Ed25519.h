@@ -325,6 +325,9 @@ void Ed25519SignatureAlgorithm::hashModOrder(uint32_t* intOut, char* message, un
 
 bool Ed25519SignatureAlgorithm::greaterThanOrEqualToP(uint32_t* a) {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		if(a[i] > p[i]) {
+			return true;
+		}
 		if(a[i] < p[i]) {
 			return false;
 		}
@@ -424,6 +427,9 @@ bool Ed25519SignatureAlgorithm::decodePoint(uint32_t* pointOutX, uint32_t* point
 
 bool Ed25519SignatureAlgorithm::greaterThanOrEqualToOrder(uint32_t* a) {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		if(a[i] > L[i]) {
+			return true;
+		}
 		if(a[i] < L[i]) {
 			return false;
 		}
