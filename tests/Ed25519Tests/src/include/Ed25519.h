@@ -96,6 +96,7 @@ private:
 	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
 	void ladderDouble();
 	void Ed25519(const uint32_t*, const uint32_t*, const uint32_t*, const uint32_t*);
+	void quickEd25519(const uint32_t*, const uint32_t*, const uint32_t*, const uint32_t*);
 
 	void commonInverse();
 	void inverse();
@@ -439,6 +440,33 @@ bool Ed25519SignatureAlgorithm::greaterThanOrEqualToOrder(uint32_t* a) {
 }
 
 
+void Ed25519SignatureAlgorithm::quickEd25519(const uint32_t* PX, const uint32_t* PY, const uint32_t* PZ, const uint32_t* PT) {
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		ptP.X[i] = PX[i];
+		ptP.Y[i] = PY[i];
+		ptP.Z[i] = PZ[i];
+		ptP.T[i] = PT[i];
+	}
+
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) { // ptQ = Neutral element.
+		ptQ.X[i] = 0x00000000;
+		ptQ.Y[i] = oneInt[i];
+		ptQ.Z[i] = oneInt[i];
+		ptQ.T[i] = 0x00000000;
+	}
+
+	for(unsigned short i = 0; i < BITS; i += 1) {
+		bit = (scalarByte[(BITS - i)/8] >> (i % 8)) & 0x01;
+
+		if(bit == 0x01) {
+			ladderAdd(ptQ.X, ptQ.Y, ptQ.Z, ptQ.T);
+		}
+
+		ladderDouble();
+	}
+}
+
+
 void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey) {
 	generateReadAndPruneHash(privateKey);
 
@@ -546,7 +574,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 	hashModOrder(regK, RAMsg, ((2*KEY_BYTES) + messageBytes)); // regK is storing k % L.
 	delete[] RAMsg;
 
-	Ed25519(BaseX, BaseY, oneInt, BaseT);
+	quickEd25519(BaseX, BaseY, oneInt, BaseT);
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		ptS.X[i] = ptQ.X[i];
@@ -559,7 +587,7 @@ bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* sig
 		scalarByte[(i*2) + 1] = regK[i];
 	}
 
-	Ed25519(ptA.X, ptA.Y, ptA.Z, ptA.T); // ptQ is storing [k]A.
+	quickEd25519(ptA.X, ptA.Y, ptA.Z, ptA.T); // ptQ is storing [k]A.
 
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		ptP.X[i] = ptR.X[i];
