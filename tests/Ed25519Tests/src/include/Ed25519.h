@@ -513,12 +513,9 @@ void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, c
 		signatureOut[(i*2) + 1 + (SIGNATURE_BYTES/2)] = regC[(INT_LENGTH_MULTI - 1) - i] >> 8;
 	}
 }
-// I believe that this resource will prove to be very valuable to you:
-// https://hdevalence.ca/blog/2020-10-04-its-25519am
-// Here's the rub: Is this behavior a result of non-canonical signatures, or I am simply doing something wrong?
-// This might help answer the above question. I think you'll find section 5 of particular interest:
-// https://research.fb.com/wp-content/uploads/2020/10/Taming-the-many-EdDSAs.pdf
-bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) { // Not constant time, all parts are public.
+
+
+bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) { // Not constant time, all components are public.
 	if(!decodePoint(ptA.X, ptA.Y, ptA.Z, ptA.T, publicKey)) {
 		return false;
 	}
