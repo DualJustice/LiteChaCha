@@ -440,7 +440,7 @@ bool Ed25519SignatureAlgorithm::greaterThanOrEqualToOrder(uint32_t* a) {
 }
 
 
-void Ed25519SignatureAlgorithm::quickEd25519(const uint32_t* PX, const uint32_t* PY, const uint32_t* PZ, const uint32_t* PT) {
+void Ed25519SignatureAlgorithm::quickEd25519(const uint32_t* PX, const uint32_t* PY, const uint32_t* PZ, const uint32_t* PT) { // A variable-time implementation of Ed25519 for signature verification.
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		ptP.X[i] = PX[i];
 		ptP.Y[i] = PY[i];
