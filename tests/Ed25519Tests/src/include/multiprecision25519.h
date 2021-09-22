@@ -169,6 +169,26 @@ void MultiPrecisionArithmetic25519::prepareOut(uint32_t* out) {
 }
 
 
+/*
+Might need to quick subtract: 0, 1p, or 2p.
+
+Given a + b = c.
+
+Subtract 0:
+c < p.
+
+Subtract 1p:
+p <= c < 2p.
+
+Subtract 2p:
+2p <= c.
+
+p	 = 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffed
+2p	 = ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffda
+cmax = 
+*/
+
+
 void MultiPrecisionArithmetic25519::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b) { // Might be able to optimize by combining some steps.
 	prepareIn(a, b);
 
