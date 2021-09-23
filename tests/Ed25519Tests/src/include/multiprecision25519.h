@@ -170,22 +170,25 @@ void MultiPrecisionArithmetic25519::prepareOut(uint32_t* out) {
 
 
 /*
-Might need to quick subtract: 0, 1p, or 2p.
+Given a + b = c:
 
-Given a + b = c.
+amax =	 ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff
+bmax =	 ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff
+cmax = 1 ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff fffe
 
-Subtract 0:
-c < p.
+p	 =	 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffed
 
-Subtract 1p:
-p <= c < 2p.
+cmax/p = 4.000...000127...
 
-Subtract 2p:
-2p <= c.
+(((2^256) - 1)*2) - (4*((2^255) - 19)) == cmax - 4p = 74.
 
-p	 = 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffed
-2p	 = ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffda
-cmax = 
+Therefore: You may need to quick subtract 0, 1p, 2p, 3p, or 4p.
+
+0  : c < 1p
+1p : 1p <= c < 2p
+2p : 2p <= c < 3p
+3p : 3p <= c < 4p
+4p : 4p <= c
 */
 
 
