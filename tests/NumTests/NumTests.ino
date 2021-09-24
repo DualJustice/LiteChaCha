@@ -3,7 +3,7 @@
 
 //#include "src\include\multiprecision25519.h"
 //#include "src\include\multiprecision1305.h"
-//#include "src\include\multiprecision252ed.h"
+#include "src\include\multiprecision252ed.h"
 
 #include <stdint.h>
 
@@ -46,8 +46,8 @@ bool greaterThanOrEqualToOrder(uint32_t* a) {
 	return false;
 }
 */
-
-bool greaterThanOrEqualToOrder(uint32_t* a) {
+/*
+bool greaterThanOrEqualToOrder(uint32_t* a) { // This won't find >=, but it will run properly.
 	for(unsigned short i = 0; i < 16; i += 1) {
 		if(a[i] < L[i]) {
 			return false;
@@ -56,7 +56,7 @@ bool greaterThanOrEqualToOrder(uint32_t* a) {
 
 	return true;
 }
-
+*/
 
 void setup() {
 	Serial.begin(9600);
@@ -64,13 +64,36 @@ void setup() {
 		delay(250);
 	}
 
-//	MultiPrecisionArithmetic252ed order;
+	MultiPrecisionArithmetic252ed order;
 
-//	uint32_t a[32] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014de, 0x0000f9de, 0x0000a2f7, 0x00009cd6, 0x00005812, 0x0000631a, 0x00005cf5, 0x0000d3ec};
-//	uint32_t b[16] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
+	uint32_t a[32] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014de, 0x0000f9de, 0x0000a2f7, 0x00009cd6, 0x00005812, 0x0000631a, 0x00005cf5, 0x0000d3ec};
+	uint32_t b[16] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
 
-//	order.base16Mod(b, a);
+	uint32_t c[16] = {0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
+	uint32_t d[16] = {0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff};
+/*
+	timestamp = millis();
+	valid = dsa.verify(publicKey, message, signature, messageSize);
+	duration = millis() - timestamp;
+*/
+	unsigned long timestamp = 0;
+	unsigned long duration = 0;
 
+	timestamp = micros();
+	order.base16Mod(b, a);
+	duration = micros() - timestamp;
+
+	Serial.print("mod: ");
+	Serial.println(duration);
+
+	timestamp = micros();
+	order.base16Add(b, c, d);
+	duration = micros() - timestamp;
+
+	Serial.print("add: ");
+	Serial.println(duration);
+
+/*
 	uint32_t a[16] = {0x00001000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000014de, 0x0000f9de, 0x0000a2f7, 0x00009cd6, 0x00005812, 0x0000631a, 0x00005cf5, 0x0000d3ed};
 
 	if(greaterThanOrEqualToOrder(a)) {
@@ -78,7 +101,7 @@ void setup() {
 	} else {
 		Serial.println("false");
 	}
-
+*/
 /*
 	Serial.print("b:");
 	for(unsigned short i = 0; i < 16; i += 1) {

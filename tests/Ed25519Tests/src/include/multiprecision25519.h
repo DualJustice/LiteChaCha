@@ -189,6 +189,8 @@ Therefore: You may need to quick subtract 0, 1p, 2p, 3p, or 4p.
 2p : 2p <= c < 3p
 3p : 3p <= c < 4p
 4p : 4p <= c
+
+Instead of checking 5 conditions for every addition and subtraction, make a single prepatoryMod() function that acts on all values derived from outside inputs.
 */
 
 
