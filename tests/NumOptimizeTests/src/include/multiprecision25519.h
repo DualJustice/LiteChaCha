@@ -169,6 +169,50 @@ void MultiPrecisionArithmetic25519::prepareOut(uint32_t* out) {
 }
 
 
+/*
+Given a + b = c:
+
+amax =	 ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff
+bmax =	 ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff
+cmax = 1 ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff fffe
+
+p	 =	 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffed
+
+cmax/p = 4.000...000127...
+
+(((2^256) - 1)*2) - (4*((2^255) - 19)) == cmax - 4p = 74.
+
+Therefore: You may need to quick subtract 0, 1p, 2p, 3p, or 4p.
+
+0  : c < 1p
+1p : 1p <= c < 2p
+2p : 2p <= c < 3p
+3p : 3p <= c < 4p
+4p : 4p <= c
+
+Instead of checking 5 conditions for every addition and subtraction, make a single preparatoryMod() function that acts on all values derived from outside inputs.
+
+Then...
+
+Assume 0 <= a & b < p
+
+Given a + b = c:
+
+amax =	 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffec
+bmax =	 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffec
+cmax =	 ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffd8
+
+p	 =	 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffed
+
+cmax - 1p < p !
+
+Therefore: You may need to quick subtract 0 or 1p.
+
+0  : c < 1p
+1p : 1p <= c
+*/
+
+
 void MultiPrecisionArithmetic25519::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b) { // Might be able to optimize by combining some steps.
 	prepareIn(a, b);
 
