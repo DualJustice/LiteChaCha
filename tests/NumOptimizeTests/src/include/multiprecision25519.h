@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+//#include "Arduino.h" // DELETE ME!
+//#include "HardwareSerial.h" // DELETE ME!
+
 
 class MultiPrecisionArithmetic25519 {
 private:
@@ -14,6 +17,7 @@ private:
 	uint32_t qHat;
 	uint32_t rHat;
 	uint32_t c; // Conditional multiplier used in place of conditional branches to aid in constant-time.
+	uint32_t s; // Switch used on the conditional multiplier.
 
 // ---------- Multiplication Variables ----------
 	uint32_t w[n*2];
@@ -223,9 +227,49 @@ void MultiPrecisionArithmetic25519::base16Add(uint32_t* out, const uint32_t* a, 
 		carry = u[i]/base;
 		u[i] %= base;
 	}
+/*
+	Serial.print("u:");
+	for(unsigned short i = 1; i < (n + 2); i += 1) {
+		Serial.print(' ');
+		Serial.print(u[i], HEX);
+	}
+	Serial.println();
+*/
+	c = 0x00000000;
+	s = 0x00000001;
+	for(unsigned short i = 2; i < (n + 2); i += 1) {
+		c |= (s*(u[i] > p[i - 2]));
+		s &= (!(u[i] < p[i - 2]));
+	}
+	c |= s;
 
+//	Serial.print("c: ");
+//	Serial.println(c);
+
+	carry = 0x00000000;
+
+	for(unsigned short i = (n + 1); i > 1; i -= 1) {
+		u[i] -= (c*(p[i - 2] + carry));
+		carry = (u[i] & base)/base;
+		u[i] = (u[i] & 0x0001ffff) % base;
+	}
+
+/*
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		if(a[i] > p[i]) {
+			return true;
+		}
+		if(a[i] < p[i]) {
+			return false;
+		}
+	}
+
+	return true;
+*/
+/*
 	m = 1;
 	base16Mod();
+*/
 
 	prepareOut(out);
 }
