@@ -34,6 +34,7 @@ private:
 
 	void prepareIn(const uint32_t*, const uint32_t*);
 
+	void fast16Mod();
 	void base16Mod();
 
 	void prepareOut(uint32_t*);
@@ -76,6 +77,27 @@ void MultiPrecisionArithmetic25519::prepareIn(const uint32_t* a, const uint32_t*
 	for(unsigned short i = 0; i < n; i += 1) {
 		u[i + 2] = a[i];
 		v[i + 1] = b[i];
+	}
+}
+
+
+void MultiPrecisionArithmetic25519::fast16Mod() {
+	c = 0x00000000;
+	s = 0x00000001;
+
+	for(unsigned short i = 2; i < (n + 2); i += 1) {
+		c |= (s*(u[i] > p[i - 2]));
+		s &= (!(u[i] < p[i - 2]));
+	}
+
+	c |= s;
+
+	carry = 0x00000000;
+
+	for(unsigned short i = (n + 1); i > 1; i -= 1) {
+		u[i] -= (c*(p[i - 2] + carry));
+		carry = (u[i] & base)/base;
+		u[i] = (u[i] & 0x0001ffff) % base;
 	}
 }
 
@@ -227,45 +249,9 @@ void MultiPrecisionArithmetic25519::base16Add(uint32_t* out, const uint32_t* a, 
 		carry = u[i]/base;
 		u[i] %= base;
 	}
-/*
-	Serial.print("u:");
-	for(unsigned short i = 1; i < (n + 2); i += 1) {
-		Serial.print(' ');
-		Serial.print(u[i], HEX);
-	}
-	Serial.println();
-*/
-	c = 0x00000000;
-	s = 0x00000001;
-	for(unsigned short i = 2; i < (n + 2); i += 1) {
-		c |= (s*(u[i] > p[i - 2]));
-		s &= (!(u[i] < p[i - 2]));
-	}
-	c |= s;
 
-//	Serial.print("c: ");
-//	Serial.println(c);
+	fast16Mod();
 
-	carry = 0x00000000;
-
-	for(unsigned short i = (n + 1); i > 1; i -= 1) {
-		u[i] -= (c*(p[i - 2] + carry));
-		carry = (u[i] & base)/base;
-		u[i] = (u[i] & 0x0001ffff) % base;
-	}
-
-/*
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		if(a[i] > p[i]) {
-			return true;
-		}
-		if(a[i] < p[i]) {
-			return false;
-		}
-	}
-
-	return true;
-*/
 /*
 	m = 1;
 	base16Mod();
