@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-//#include "Arduino.h" // DELETE ME!
-//#include "HardwareSerial.h" // DELETE ME!
+#include "Arduino.h" // DELETE ME!
+#include "HardwareSerial.h" // DELETE ME!
 
 
 class MultiPrecisionArithmetic25519 {
@@ -34,7 +34,7 @@ private:
 
 	void prepareIn(const uint32_t*, const uint32_t*);
 
-	void fast16Mod();
+	void fast16Mod(); // Used after addition, and assumes that both addends are less than p.
 	void base16Mod();
 
 	void prepareOut(uint32_t*);
@@ -302,8 +302,15 @@ void MultiPrecisionArithmetic25519::base16Sub(uint32_t* out, const uint32_t* a, 
 		u[i] = (u[i] & 0x0001ffff) % base;
 	}
 
-	u[1] &= 0x00000001;
+	Serial.print("u:");
+	for(unsigned short i = 1; i < 18; i += 1) {
+		Serial.print(' ');
+		Serial.print(u[i], HEX);
+	}
+	Serial.println();
 
+//	u[1] &= 0x00000001;
+/*
 	for(unsigned short j = 0; j < 3; j += 1) {
 		carry = 0x00000000;
 
@@ -318,7 +325,7 @@ void MultiPrecisionArithmetic25519::base16Sub(uint32_t* out, const uint32_t* a, 
 
 	m = 1;
 	base16Mod();
-
+*/
 	prepareOut(out);
 }
 
