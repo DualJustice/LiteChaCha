@@ -34,7 +34,8 @@ private:
 
 	void prepareIn(const uint32_t*, const uint32_t*);
 
-	void fast16Mod(); // Used after addition, and assumes that both addends are less than p.
+	void quickAMod(); // Used after addition, and assumes that both addends are less than p.
+	void quickSMod(); // Used after subtraction, and assumes that both the subtrahend and minuend are less than p.
 	void base16Mod();
 
 	void prepareOut(uint32_t*);
@@ -81,7 +82,7 @@ void MultiPrecisionArithmetic25519::prepareIn(const uint32_t* a, const uint32_t*
 }
 
 
-void MultiPrecisionArithmetic25519::fast16Mod() {
+void MultiPrecisionArithmetic25519::quickAMod() {
 	c = 0x00000000;
 	s = 0x00000001;
 
@@ -188,6 +189,19 @@ void MultiPrecisionArithmetic25519::base16Mod() {
 }
 
 
+void MultiPrecisionArithmetic25519::quickSMod() {
+	carry = 0x00000000;
+
+	for(unsigned short i = (n + 1); i > 1; i -= 1) {
+		u[i] += ((u[1]*p[i - 2]) + carry);
+		carry = u[i]/base;
+		u[i] %= base;
+	}
+
+	u[1] -= carry;
+}
+
+
 void MultiPrecisionArithmetic25519::prepareOut(uint32_t* out) {
 	for(unsigned short i = 0; i < n; i += 1) {
 		out[i] = u[i + 2];
@@ -250,7 +264,7 @@ void MultiPrecisionArithmetic25519::base16Add(uint32_t* out, const uint32_t* a, 
 		u[i] %= base;
 	}
 
-	fast16Mod();
+	quickAMod();
 
 /*
 	m = 1;
@@ -302,14 +316,10 @@ void MultiPrecisionArithmetic25519::base16Sub(uint32_t* out, const uint32_t* a, 
 		u[i] = (u[i] & 0x0001ffff) % base;
 	}
 
-	Serial.print("u:");
-	for(unsigned short i = 1; i < 18; i += 1) {
-		Serial.print(' ');
-		Serial.print(u[i], HEX);
-	}
-	Serial.println();
+	u[1] &= 0x00000001;
 
-//	u[1] &= 0x00000001;
+	quickSMod();
+
 /*
 	for(unsigned short j = 0; j < 3; j += 1) {
 		carry = 0x00000000;
@@ -326,6 +336,7 @@ void MultiPrecisionArithmetic25519::base16Sub(uint32_t* out, const uint32_t* a, 
 	m = 1;
 	base16Mod();
 */
+
 	prepareOut(out);
 }
 
