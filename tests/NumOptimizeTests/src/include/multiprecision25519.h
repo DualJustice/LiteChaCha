@@ -19,15 +19,19 @@ private:
 	uint32_t c; // Conditional multiplier used in place of conditional branches to aid in constant-time.
 	uint32_t s; // Switch used on the conditional multiplier.
 
+// ---------- Barrett Variables ----------
+	const uint32_t mew[n + 1] = {0x00000002, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0000004c}; // (base^(2*n))/p
+	uint32_t q[n + 1];
+
 // ---------- Multiplication Variables ----------
-	uint32_t w[n*2];
+	uint32_t w[(n*2) + 1]; // INCREASED W'S SIZE BY ONE FOR BARRETT REDUCTION!
 
 // ---------- Subtraction Variables ----------
 	const uint32_t p[n] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
 
 // ---------- General Variables ----------
 	uint32_t u[(n*2) + 2]; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
-	uint32_t v[n + 1]; // v[0] is used for carry / borrow.
+	uint32_t v[n + 1]; // v[0] is typically used for carry / borrow.
 
 	uint32_t carry; // carry is used for addition carries, subtraction borrows, multiplication carries, and division remainders.
 	static const constexpr uint32_t base = 0x00010000;
@@ -37,6 +41,8 @@ private:
 	void quickAMod(); // Used after addition, and assumes that both addends are less than p.
 	void quickSMod(); // Used after subtraction, and assumes that both the subtrahend and minuend are less than p.
 	void base16Mod();
+
+	void barrettReduce(); // Used after multiplication, and assumes that both the multiplicand and multiplier are less than p.
 
 	void prepareOut(uint32_t*);
 public:
@@ -186,6 +192,113 @@ void MultiPrecisionArithmetic25519::base16Mod() {
 			u[i] = u[i + (m - 1)];
 		}
 	}
+}
+
+
+void MultiPrecisionArithmetic25519::barrettReduce() {
+// ---------- 1 ---------- q = u >> 240. 240/16 = 15. 32 - 15 = 17. AKA, q[17 to 33] = u[2 to 18]. OR, v[0 to 16] = u[2 to 18].
+	for(unsigned short i = 0; i < (n + 1); i += 1) {
+		v[i] = u[i + 2]; // v is storing q1.
+	}
+//	q2 = q1*mew, q1 is 17 long. mew is 17 long. q must be 34 long. Gonna use j for mew and i for q.
+/*
+	for(unsigned short i = ((n*2) - 1); i > (n - 1); i -= 1) {
+		w[i] = 0x00000000;
+	}
+
+	for(unsigned short j = n; j > 0; j -= 1) {
+		carry = 0x00000000;
+
+		for(unsigned short i = (n + 1); i > 1; i -= 1) {
+			w[(i + j) - 2] += ((u[i]*v[j]) + carry);
+			carry = w[(i + j) - 2]/base;
+			w[(i + j) - 2] %= base;
+		}
+
+		w[j - 1] = carry;
+	}
+
+	for(unsigned short i = 2; i < ((n*2) + 2); i += 1) {
+		u[i] = w[i - 2];
+	}
+*/
+
+	for(unsigned short i = (n*2); i > (n - 1); i -= 1) {
+		w[i] = 0x00000000;
+	}
+
+	for(unsigned short j = n; j >= 0; j -= 1) {
+		carry = 0x00000000;
+
+		for(unsigned short i = n; i >= 0; i -= 1) {
+			w[i + j] += ((v[i]*mew[j]) + carry);
+			carry = w[i + j]/base;
+			w[i + j] %= base;
+		}
+	} // w is storing q2.
+
+//	q = q >> 272. 272/16 = 17. 34 - 17 = 17. AKA, q[17 to 33] = q[0 to 16]. More accurately, q3 = w[0 to 16].
+
+	for(unsigned short i = 0; i < (n + 1); i += 1) {
+		q[i] = w[i]; // q is storing q3.
+	}
+
+// ---------- 2 ---------- r1 = u % 2^272. Strip all but the lowest 272 bits of u. 272/16 = 17. r1 = u[17 to 33].
+	for(unsigned short i = 0; i < (n + 1); i += 1) {
+		v[i] = u[i + (n + 1)]; // v is storing r1.
+	}
+
+//	r2 = (q3*p) % 2^272. Use j for p, and i for q3.
+
+	for(unsigned short i = ((n*2) - 1); i > (n - 2); i -= 1) {
+		w[i] = 0x00000000;
+	}
+
+	for(unsigned short j = (n - 1); j >= 0; j -= 1) {
+		carry = 0x00000000;
+
+		for(unsigned short i = n; i >= 0; i -= 1) {
+			w[i + j] += ((q3[i]*p[j]) + carry);
+			carry = w[i + j]/base;
+			w[i + j] %= base;
+		}
+	} // w is storing q3*m.
+
+//	result = v - w[16 to 32]. Result can be negative!
+/*
+	carry = 0x00000000;
+
+	for(unsigned short i = (n + 1); i > 0; i -= 1) {
+		u[i] -= (v[i - 1] + carry);
+		carry = (u[i] & base)/base;
+		u[i] = (u[i] & 0x0001ffff) % base;
+	}
+
+	u[1] &= 0x00000001;
+*/
+
+	carry = 0x00000000;
+
+	for(unsigned short i = (n + 2); i > 1; i -= 1) {
+		u[i] = v[i - 2] - (w[i + 14] + carry);
+		carry = (u[i] & base)/base;
+		u[i] = (u[i] & 0x0001ffff) % base;
+	}
+
+	u[1] = carry; // u is storing r.
+
+// ---------- 3 ----------
+/*
+	carry = 0x00000000;
+
+	for(unsigned short i = (n + 1); i > 1; i -= 1) {
+		u[i] += ((u[1]*p[i - 2]) + carry);
+		carry = u[i]/base;
+		u[i] %= base;
+	}
+
+	u[1] -= carry;
+*/
 }
 
 
