@@ -287,18 +287,33 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 
 	u[1] = carry; // u is storing r.
 
-// ---------- 3 ----------
-/*
-	carry = 0x00000000;
+// ---------- 3 ---------- MIGHT BE UNNECESSARY! ALMOST CERTAINLY IS...
+	u[1] -= u[1];
 
-	for(unsigned short i = (n + 1); i > 1; i -= 1) {
-		u[i] += ((u[1]*p[i - 2]) + carry);
-		carry = u[i]/base;
-		u[i] %= base;
+// ---------- 4 ---------- while(u >= p) {u -= p}.
+	for(unsigned short j = 0; j < 2; j += 1) {
+		c = 0x00000000;
+		s = 0x00000001;
+
+		c |= u[2];
+
+		for(unsigned short i = 3; i < (n + 3); i += 1) {
+			c |= (s*(u[i] > p[i - 3]));
+			s &= (!(u[i] < p[i - 3]));
+		}
+
+		c |= s;
+
+		carry = 0x00000000;
+
+		for(unsigned short i = (n + 2); i > 2; i -= 1) {
+			u[i] -= (c*(p[i - 3] + carry));
+			carry = (u[i] & base)/base;
+			u[i] = (u[i] & 0x0001ffff) % base;
+		}
+
+		u[2] -= carry;
 	}
-
-	u[1] -= carry;
-*/
 }
 
 
