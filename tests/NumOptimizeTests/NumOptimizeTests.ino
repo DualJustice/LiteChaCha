@@ -37,7 +37,7 @@ void setup() {
 //	uint32_t a[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffec};
 //	uint32_t b[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffec};
 	uint32_t a[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffec};
-	uint32_t b[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffec};
+	uint32_t b[INT_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000002};
 
 //	uint32_t d[DUB_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff};
 
@@ -51,21 +51,14 @@ void setup() {
 	Serial.print("Mod: ");
 	Serial.println(duration);
 */
-
+/*
 	timestamp = micros();
 	math.base16Add(r, a, b);
 	duration = micros() - timestamp;
 
 	Serial.print("Add: ");
 	Serial.println(duration);
-/*
-	Serial.print("r:");
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Serial.print(' ');
-		Serial.print(r[i], HEX);
-	}
-	Serial.println();
-*/
+
 
 	timestamp = micros();
 	math.base16Sub(r, a, b);
@@ -73,14 +66,7 @@ void setup() {
 
 	Serial.print("Sub: ");
 	Serial.println(duration);
-
-	Serial.print("r:");
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
-		Serial.print(' ');
-		Serial.print(r[i], HEX);
-	}
-	Serial.println();
-
+*/
 
 	timestamp = micros();
 	math.base16Mul(r, a, b);
@@ -88,6 +74,13 @@ void setup() {
 
 	Serial.print("Mul: ");
 	Serial.println(duration);
+
+	Serial.print("r:");
+	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+		Serial.print(' ');
+		Serial.print(r[i], HEX);
+	}
+	Serial.println();
 }
 
 

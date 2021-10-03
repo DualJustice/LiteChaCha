@@ -24,7 +24,7 @@ private:
 	uint32_t q[n + 1];
 
 // ---------- Multiplication Variables ----------
-	uint32_t w[(n*2) + 1]; // INCREASED W'S SIZE BY ONE FOR BARRETT REDUCTION!
+	uint32_t w[(n*2) + 2]; // INCREASED W'S SIZE BY TWO FOR BARRETT REDUCTION!
 
 // ---------- Subtraction Variables ----------
 	const uint32_t p[n] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
@@ -45,6 +45,7 @@ private:
 	void barrettReduce(); // Used after multiplication, and assumes that both the multiplicand and multiplier are less than p.
 
 	void prepareOut(uint32_t*);
+	void prepareMulOut(uint32_t*); // Used after multiplication and Barrett reduction.
 public:
 	MultiPrecisionArithmetic25519();
 	~MultiPrecisionArithmetic25519();
@@ -200,7 +201,15 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 	for(unsigned short i = 0; i < (n + 1); i += 1) {
 		v[i] = u[i + 2]; // v is storing q1.
 	}
-//	q2 = q1*mew, q1 is 17 long. mew is 17 long. q must be 34 long. Gonna use j for mew and i for q.
+
+	Serial.print("q1:");
+	for(unsigned short i = 0; i < (n + 1); i += 1) {
+		Serial.print(' ');
+		Serial.print(v[i], HEX);
+	}
+	Serial.println();
+
+//	q2 = q1*mew, q1 is 17 long. mew is 17 long. q must be 34 long. Gonna use j for mew and i for v.
 /*
 	for(unsigned short i = ((n*2) - 1); i > (n - 1); i -= 1) {
 		w[i] = 0x00000000;
@@ -223,7 +232,7 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 	}
 */
 
-	for(unsigned short i = (n*2); i > (n - 1); i -= 1) {
+	for(unsigned short i = ((n*2) + 1); i > n; i -= 1) { // W GOES FROM 0 TO 33.
 		w[i] = 0x00000000;
 	}
 
@@ -231,11 +240,20 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 		carry = 0x00000000;
 
 		for(unsigned short i = n; i < (n + 1); i -= 1) {
-			w[i + j] += ((v[i]*mew[j]) + carry);
-			carry = w[i + j]/base;
-			w[i + j] %= base;
+			w[(i + j) + 1] += ((v[i]*mew[j]) + carry);
+			carry = w[(i + j) + 1]/base;
+			w[(i + j) + 1] %= base;
 		}
+
+		w[j] = carry;
 	} // w is storing q2.
+
+	Serial.print("q2:");
+	for(unsigned short i = 0; i < ((n*2) + 2); i += 1) {
+		Serial.print(' ');
+		Serial.print(w[i], HEX);
+	}
+	Serial.println();
 
 //	q = q >> 272. 272/16 = 17. 34 - 17 = 17. AKA, q[17 to 33] = q[0 to 16]. More accurately, q3 = w[0 to 16].
 
@@ -243,14 +261,28 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 		q[i] = w[i]; // q is storing q3.
 	}
 
+	Serial.print("q3:");
+	for(unsigned short i = 0; i < (n + 1); i += 1) {
+		Serial.print(' ');
+		Serial.print(q[i], HEX);
+	}
+	Serial.println();
+
 // ---------- 2 ---------- r1 = u % 2^272. Strip all but the lowest 272 bits of u. 272/16 = 17. r1 = u[17 to 33].
 	for(unsigned short i = 0; i < (n + 1); i += 1) {
 		v[i] = u[i + (n + 1)]; // v is storing r1.
 	}
 
-//	r2 = (q3*p) % 2^272. Use j for p, and i for q3.
+	Serial.print("r1:");
+	for(unsigned short i = 0; i < (n + 1); i += 1) {
+		Serial.print(' ');
+		Serial.print(v[i], HEX);
+	}
+	Serial.println();
 
-	for(unsigned short i = ((n*2) - 1); i > (n - 2); i -= 1) {
+//	r2 = (q3*p) % 2^272. Use j for p, and i for q3. q3[17], p[16], w[0 TO 32]!!!!!
+
+	for(unsigned short i = (n*2); i > (n - 1); i -= 1) {
 		w[i] = 0x00000000;
 	}
 
@@ -258,11 +290,20 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 		carry = 0x00000000;
 
 		for(unsigned short i = n; i < (n + 1); i -= 1) {
-			w[i + j] += ((q[i]*p[j]) + carry);
-			carry = w[i + j]/base;
-			w[i + j] %= base;
+			w[(i + j) + 1] += ((q[i]*p[j]) + carry);
+			carry = w[(i + j) + 1]/base;
+			w[(i + j) + 1] %= base;
 		}
+
+		w[j] = carry;
 	} // w is storing q3*m.
+
+	Serial.print("q3*p:");
+	for(unsigned short i = 0; i < ((n*2) + 1); i += 1) {
+		Serial.print(' ');
+		Serial.print(w[i], HEX);
+	}
+	Serial.println();
 
 //	result = v - w[16 to 32]. Result can be negative!
 /*
@@ -279,7 +320,7 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 
 	carry = 0x00000000;
 
-	for(unsigned short i = (n + 2); i > 1; i -= 1) {
+	for(unsigned short i = (n + 2); i > 1; i -= 1) { // u[1 to 18], u[1] used for negative.
 		u[i] = v[i - 2] - (w[i + 14] + carry);
 		carry = (u[i] & base)/base;
 		u[i] = (u[i] & 0x0001ffff) % base;
@@ -287,15 +328,24 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 
 	u[1] = carry; // u is storing r.
 
-// ---------- 3 ---------- MIGHT BE UNNECESSARY! ALMOST CERTAINLY IS...
-	u[1] -= u[1];
+	Serial.print("r step 2:");
+	for(unsigned short i = 1; i < (n + 3); i += 1) {
+		Serial.print(' ');
+		Serial.print(u[i], HEX);
+	}
+	Serial.println();
 
-// ---------- 4 ---------- while(u >= p) {u -= p}.
+// ---------- 3 ---------- MIGHT BE UNNECESSARY! ALMOST CERTAINLY IS...
+	Serial.print("negative r? ");
+	Serial.println(u[1], HEX);
+	u[1] -= u[1]; // IS THIS WRONG? MIGHT STILL GET THE RIGHT ANSWER AND THIS STILL BE WRONG!
+
+// ---------- 4 ---------- while(u >= p) {u -= p}. u[2 to 18] (17 long), p[16].
 	for(unsigned short j = 0; j < 2; j += 1) {
 		c = 0x00000000;
 		s = 0x00000001;
 
-		c |= u[2];
+		c |= (u[2] > 0x00000000);
 
 		for(unsigned short i = 3; i < (n + 3); i += 1) {
 			c |= (s*(u[i] > p[i - 3]));
@@ -314,6 +364,13 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 
 		u[2] -= carry;
 	}
+
+	Serial.print("r step 4:");
+	for(unsigned short i = 2; i < (n + 3); i += 1) {
+		Serial.print(' ');
+		Serial.print(u[i], HEX);
+	}
+	Serial.println();
 }
 
 
@@ -333,6 +390,13 @@ void MultiPrecisionArithmetic25519::quickSMod() {
 void MultiPrecisionArithmetic25519::prepareOut(uint32_t* out) {
 	for(unsigned short i = 0; i < n; i += 1) {
 		out[i] = u[i + 2];
+	}
+}
+
+
+void MultiPrecisionArithmetic25519::prepareMulOut(uint32_t* out) {
+	for(unsigned short i = 0; i < n; i += 1) {
+		out[i] = u[i + 3];
 	}
 }
 
@@ -429,9 +493,18 @@ void MultiPrecisionArithmetic25519::base16Mul(uint32_t* out, const uint32_t* a, 
 //	m = n + 1;
 //	base16Mod();
 
+	Serial.print("a*b:");
+	for(unsigned short i = 2; i < ((n*2) + 2); i += 1) {
+		Serial.print(' ');
+		Serial.print(u[i], HEX);
+	}
+	Serial.println();
+
 	barrettReduce();
 
-	prepareOut(out);
+	prepareMulOut(out);
+
+//	prepareOut(out);
 }
 
 
