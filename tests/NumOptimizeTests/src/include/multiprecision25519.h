@@ -211,7 +211,7 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 		w[i] = 0x00000000;
 	}
 
-	for(unsigned short j = n; j < (n + 1); j -= 1) {
+	for(unsigned short j = n; j < (n + 1); j -= 1) { // Only need to know w[16] to w[0]. Potential future optimization.
 		carry = 0x00000000;
 
 		for(unsigned short i = n; i < (n + 1); i -= 1) {
@@ -236,7 +236,7 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 		w[i] = 0x00000000;
 	}
 
-	for(unsigned short j = (n - 1); j < n; j -= 1) {
+	for(unsigned short j = (n - 1); j < n; j -= 1) { // Only need to know w[32] to w[16]. Potential future optimization.
 		carry = 0x00000000;
 
 		for(unsigned short i = n; i < (n + 1); i -= 1) {
