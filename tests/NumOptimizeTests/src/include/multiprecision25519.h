@@ -227,10 +227,10 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 		w[i] = 0x00000000;
 	}
 
-	for(unsigned short j = n; j >= 0; j -= 1) {
+	for(unsigned short j = n; j < (n + 1); j -= 1) {
 		carry = 0x00000000;
 
-		for(unsigned short i = n; i >= 0; i -= 1) {
+		for(unsigned short i = n; i < (n + 1); i -= 1) {
 			w[i + j] += ((v[i]*mew[j]) + carry);
 			carry = w[i + j]/base;
 			w[i + j] %= base;
@@ -254,11 +254,11 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 		w[i] = 0x00000000;
 	}
 
-	for(unsigned short j = (n - 1); j >= 0; j -= 1) {
+	for(unsigned short j = (n - 1); j < n; j -= 1) {
 		carry = 0x00000000;
 
-		for(unsigned short i = n; i >= 0; i -= 1) {
-			w[i + j] += ((q3[i]*p[j]) + carry);
+		for(unsigned short i = n; i < (n + 1); i -= 1) {
+			w[i + j] += ((q[i]*p[j]) + carry);
 			carry = w[i + j]/base;
 			w[i + j] %= base;
 		}
@@ -426,8 +426,10 @@ void MultiPrecisionArithmetic25519::base16Mul(uint32_t* out, const uint32_t* a, 
 		u[i] = w[i - 2];
 	}
 
-	m = n + 1;
-	base16Mod();
+//	m = n + 1;
+//	base16Mod();
+
+	barrettReduce();
 
 	prepareOut(out);
 }
