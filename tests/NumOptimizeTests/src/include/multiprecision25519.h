@@ -236,17 +236,17 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 		w[i] = 0x00000000;
 	}
 
-	for(unsigned short j = (n - 1); j < n; j -= 1) { // Only need to know w[32] to w[16]. Potential future optimization.
+	for(unsigned short j = (n - 1); j < n; j -= 1) {
 		carry = 0x00000000;
 
-		for(unsigned short i = n; i < (n + 1); i -= 1) {
-			w[(i + j) + 1] += ((q[i]*p[j]) + carry);
-			carry = w[(i + j) + 1]/base;
-			w[(i + j) + 1] %= base;
+		for(unsigned short i = (n + 1); i > ((n - 1) - j); i -= 1) { // When j = 15, i sweeps from 17 to 1 ... When j = 0, i sweeps from 17 to 16.
+			w[((i - 1) + j) + 1] += ((q[i - 1]*p[j]) + carry);
+			carry = w[((i - 1) + j) + 1]/base;
+			w[((i - 1) + j) + 1] %= base;
 		}
 
 		w[j] = carry;
-	} // w is storing q3*m.
+	} // w is storing r2.
 
 	carry = 0x00000000;
 
