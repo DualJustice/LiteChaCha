@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-#include "Arduino.h" // DELETE ME!
-#include "HardwareSerial.h" // DELETE ME!
-
 
 class MultiPrecisionArithmetic25519 {
 private:
@@ -24,7 +21,7 @@ private:
 	uint32_t q[n + 1];
 
 // ---------- Multiplication Variables ----------
-	uint32_t w[(n*2) + 2]; // INCREASED W'S SIZE BY TWO FOR BARRETT REDUCTION!
+	uint32_t w[(n*2) + 2]; // w[32] & w[33] are used in the Barrett reduction.
 
 // ---------- Subtraction Variables ----------
 	const uint32_t p[n] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffed}; // (2^255) - 19.
@@ -38,14 +35,15 @@ private:
 
 	void prepareIn(const uint32_t*, const uint32_t*);
 
+	void base16Mod();
+
 	void quickAMod(); // Used after addition, and assumes that both addends are less than p.
 	void quickSMod(); // Used after subtraction, and assumes that both the subtrahend and minuend are less than p.
-	void base16Mod();
 
 	void barrettReduce(); // Used after multiplication, and assumes that both the multiplicand and multiplier are less than p.
 
 	void prepareOut(uint32_t*);
-	void prepareMulOut(uint32_t*); // Used after multiplication and Barrett reduction.
+	void prepareMulOut(uint32_t*); // Used after multiplication and the Barrett reduction.
 public:
 	MultiPrecisionArithmetic25519();
 	~MultiPrecisionArithmetic25519();
@@ -70,51 +68,11 @@ MultiPrecisionArithmetic25519::~MultiPrecisionArithmetic25519() {
 }
 
 
-void MultiPrecisionArithmetic25519::base32_16(uint32_t* out, const uint32_t* a) {
-	for(unsigned short i = 0; i < (n/2); i += 1) {
-		out[i*2] = a[i] >> 16;
-		out[(i*2) + 1] = a[i] & 0x0000ffff;
-	}
-}
-
-
-void MultiPrecisionArithmetic25519::prepareIn(const uint32_t* a, const uint32_t* b) {
-	u[1] = 0x00000000;
-	v[0] = 0x00000000;
-
-	for(unsigned short i = 0; i < n; i += 1) {
-		u[i + 2] = a[i];
-		v[i + 1] = b[i];
-	}
-}
-
-
-void MultiPrecisionArithmetic25519::quickAMod() {
-	c = 0x00000000;
-	s = 0x00000001;
-
-	for(unsigned short i = 2; i < (n + 2); i += 1) {
-		c |= (s*(u[i] > p[i - 2]));
-		s &= (!(u[i] < p[i - 2]));
-	}
-
-	c |= s;
-
-	carry = 0x00000000;
-
-	for(unsigned short i = (n + 1); i > 1; i -= 1) {
-		u[i] -= (c*(p[i - 2] + carry));
-		carry = (u[i] & base)/base;
-		u[i] = (u[i] & 0x0001ffff) % base;
-	}
-}
-
-
 void MultiPrecisionArithmetic25519::base16Mod() {
 // ---------- D1 ----------
 	carry = 0x00000000;
 
-	for(unsigned short i = (m + n); i > 0; i -= 1) {
+	for(unsigned short i = (m + n); i > 0; i -= 1) { // Could bit shift all words all words one two the left, with carry.
 		u[i] += (u[i] + carry);
 		carry = u[i]/base;
 		u[i] %= base;
@@ -196,43 +154,60 @@ void MultiPrecisionArithmetic25519::base16Mod() {
 }
 
 
+void MultiPrecisionArithmetic25519::base32_16(uint32_t* out, const uint32_t* a) {
+	for(unsigned short i = 0; i < (n/2); i += 1) {
+		out[i*2] = a[i] >> 16;
+		out[(i*2) + 1] = a[i] & 0x0000ffff;
+	}
+}
+
+
+void MultiPrecisionArithmetic25519::prepareIn(const uint32_t* a, const uint32_t* b) {
+	u[1] = 0x00000000;
+	v[0] = 0x00000000;
+
+	for(unsigned short i = 0; i < n; i += 1) {
+		u[i + 2] = a[i];
+		v[i + 1] = b[i];
+	}
+}
+
+
+void MultiPrecisionArithmetic25519::quickAMod() {
+	c = 0x00000000;
+	s = 0x00000001;
+
+	for(unsigned short i = 2; i < (n + 2); i += 1) {
+		c |= (s*(u[i] > p[i - 2]));
+		s &= (!(u[i] < p[i - 2]));
+	}
+
+	c |= s;
+
+	carry = 0x00000000;
+
+	for(unsigned short i = (n + 1); i > 1; i -= 1) {
+		u[i] -= (c*(p[i - 2] + carry));
+		carry = (u[i] & base)/base;
+		u[i] = (u[i] & 0x0001ffff) % base;
+	}
+}
+
+
+void MultiPrecisionArithmetic25519::prepareOut(uint32_t* out) {
+	for(unsigned short i = 0; i < n; i += 1) {
+		out[i] = u[i + 2];
+	}
+}
+
+
 void MultiPrecisionArithmetic25519::barrettReduce() {
-// ---------- 1 ---------- q = u >> 240. 240/16 = 15. 32 - 15 = 17. AKA, q[17 to 33] = u[2 to 18]. OR, v[0 to 16] = u[2 to 18].
+// ---------- 1 ----------
 	for(unsigned short i = 0; i < (n + 1); i += 1) {
 		v[i] = u[i + 2]; // v is storing q1.
 	}
 
-	Serial.print("q1:");
-	for(unsigned short i = 0; i < (n + 1); i += 1) {
-		Serial.print(' ');
-		Serial.print(v[i], HEX);
-	}
-	Serial.println();
-
-//	q2 = q1*mew, q1 is 17 long. mew is 17 long. q must be 34 long. Gonna use j for mew and i for v.
-/*
-	for(unsigned short i = ((n*2) - 1); i > (n - 1); i -= 1) {
-		w[i] = 0x00000000;
-	}
-
-	for(unsigned short j = n; j > 0; j -= 1) {
-		carry = 0x00000000;
-
-		for(unsigned short i = (n + 1); i > 1; i -= 1) {
-			w[(i + j) - 2] += ((u[i]*v[j]) + carry);
-			carry = w[(i + j) - 2]/base;
-			w[(i + j) - 2] %= base;
-		}
-
-		w[j - 1] = carry;
-	}
-
-	for(unsigned short i = 2; i < ((n*2) + 2); i += 1) {
-		u[i] = w[i - 2];
-	}
-*/
-
-	for(unsigned short i = ((n*2) + 1); i > n; i -= 1) { // W GOES FROM 0 TO 33.
+	for(unsigned short i = ((n*2) + 1); i > n; i -= 1) {
 		w[i] = 0x00000000;
 	}
 
@@ -248,39 +223,14 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 		w[j] = carry;
 	} // w is storing q2.
 
-	Serial.print("q2:");
-	for(unsigned short i = 0; i < ((n*2) + 2); i += 1) {
-		Serial.print(' ');
-		Serial.print(w[i], HEX);
-	}
-	Serial.println();
-
-//	q = q >> 272. 272/16 = 17. 34 - 17 = 17. AKA, q[17 to 33] = q[0 to 16]. More accurately, q3 = w[0 to 16].
-
 	for(unsigned short i = 0; i < (n + 1); i += 1) {
 		q[i] = w[i]; // q is storing q3.
 	}
 
-	Serial.print("q3:");
-	for(unsigned short i = 0; i < (n + 1); i += 1) {
-		Serial.print(' ');
-		Serial.print(q[i], HEX);
-	}
-	Serial.println();
-
-// ---------- 2 ---------- r1 = u % 2^272. Strip all but the lowest 272 bits of u. 272/16 = 17. r1 = u[17 to 33].
+// ---------- 2 ----------
 	for(unsigned short i = 0; i < (n + 1); i += 1) {
 		v[i] = u[i + (n + 1)]; // v is storing r1.
 	}
-
-	Serial.print("r1:");
-	for(unsigned short i = 0; i < (n + 1); i += 1) {
-		Serial.print(' ');
-		Serial.print(v[i], HEX);
-	}
-	Serial.println();
-
-//	r2 = (q3*p) % 2^272. Use j for p, and i for q3. q3[17], p[16], w[0 TO 32]!!!!!
 
 	for(unsigned short i = (n*2); i > (n - 1); i -= 1) {
 		w[i] = 0x00000000;
@@ -298,49 +248,20 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 		w[j] = carry;
 	} // w is storing q3*m.
 
-	Serial.print("q3*p:");
-	for(unsigned short i = 0; i < ((n*2) + 1); i += 1) {
-		Serial.print(' ');
-		Serial.print(w[i], HEX);
-	}
-	Serial.println();
-
-//	result = v - w[16 to 32]. Result can be negative!
-/*
 	carry = 0x00000000;
 
-	for(unsigned short i = (n + 1); i > 0; i -= 1) {
-		u[i] -= (v[i - 1] + carry);
-		carry = (u[i] & base)/base;
-		u[i] = (u[i] & 0x0001ffff) % base;
-	}
-
-	u[1] &= 0x00000001;
-*/
-
-	carry = 0x00000000;
-
-	for(unsigned short i = (n + 2); i > 1; i -= 1) { // u[1 to 18], u[1] used for negative.
-		u[i] = v[i - 2] - (w[i + 14] + carry);
+	for(unsigned short i = (n + 2); i > 1; i -= 1) {
+		u[i] = v[i - 2] - (w[i + (n - 2)] + carry);
 		carry = (u[i] & base)/base;
 		u[i] = (u[i] & 0x0001ffff) % base;
 	}
 
 	u[1] = carry; // u is storing r.
 
-	Serial.print("r step 2:");
-	for(unsigned short i = 1; i < (n + 3); i += 1) {
-		Serial.print(' ');
-		Serial.print(u[i], HEX);
-	}
-	Serial.println();
+// ---------- 3 ----------
+//	u[1] -= u[1]; Unnecessary step.
 
-// ---------- 3 ---------- MIGHT BE UNNECESSARY! ALMOST CERTAINLY IS...
-	Serial.print("negative r? ");
-	Serial.println(u[1], HEX);
-	u[1] -= u[1]; // IS THIS WRONG? MIGHT STILL GET THE RIGHT ANSWER AND THIS STILL BE WRONG!
-
-// ---------- 4 ---------- while(u >= p) {u -= p}. u[2 to 18] (17 long), p[16].
+// ---------- 4 ----------
 	for(unsigned short j = 0; j < 2; j += 1) {
 		c = 0x00000000;
 		s = 0x00000001;
@@ -364,13 +285,13 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 
 		u[2] -= carry;
 	}
+}
 
-	Serial.print("r step 4:");
-	for(unsigned short i = 2; i < (n + 3); i += 1) {
-		Serial.print(' ');
-		Serial.print(u[i], HEX);
+
+void MultiPrecisionArithmetic25519::prepareMulOut(uint32_t* out) {
+	for(unsigned short i = 0; i < n; i += 1) {
+		out[i] = u[i + 3];
 	}
-	Serial.println();
 }
 
 
@@ -387,65 +308,7 @@ void MultiPrecisionArithmetic25519::quickSMod() {
 }
 
 
-void MultiPrecisionArithmetic25519::prepareOut(uint32_t* out) {
-	for(unsigned short i = 0; i < n; i += 1) {
-		out[i] = u[i + 2];
-	}
-}
-
-
-void MultiPrecisionArithmetic25519::prepareMulOut(uint32_t* out) {
-	for(unsigned short i = 0; i < n; i += 1) {
-		out[i] = u[i + 3];
-	}
-}
-
-
-/*
-Given a + b = c:
-
-amax =	 ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff
-bmax =	 ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff
-cmax = 1 ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff fffe
-
-p	 =	 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffed
-
-cmax/p = 4.000...000127...
-
-(((2^256) - 1)*2) - (4*((2^255) - 19)) == cmax - 4p = 74.
-
-Therefore: You may need to quick subtract 0, 1p, 2p, 3p, or 4p.
-
-0  : c < 1p
-1p : 1p <= c < 2p
-2p : 2p <= c < 3p
-3p : 3p <= c < 4p
-4p : 4p <= c
-
-Instead of checking 5 conditions for every addition and subtraction, make a single preparatoryMod() function that acts on all values derived from outside inputs.
-
-Then...
-
-Assume 0 <= a & b < p
-
-Given a + b = c:
-
-amax =	 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffec
-bmax =	 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffec
-cmax =	 ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffd8
-
-p	 =	 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffed
-
-cmax - 1p < p !
-
-Therefore: You may need to quick subtract 0 or 1p.
-
-0  : c < 1p
-1p : 1p <= c
-*/
-
-
-void MultiPrecisionArithmetic25519::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b) { // Might be able to optimize by combining some steps.
+void MultiPrecisionArithmetic25519::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b) {
 	prepareIn(a, b);
 
 	carry = 0x00000000;
@@ -457,11 +320,6 @@ void MultiPrecisionArithmetic25519::base16Add(uint32_t* out, const uint32_t* a, 
 	}
 
 	quickAMod();
-
-/*
-	m = 1;
-	base16Mod();
-*/
 
 	prepareOut(out);
 }
@@ -490,25 +348,13 @@ void MultiPrecisionArithmetic25519::base16Mul(uint32_t* out, const uint32_t* a, 
 		u[i] = w[i - 2];
 	}
 
-//	m = n + 1;
-//	base16Mod();
-
-	Serial.print("a*b:");
-	for(unsigned short i = 2; i < ((n*2) + 2); i += 1) {
-		Serial.print(' ');
-		Serial.print(u[i], HEX);
-	}
-	Serial.println();
-
 	barrettReduce();
 
 	prepareMulOut(out);
-
-//	prepareOut(out);
 }
 
 
-void MultiPrecisionArithmetic25519::base16Sub(uint32_t* out, const uint32_t* a, const uint32_t* b) { // Might be able to optimize by removing base16Mod().
+void MultiPrecisionArithmetic25519::base16Sub(uint32_t* out, const uint32_t* a, const uint32_t* b) {
 	prepareIn(a, b);
 
 	carry = 0x00000000;
@@ -522,23 +368,6 @@ void MultiPrecisionArithmetic25519::base16Sub(uint32_t* out, const uint32_t* a, 
 	u[1] &= 0x00000001;
 
 	quickSMod();
-
-/*
-	for(unsigned short j = 0; j < 3; j += 1) {
-		carry = 0x00000000;
-
-		for(unsigned short i = (n + 1); i > 1; i -= 1) {
-			u[i] += ((u[1]*p[i - 2]) + carry);
-			carry = u[i]/base;
-			u[i] %= base;
-		}
-
-		u[1] -= carry;
-	}
-
-	m = 1;
-	base16Mod();
-*/
 
 	prepareOut(out);
 }
