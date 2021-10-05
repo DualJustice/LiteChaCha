@@ -35,7 +35,7 @@ private:
 
 	void prepareIn(const uint32_t*, const uint32_t*);
 
-	void base16Mod();
+	void base16ModInternal();
 
 	void quickAMod(); // Used after addition, and assumes that both addends are less than p.
 	void quickSMod(); // Used after subtraction, and assumes that both the subtrahend and minuend are less than p.
@@ -50,6 +50,7 @@ public:
 
 	void base32_16(uint32_t*, const uint32_t*);
 
+	void base16Mod(uint32_t*, const uint32_t*);
 	void base16Add(uint32_t*, const uint32_t*, const uint32_t*);
 	void base16Mul(uint32_t*, const uint32_t*, const uint32_t*);
 	void base16Sub(uint32_t*, const uint32_t*, const uint32_t*);
@@ -68,7 +69,26 @@ MultiPrecisionArithmetic25519::~MultiPrecisionArithmetic25519() {
 }
 
 
-void MultiPrecisionArithmetic25519::base16Mod() {
+void MultiPrecisionArithmetic25519::base32_16(uint32_t* out, const uint32_t* a) {
+	for(unsigned short i = 0; i < (n/2); i += 1) {
+		out[i*2] = a[i] >> 16;
+		out[(i*2) + 1] = a[i] & 0x0000ffff;
+	}
+}
+
+
+void MultiPrecisionArithmetic25519::prepareIn(const uint32_t* a, const uint32_t* b) {
+	u[1] = 0x00000000;
+	v[0] = 0x00000000;
+
+	for(unsigned short i = 0; i < n; i += 1) {
+		u[i + 2] = a[i];
+		v[i + 1] = b[i];
+	}
+}
+
+
+void MultiPrecisionArithmetic25519::base16ModInternal() {
 // ---------- D1 ----------
 	carry = 0x00000000;
 
@@ -150,25 +170,6 @@ void MultiPrecisionArithmetic25519::base16Mod() {
 		for(unsigned short i = 2; i < (n + 2); i += 1) {
 			u[i] = u[i + (m - 1)];
 		}
-	}
-}
-
-
-void MultiPrecisionArithmetic25519::base32_16(uint32_t* out, const uint32_t* a) {
-	for(unsigned short i = 0; i < (n/2); i += 1) {
-		out[i*2] = a[i] >> 16;
-		out[(i*2) + 1] = a[i] & 0x0000ffff;
-	}
-}
-
-
-void MultiPrecisionArithmetic25519::prepareIn(const uint32_t* a, const uint32_t* b) {
-	u[1] = 0x00000000;
-	v[0] = 0x00000000;
-
-	for(unsigned short i = 0; i < n; i += 1) {
-		u[i + 2] = a[i];
-		v[i + 1] = b[i];
 	}
 }
 
@@ -305,6 +306,16 @@ void MultiPrecisionArithmetic25519::quickSMod() {
 	}
 
 	u[1] -= carry;
+}
+
+
+void MultiPrecisionArithmetic25519::base16Mod(uint32_t* out, const uint32_t* a) {
+	prepareIn(a);
+
+	m = 1;
+	base16ModInternal();
+
+	prepareOut(out);
 }
 
 
