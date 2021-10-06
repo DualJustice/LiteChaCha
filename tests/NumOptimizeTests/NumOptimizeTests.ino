@@ -18,6 +18,7 @@
 /*
 ---------- NOTES: ----------
 TO DO:
+- Integrate optimized multi libraries.
 - Get run-times for ecdhe, john, and mac.
 - Get run-times for optimized versions of above objects.
 - Validate optimized versions.
