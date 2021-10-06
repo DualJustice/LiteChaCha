@@ -1,20 +1,32 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 
-#include "src\include\multiprecision25519.h"
-#include "src\include\multiprecision1305.h"
-#include "src\include\multiprecision252ed.h"
+
+	#include "src\include\X25519.h"
+	#include "src\include\Ed25519.h"
+	#include "src\include\poly1305.h"
+
+/*
+	#include "src\include\optiX25519.h"
+	#include "src\include\optiEd25519.h"
+	#include "src\include\optipoly1305.h"
+*/
 
 #include <stdint.h>
 
 
-unsigned short INT_LENGTH_MULTI = 16;
-unsigned short DUB_LENGTH_MULTI = 2*INT_LENGTH_MULTI;
-unsigned short POLY_LENGTH_MULTI = 9;
+/*
+---------- NOTES: ----------
+TO DO:
+- Get run-times for ecdhe, john, and mac.
+- Get run-times for optimized versions of above objects.
+- Validate optimized versions.
+
+*/
 
 
 /*
-RESULTS:
+---------- RESULTS: ----------
 
 
 */
@@ -26,64 +38,12 @@ void setup() {
 		delay(250);
 	}
 
-	MultiPrecisionArithmetic25519 math;
-	MultiPrecisionArithmetic252ed order;
-	MultiPrecisionArithmetic1305 poly;
+	X25519KeyExchange ecdhe;
+	Ed25519SignatureAlgorithm john;
+	Poly1305MAC mac;
 
 	unsigned long timestamp = 0;
 	unsigned long duration = 0;
-
-//	p = 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffed
-//	p = 0003 ffff ffff ffff ffff ffff ffff ffff fffb
-
-//	uint32_t a[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffec};
-//	uint32_t b[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffec};
-	uint32_t a[POLY_LENGTH_MULTI] = {0x00000003, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000fffa};
-	uint32_t b[POLY_LENGTH_MULTI] = {0x00000003, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000fffa};
-
-//	uint32_t d[DUB_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff};
-
-//	uint32_t r[INT_LENGTH_MULTI];
-	uint32_t r[POLY_LENGTH_MULTI];
-
-/*
-	timestamp = micros();
-	order.base16Mod(r, d);
-	duration = micros() - timestamp;
-
-	Serial.print("Mod: ");
-	Serial.println(duration);
-*/
-/*
-	timestamp = micros();
-	math.base16Add(r, a, b);
-	duration = micros() - timestamp;
-
-	Serial.print("Add: ");
-	Serial.println(duration);
-
-
-	timestamp = micros();
-	math.base16Sub(r, a, b);
-	duration = micros() - timestamp;
-
-	Serial.print("Sub: ");
-	Serial.println(duration);
-*/
-
-	timestamp = micros();
-	poly.base16Mul(r, a, b);
-	duration = micros() - timestamp;
-
-	Serial.print("Mul: ");
-	Serial.println(duration);
-
-	Serial.print("r:");
-	for(unsigned short i = 0; i < POLY_LENGTH_MULTI; i += 1) {
-		Serial.print(' ');
-		Serial.print(r[i], HEX);
-	}
-	Serial.println();
 }
 
 
