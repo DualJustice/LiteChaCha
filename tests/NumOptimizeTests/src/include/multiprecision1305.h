@@ -10,23 +10,23 @@ private:
 	static const constexpr uint32_t d = 0x00002001; // 8,193 is the smallest value which satisfies D1.
 	unsigned short m;
 	static const constexpr unsigned short n = 9;
-	const uint32_t pd[n] = {0x00008003, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x00005ffb}; // p*d with p = (2^130) - 5.
+	const uint32_t pd[n] = {0x00008003, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x00005ffb}; // p*d.
 	uint32_t qHat;
 	uint32_t rHat;
 	uint32_t c; // Conditional multiplier used in place of conditional branches to aid in constant-time.
 	uint32_t s; // Switch used on the conditional multiplier.
 
 // ---------- Barrett Variables ----------
-	const uint32_t p[n] = {0x00000003, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000fffb};
-	const uint32_t mew[n + 1] = {}; // (base^(2*n))/p
+	const uint32_t p[n] = {0x00000003, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000fffb}; // (2^130) - 5.
+	const uint32_t mew[n + 1] = {0x00004000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00005000, 0x00000000}; // (base^(2*n))/p.
 	uint32_t q[n + 1];
 
 // ---------- Multiplication Variables ----------
-	uint32_t w[n*2];
+	uint32_t w[(n*2) + 2]; // w[18] & w[19] are used in the Barrett reduction.
 
 // ---------- General Variables ----------
 	uint32_t u[(n*2) + 2]; // u[0] is used for u[m + n], u[1] is used for carry / borrow.
-	uint32_t v[n + 1]; // v[0] is used for carry / borrow.
+	uint32_t v[n + 1]; // v[0] is used typically for carry / borrow.
 
 	uint32_t carry; // carry is used for addition carries, multiplication carries, and division remainders.
 	static const constexpr uint32_t base = 0x00010000;
@@ -36,7 +36,10 @@ private:
 
 	void base16ModInternal();
 
+	void barrettReduce();
+
 	void prepareOut(uint32_t*);
+	void prepareMulOut(uint32_t*);
 public:
 	MultiPrecisionArithmetic1305();
 	~MultiPrecisionArithmetic1305();
@@ -182,6 +185,100 @@ void MultiPrecisionArithmetic1305::prepareIn(const uint32_t* a, const uint32_t* 
 }
 
 
+void MultiPrecisionArithmetic1305::barrettReduce() {
+// ---------- 1 ----------
+	for(unsigned short i = 0; i < (n + 1); i += 1) {
+		v[i] = u[i + 2]; // v is storing q1.
+	}
+
+	for(unsigned short i = ((n*2) + 1); i > n; i -= 1) {
+		w[i] = 0x00000000;
+	}
+
+	for(unsigned short j = n; j < (n + 1); j -= 1) { // Only need to know w[9] to w[0]. Potential future optimization.
+		carry = 0x00000000;
+
+		for(unsigned short i = n; i < (n + 1); i -= 1) {
+			w[(i + j) + 1] += ((v[i]*mew[j]) + carry);
+			carry = w[(i + j) + 1]/base;
+			w[(i + j) + 1] %= base;
+		}
+
+		w[j] = carry;
+	} // w is storing q2.
+
+	for(unsigned short i = 0; i < (n + 1); i += 1) {
+		q[i] = w[i]; // q is storing q3.
+	}
+
+// ---------- 2 ----------
+	for(unsigned short i = 0; i < (n + 1); i += 1) {
+		v[i] = u[i + (n + 1)]; // v is storing r1.
+	}
+
+	for(unsigned short i = (n*2); i > (n - 1); i -= 1) {
+		w[i] = 0x00000000;
+	}
+
+	for(unsigned short j = (n - 1); j < n; j -= 1) {
+		carry = 0x00000000;
+
+		for(unsigned short i = (n + 1); i > ((n - 1) - j); i -= 1) { // When j = 8, i sweeps from 10 to 1 ... When j = 0, i sweeps from 10 to 9.
+			w[((i - 1) + j) + 1] += ((q[i - 1]*p[j]) + carry);
+			carry = w[((i - 1) + j) + 1]/base;
+			w[((i - 1) + j) + 1] %= base;
+		}
+
+		w[j] = carry;
+	} // w is storing r2.
+
+	carry = 0x00000000;
+
+	for(unsigned short i = (n + 2); i > 1; i -= 1) {
+		u[i] = v[i - 2] - (w[i + (n - 2)] + carry);
+		carry = (u[i] & base)/base;
+		u[i] = (u[i] & 0x0001ffff) % base;
+	}
+
+	u[1] = carry; // u is storing r.
+
+// ---------- 3 ----------
+//	u[1] -= u[1]; Unnecessary step.
+
+// ---------- 4 ----------
+	for(unsigned short j = 0; j < 2; j += 1) {
+		c = 0x00000000;
+		s = 0x00000001;
+
+		c |= (u[2] > 0x00000000);
+
+		for(unsigned short i = 3; i < (n + 3); i += 1) {
+			c |= (s*(u[i] > p[i - 3]));
+			s &= (!(u[i] < p[i - 3]));
+		}
+
+		c |= s;
+
+		carry = 0x00000000;
+
+		for(unsigned short i = (n + 2); i > 2; i -= 1) {
+			u[i] -= (c*(p[i - 3] + carry));
+			carry = (u[i] & base)/base;
+			u[i] = (u[i] & 0x0001ffff) % base;
+		}
+
+		u[2] -= carry;
+	}
+}
+
+
+void MultiPrecisionArithmetic1305::prepareMulOut(uint32_t* out) {
+	for(unsigned short i = 0; i < n; i += 1) {
+		out[i] = u[i + 3];
+	}
+}
+
+
 void MultiPrecisionArithmetic1305::base16Mod(uint32_t* out, const uint32_t* a) {
 	prepareModIn(a);
 
@@ -235,10 +332,9 @@ void MultiPrecisionArithmetic1305::base16Mul(uint32_t* out, const uint32_t* a, c
 		u[i] = w[i - 2];
 	}
 
-	m = n + 1;
-	base16ModInternal();
+	barrettReduce();
 
-	prepareOut(out);
+	prepareMulOut(out);
 }
 
 #endif

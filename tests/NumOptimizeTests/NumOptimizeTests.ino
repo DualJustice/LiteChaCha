@@ -10,6 +10,7 @@
 
 unsigned short INT_LENGTH_MULTI = 16;
 unsigned short DUB_LENGTH_MULTI = 2*INT_LENGTH_MULTI;
+unsigned short POLY_LENGTH_MULTI = 9;
 
 
 /*
@@ -33,15 +34,17 @@ void setup() {
 	unsigned long duration = 0;
 
 //	p = 7fff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffff ffed
+//	p = 0003 ffff ffff ffff ffff ffff ffff ffff fffb
 
 //	uint32_t a[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffec};
 //	uint32_t b[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffec};
-	uint32_t a[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffec};
-	uint32_t b[INT_LENGTH_MULTI] = {0x00007fff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffec};
+	uint32_t a[POLY_LENGTH_MULTI] = {0x00000003, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000fffa};
+	uint32_t b[POLY_LENGTH_MULTI] = {0x00000003, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000fffa};
 
 //	uint32_t d[DUB_LENGTH_MULTI] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff, 0x0000ffff};
 
-	uint32_t r[INT_LENGTH_MULTI];
+//	uint32_t r[INT_LENGTH_MULTI];
+	uint32_t r[POLY_LENGTH_MULTI];
 
 /*
 	timestamp = micros();
@@ -69,14 +72,14 @@ void setup() {
 */
 
 	timestamp = micros();
-	math.base16Mul(r, a, b);
+	poly.base16Mul(r, a, b);
 	duration = micros() - timestamp;
 
 	Serial.print("Mul: ");
 	Serial.println(duration);
 
 	Serial.print("r:");
-	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
+	for(unsigned short i = 0; i < POLY_LENGTH_MULTI; i += 1) {
 		Serial.print(' ');
 		Serial.print(r[i], HEX);
 	}
