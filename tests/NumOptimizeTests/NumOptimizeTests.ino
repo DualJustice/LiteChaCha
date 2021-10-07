@@ -133,12 +133,13 @@ void setup() {
 //	Ed25519 Test Vectors:
 	char hancock[64];
 	char EdPubKey[32];
-	char EdPrivKeyBuffer[65] = {"c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7"};
+	char EdPrivKeyBuffer[65] = {"833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42"};
 	char EdPrivKey[32];
-	unsigned short EdMessageLength = 2;
-	char EdMessageBuffer[(EdMessageLength*2) + 1] = {"af82"};
+	unsigned short EdMessageLength = 64;
+	char EdMessageBuffer[(EdMessageLength*2) + 1] = {"ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"};
 	char EdMessage[EdMessageLength];
 	bool EdValid;
+	char EdPubKeyBuffer[65] = {}; // Used for FB Research Test Vectors
 
 	stringToHex(EdPrivKey, EdPrivKeyBuffer);
 	stringToHex(EdMessage, EdMessageBuffer, EdMessageLength);
