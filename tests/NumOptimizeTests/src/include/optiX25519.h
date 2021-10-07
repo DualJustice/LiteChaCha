@@ -297,6 +297,7 @@ void X25519KeyExchange::curve25519(char* n, char* xp) { // n is the independent,
 
 	toUInt(xInt, xp);
 	math.base32_16(xIntMulti, xInt);
+	math.base16Mod(xIntMulti, xIntMulti);
 
 	math.base32_16(A24Multi, A24);
 

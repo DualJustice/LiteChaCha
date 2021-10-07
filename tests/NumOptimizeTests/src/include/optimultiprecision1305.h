@@ -48,7 +48,7 @@ public:
 
 	void base16Mod(uint32_t*, const uint32_t*);
 	void base16Add(uint32_t*, const uint32_t*, const uint32_t*, bool);
-	void base16Mul(uint32_t*, const uint32_t*, const uint32_t*);
+	void base16Mul(uint32_t*, const uint32_t*, const uint32_t*, bool);
 };
 
 
@@ -309,7 +309,7 @@ void MultiPrecisionArithmetic1305::base16Add(uint32_t* out, const uint32_t* a, c
 }
 
 
-void MultiPrecisionArithmetic1305::base16Mul(uint32_t* out, const uint32_t* a, const uint32_t* b) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well.
+void MultiPrecisionArithmetic1305::base16Mul(uint32_t* out, const uint32_t* a, const uint32_t* b, bool barrett) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well.
 	prepareIn(a, b);
 
 	for(unsigned short i = ((n*2) - 1); i > (n - 1); i -= 1) {
@@ -332,9 +332,16 @@ void MultiPrecisionArithmetic1305::base16Mul(uint32_t* out, const uint32_t* a, c
 		u[i] = w[i - 2];
 	}
 
-	barrettReduce();
+	if(barrett) {
+		barrettReduce();
 
-	prepareMulOut(out);
+		prepareMulOut(out);
+	} else {
+		m = n + 1;
+		base16ModInternal();
+
+		prepareOut(out);
+	}
 }
 
 #endif
