@@ -133,17 +133,18 @@ void setup() {
 //	Ed25519 Test Vectors:
 	char hancock[64];
 	char EdPubKey[32];
-	char EdPrivKeyBuffer[65] = {"833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42"};
+//	char EdPrivKeyBuffer[65] = {"833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42"}; // Used for non-FB Research Test Vectors
 	char EdPrivKey[32];
-	unsigned short EdMessageLength = 64;
-	char EdMessageBuffer[(EdMessageLength*2) + 1] = {"ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"};
+	unsigned short EdMessageLength = 32;
+	char EdMessageBuffer[(EdMessageLength*2) + 1] = {"85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40"};
 	char EdMessage[EdMessageLength];
 	bool EdValid;
-	char EdPubKeyBuffer[65] = {}; // Used for FB Research Test Vectors
+	char EdPubKeyBuffer[65] = {"442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623"}; // Used for FB Research Test Vectors
+	char EdSigBuffer[129] = {"e96f66be976d82e60150baecff9906684aebb1ef181f67a7189ac78ea23b6c0e547f7690a0e2ddcd04d87dbc3490dc19b3b3052f7ff0538cb68afb369ba3a514"};
 
-	stringToHex(EdPrivKey, EdPrivKeyBuffer);
-	stringToHex(EdMessage, EdMessageBuffer, EdMessageLength);
-
+//	stringToHex(EdPrivKey, EdPrivKeyBuffer); // Used for non-FB Research Test Vectors
+	stringToHex(EdMessage, EdMessageBuffer, EdMessageLength); // Used for both types of Test Vectors
+/*	// Used for non-FB Research Test Vectors:
 	timestamp = micros();
 		john.sign(hancock, EdPubKey, EdPrivKey, EdMessage, true, EdMessageLength);
 	duration = micros() - timestamp;
@@ -170,23 +171,26 @@ void setup() {
 		}
 	}
 	Serial.println();
+*/
+	stringToHex(EdPubKey, EdPubKeyBuffer); // Used for FB Research Test Vectors
+	stringToHex(hancock, EdSigBuffer, 64); // Used for FB Research Test Vectors
 
 	timestamp = micros();
-		EdValid = john.verify(EdPubKey, EdMessage, hancock, EdMessageLength);
+		EdValid = john.verify(EdPubKey, EdMessage, hancock, EdMessageLength); // Used for both types of Test Vectors
 	duration = micros() - timestamp;
 
 	Serial.print("Ed25519 verify run-time: ");
 	Serial.println(duration);
 	Serial.print("Valid? ");
 	Serial.println(EdValid);
-
+/*
 	hancock[63] += 0x01;
-	EdValid = john.verify(EdPubKey, EdMessage, hancock, EdMessageLength);
+	EdValid = john.verify(EdPubKey, EdMessage, hancock, EdMessageLength); // Used for non-FB Research Test Vectors
 
 	Serial.print("Invalid? ");
 	Serial.println(EdValid);
 	Serial.println();
-
+*/
 /*
 //	poly1305 Test Vector 1:
 	char tag[16];
