@@ -21,10 +21,10 @@ TO DO:
 - Integrate optimized multi libraries. [DONE]
 - Get run-times for ecdhe, john, and mac. [DONE]
 - Get run-times for optimized versions of above objects. [DONE]
-- Validate optimized versions. []
-	- Ed25519 []
-	- X25519 []
-	- poly []
+- Validate optimized versions. [DONE]
+	- Ed25519 [DONE]
+	- X25519 [DONE]
+	- poly [DONE]
 
 */
 
@@ -75,7 +75,7 @@ optipolyAuth = (0.74)polyAuth [This is a maximum value, and will only decrease w
 */
 
 
-void stringToHex(char* out, char* s, unsigned short length = 32) { // Used for the Ed25519 Test Vectors.
+void stringToHex(char* out, char* s, unsigned short length = 32) {
 	for(unsigned short i = 0; i < length; i += 1) {
 		if(48 <= s[i*2] && s[i*2] <= 57) {
 			s[i*2] -= 48;
@@ -113,9 +113,14 @@ void setup() {
 	unsigned long duration = 0;
 
 /*
-//	X25519 Test Vector 1:
-	char n[32] = {0xa5, 0x46, 0xe3, 0x6b, 0xf0, 0x52, 0x7c, 0x9d, 0x3b, 0x16, 0x15, 0x4b, 0x82, 0x46, 0x5e, 0xdd, 0x62, 0x14, 0x4c, 0x0a, 0xc1, 0xfc, 0x5a, 0x18, 0x50, 0x6a, 0x22, 0x44, 0xba, 0x44, 0x9a, 0xc4};
-	char xp[32] = {0xe6, 0xdb, 0x68, 0x67, 0x58, 0x30, 0x30, 0xdb, 0x35, 0x94, 0xc1, 0xa4, 0x24, 0xb1, 0x5f, 0x7c, 0x72, 0x66, 0x24, 0xec, 0x26, 0xb3, 0x35, 0x3b, 0x10, 0xa9, 0x03, 0xa6, 0xd0, 0xab, 0x1c, 0x4c};
+//	X25519 Test Vectors:
+	char n[32];
+	char xp[32];
+	char nBuffer[65] = {"751fb4308655b476b6789b7325f9ea8cddd16a58533ff6d9e60009464a5f9d94"};
+	char xpBuffer[65] = {"0be7c1f5aad87d7e448662673298a443478b859745179eaf564c79c0ef6eee25"};
+
+	stringToHex(n, nBuffer, 32);
+	stringToHex(xp, xpBuffer, 32);
 
 	timestamp = micros();
 		ecdhe.curve25519(n, xp);
@@ -125,28 +130,33 @@ void setup() {
 	Serial.println(duration);
 	Serial.print("xp: ");
 	for(unsigned short i = 0; i < 32; i += 1) {
-		Serial.print(xp[i], HEX);
+		if(xp[i] > 0x0f) {
+			Serial.print(xp[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(xp[i], HEX);
+		}
 	}
 	Serial.println('\n');
 */
-
+/*
 //	Ed25519 Test Vectors:
 	char hancock[64];
 	char EdPubKey[32];
 //	char EdPrivKeyBuffer[65] = {"833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42"}; // Used for non-FB Research Test Vectors
 	char EdPrivKey[32];
 	unsigned short EdMessageLength = 32;
-	char EdMessageBuffer[(EdMessageLength*2) + 1] = {"85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40"};
+	char EdMessageBuffer[(EdMessageLength*2) + 1] = {"39a591f5321bbe07fd5a23dc2f39d025d74526615746727ceefd6e82ae65c06f"};
 	char EdMessage[EdMessageLength];
 	bool EdValid;
-	char EdPubKeyBuffer[65] = {"442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623"}; // Used for FB Research Test Vectors
-	char EdSigBuffer[129] = {"e96f66be976d82e60150baecff9906684aebb1ef181f67a7189ac78ea23b6c0e547f7690a0e2ddcd04d87dbc3490dc19b3b3052f7ff0538cb68afb369ba3a514"};
+//	char EdPubKeyBuffer[65] = {"ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}; // Used for FB Research Test Vectors
+//	char EdSigBuffer[129] = {"a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04"}; // Used for FB Research Test Vectors
 
-//	stringToHex(EdPrivKey, EdPrivKeyBuffer); // Used for non-FB Research Test Vectors
+	stringToHex(EdPrivKey, EdPrivKeyBuffer); // Used for non-FB Research Test Vectors
 	stringToHex(EdMessage, EdMessageBuffer, EdMessageLength); // Used for both types of Test Vectors
-/*	// Used for non-FB Research Test Vectors:
+
 	timestamp = micros();
-		john.sign(hancock, EdPubKey, EdPrivKey, EdMessage, true, EdMessageLength);
+		john.sign(hancock, EdPubKey, EdPrivKey, EdMessage, true, EdMessageLength); // Used for non-FB Research Test Vectors
 	duration = micros() - timestamp;
 
 	Serial.print("Ed25519 sign run-time: ");
@@ -171,9 +181,9 @@ void setup() {
 		}
 	}
 	Serial.println();
-*/
-	stringToHex(EdPubKey, EdPubKeyBuffer); // Used for FB Research Test Vectors
-	stringToHex(hancock, EdSigBuffer, 64); // Used for FB Research Test Vectors
+
+//	stringToHex(EdPubKey, EdPubKeyBuffer); // Used for FB Research Test Vectors
+//	stringToHex(hancock, EdSigBuffer, 64); // Used for FB Research Test Vectors
 
 	timestamp = micros();
 		EdValid = john.verify(EdPubKey, EdMessage, hancock, EdMessageLength); // Used for both types of Test Vectors
@@ -183,8 +193,8 @@ void setup() {
 	Serial.println(duration);
 	Serial.print("Valid? ");
 	Serial.println(EdValid);
-/*
-	hancock[63] += 0x01;
+
+	hancock[63] += 0x01; // Used for non-FB Research Test Vectors
 	EdValid = john.verify(EdPubKey, EdMessage, hancock, EdMessageLength); // Used for non-FB Research Test Vectors
 
 	Serial.print("Invalid? ");
@@ -194,9 +204,9 @@ void setup() {
 /*
 //	poly1305 Test Vector 1:
 	char tag[16];
-	uint32_t polyKey[8] = {0x85d6be78, 0x57556d33, 0x7f4452fe, 0x42d506a8, 0x0103808a, 0xfb0db2fd, 0x4abff6af, 0x4149f51b};
-	unsigned short polyMessageLength = 34;
-	char polyMessageBuffer[polyMessageLength + 1] = {"Cryptographic Forum Research Group"};
+	uint32_t polyKey[8] = {0x01000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
+	unsigned short polyMessageLength = 256;
+	char polyMessageBuffer[polyMessageLength + 1] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 	char polyMessage[polyMessageLength];
 	bool polyValid;
 
@@ -212,7 +222,12 @@ void setup() {
 	Serial.println(duration);
 	Serial.print("Tag: ");
 	for(unsigned short i = 0; i < 16; i += 1) {
-		Serial.print(tag[i], HEX);
+		if(tag[i] > 0x0f) {
+			Serial.print(tag[i], HEX);
+		} else {
+			Serial.print('0');
+			Serial.print(tag[i], HEX);
+		}
 	}
 	Serial.println();
 
