@@ -53,18 +53,18 @@ private:
 	void incrementNonceCounter();
 
 	void incrementPeerNonceCounter();
-	unsigned long long getPeerNonceCounter() {return (peerNonceCounter[0] << 32) | peerNonceCounter[1];}
+	unsigned long long getPeerNonceCounter() {return (((unsigned long long)peerNonceCounter[0]) << 32) | peerNonceCounter[1];}
 	unsigned long long currentPeerNonceCounter = 0;
 
 	void encryptAndDecryptSubProcess(char*);
-	void encryptAndDecryptProcess(char*, unsigned long long, unsigned long);
+	void encryptAndDecryptProcess(char*);
 public:
 	ChaChaEncryption();
 	~ChaChaEncryption();
 
 	void buildEncryption(char*, char*, char*);
 
-	unsigned long long getNonceCounter() {return (nonceCounter[0] << 32) | nonceCounter[1];}
+	unsigned long long getNonceCounter() {return (((unsigned long long)nonceCounter[0]) << 32) | nonceCounter[1];}
 
 	uint32_t* generateEndState();
 	uint32_t* generatePeerEndState(unsigned long long);
@@ -222,7 +222,7 @@ void ChaChaEncryption::encryptAndDecryptSubProcess(char* message) {
 }
 
 
-void ChaChaEncryption::encryptAndDecryptProcess(char* message, unsigned long long bytes, unsigned long startBlock = 0) {
+void ChaChaEncryption::encryptAndDecryptProcess(char* message) {
 	for(unsigned long long i = 0; i < (messageBlockCount - 1); i += 1) {
 		encryptAndDecryptSubProcess(message);
 		incrementBlockCounter();
@@ -261,7 +261,7 @@ uint32_t* ChaChaEncryption::generatePeerEndState(unsigned long long nonceCounter
 void ChaChaEncryption::encryptMessage(char* message, unsigned long long bytes, unsigned long startBlock = 0) {
 	if(bytes > 0) {
 		initializeEncryption(bytes, startBlock, fixedNonce, nonceCounter);
-		encryptAndDecryptProcess(message, bytes, startBlock);
+		encryptAndDecryptProcess(message);
 		incrementNonceCounter();
 	}
 }
@@ -276,7 +276,7 @@ void ChaChaEncryption::decryptMessage(char* message, unsigned long long bytes, u
 			}
 		}
 		initializeEncryption(bytes, startBlock, peerFixedNonce, peerNonceCounter);
-		encryptAndDecryptProcess(message, bytes, startBlock);
+		encryptAndDecryptProcess(message);
 		incrementPeerNonceCounter();
 	}
 }

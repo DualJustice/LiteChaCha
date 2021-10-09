@@ -11,53 +11,82 @@ void setup() {
 		delay(250);
 	}
 
+
 // -------------------- Necessary Variables --------------------
 
-	char userID[pki.getIDBytes()]; // IDs are used for a fixed portion of a nonce.
-	char peerID[pki.getIDBytes()];
-	char userPubKey[pki.getKeyBytes()];
-	char peerPubKey[pki.getKeyBytes()];
+	const size_t keyBytes = pki.getKeyBytes();
+	const size_t signatureBytes = pki.getSignatureBytes();
+	const size_t IDBytes = pki.getIDBytes();
 
-	char sessionID[pki.getKeyBytes()];
-	char peerSessionID[pki.getKeyBytes()];
+	char userDSAPrivateKey[keyBytes]; // Used as either an input or an output depending on whether the user would like to generate a new key pair.
+	char userDSAPubKey[keyBytes]; // Used as either an input or an output depending on whether the user would like to generate a new key pair.
+	char peerDSAPubKey[keyBytes];
+	bool generateNewDSAKeys = true;
+
+	char userEphemeralPubKey[keyBytes];
+	char peerEphemeralPubKey[keyBytes];
+
+	char userSignature[signatureBytes];
+	char peerSignature[signatureBytes];
+
+	char userID[IDBytes]; // IDs are used for a fixed portion of a nonce.
+	char peerID[IDBytes];
+
+	const size_t tagBytes = ae.getTagBytes();
 
 	unsigned long long messageCount; // Used to increment a nonce for each new message sent. Will be sent with each encrypted message.
 
-	char tag[ae.getTagBytes()]; // Used to authenticate encrypted messages. Will be sent with each encrypted message.
+	char tag[tagBytes]; // Used to authenticate encrypted messages. Will be sent with each encrypted message.
+
 
 // -------------------- Establish Connection --------------------
 
-	pki.initialize(userID, userPubKey); // Generates a random user ID and public key.
+/*
+	pki.initialize():
 
-//	Exchange IDs and public keys unencrypted.
+	If generateNewDSAKeys is true, which it is by default, a new, random userDSAPrivateKey and corresponding userDSAPubKey will be output for the user to store if desired.
+	If generateNewDSAKeys is false, the user will need to input a previously stored userDSAPrivateKey and userDSAPubKey pair.
+	DSA key pairs can be used multiple times without compromising security, but should be refreshed on a regular schedule.
+	A new, random userEphemeralPubKey and userID is generated with each call.
+*/
 
-	if(pki.IDUnique(userID, peerID)) {
-		pki.createSessionKey(peerPubKey); // Creates a shared private session key, overwriting peerPubKey, if both users have different IDs.
+	pki.initialize(userDSAPrivateKey, userDSAPubKey, userEphemeralPubKey, userSignature, userID, generateNewDSAKeys);
+
+//	Exchange DSA public keys, ephemeral public keys, signatures, and IDs unencrypted.
+
+/*
+	An Important Note:
+
+	Your DSA public key is the final determiner of authenticity, and is what signifies to others that you are in fact the one sending the above items.
+	Typically your DSA public key would be validated using a certificate, or some similar mechanism, but this is out of the scope of this project.
+	To truly ensure a secure connection, DSA public keys must be validated via some secure, out-of-band method.
+*/
+
+	if((pki.IDUnique(userID, peerID)) && (pki.signatureValid(peerDSAPubKey, peerEphemeralPubKey, peerSignature))) {
+		pki.createSessionKey(peerEphemeralPubKey); // Creates a shared private session key, overwriting peerEphemeralPubKey, if both users have different IDs and the peer's signature is valid.
 	}
 
 //	Ensure that the shared private session key has never been used by you before!
 
-	ae.initialize(peerPubKey, userID, peerID);
+	ae.initialize(peerEphemeralPubKey, userID, peerID);
 
-//	To confirm a secure connection, compare session IDs out-of-band. If they match, the session is secure. This check is only useful if the out-of-band communication method
-//	chosen is through a connection that is already known to be secure! sessionIDs are compared, not shared private session keys, as a security measure to keep the key secret.
-//	This check could be done in the future using RSA or ECDSA:
-	ae.getSessionID(sessionID); // Creates a Session ID derived from the shared private session key. This is to be sent to the other user.
-	if(ae.sameSessionID(peerSessionID)) {
-		// The connection is secure, assuming sessionIDs were exchanged over an alternative, already-secure connection...
-	}
 
 // -------------------- Encrypt and Decrypt --------------------
 
-	// Input message and the number of bytes in message:
-	unsigned long long messageBytes = 0;
-	char message[messageBytes] = {""};
+//	Input message and the number of bytes in message:
+	const unsigned long long messageBytes = 2;
+	char messageBuffer[messageBytes + 1] = {"42"};
+	char message[messageBytes];
+
+	for(unsigned long long i = 0; i < messageBytes; i += 1) {
+		message[i] = messageBuffer[i];
+	}
 
 	ae.encryptAndTagMessage(messageCount, tag, message, messageBytes); // Encrypts message, overwriting it with the ciphertext. Outputs messageCount and the MAC tag as well.
 
 //	Send the messageCount, tag, and message.
 
-	// Upon receiving a ciphertext, messageCount, and tag:
+//	Upon receiving a ciphertext, messageCount, and tag:
 	if(ae.messageAuthentic(message, messageBytes, messageCount, tag)) { // Authenticates the message with the MAC tag.
 		ae.decryptAuthenticatedMessage(message, messageBytes, messageCount); // Decrypts message, overwriting it with the plaintext.
 	}
