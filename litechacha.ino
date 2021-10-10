@@ -41,26 +41,9 @@ void setup() {
 
 // -------------------- Establish Connection --------------------
 
-/*
-	pki.initialize():
-
-	If generateNewDSAKeys is true, which it is by default, a new, random userDSAPrivateKey and corresponding userDSAPubKey will be output for the user to store if desired.
-	If generateNewDSAKeys is false, the user will need to input a previously stored userDSAPrivateKey and userDSAPubKey pair.
-	DSA key pairs can be used multiple times without compromising security, but should be refreshed on a regular schedule.
-	A new, random userEphemeralPubKey and userID is generated with each call.
-*/
-
 	pki.initialize(userDSAPrivateKey, userDSAPubKey, userEphemeralPubKey, userSignature, userID, generateNewDSAKeys);
 
 //	Exchange DSA public keys, ephemeral public keys, signatures, and IDs unencrypted.
-
-/*
-	An Important Note:
-
-	Your DSA public key is the final determiner of authenticity, and is what signifies to others that you are in fact the one sending the above items.
-	Typically your DSA public key would be validated using a certificate, or some similar mechanism, but this is out of the scope of this project.
-	To truly ensure a secure connection, DSA public keys must be validated via some secure, out-of-band method.
-*/
 
 	if((pki.IDUnique(userID, peerID)) && (pki.signatureValid(peerDSAPubKey, peerEphemeralPubKey, peerSignature))) {
 		pki.createSessionKey(peerEphemeralPubKey); // Creates a shared private session key, overwriting peerEphemeralPubKey, if both users have different IDs and the peer's signature is valid.
