@@ -7,3 +7,12 @@ rfc6234
 
 AEAD:
 rfc8439
+
+
+Ed25519 Relevant Papers:
+
+-------------------- RELEVANT PAPERS --------------------
+
+1. RFC8032
+2. https://hdevalence.ca/blog/2020-10-04-its-25519am
+3. https://research.fb.com/wp-content/uploads/2020/10/Taming-the-many-EdDSAs.pdf

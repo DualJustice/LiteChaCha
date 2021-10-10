@@ -99,6 +99,10 @@ void Poly1305MAC::prepareInt(uint32_t* key) {
 	math.base32_16(rMulti, r);
 	math.base32_16(sMulti, s);
 
+	if(messageBlockCount > 2) { // This is not constant time, but the condition is derived from the length of the message, which is public.
+		math.base16Mod(rMulti, rMulti);
+	}
+
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		acc[i] = 0x00000000;
 	}
@@ -149,7 +153,7 @@ void Poly1305MAC::prepareFinalBlockLittleEndian(char* message) {
 
 void Poly1305MAC::tagSubProcess() {
 	math.base16Add(acc, acc, block);
-	math.base16Mul(acc, acc, rMulti);
+	math.base16Mul(acc, acc, rMulti, (messageBlockCount > 2)); // This is not constant time, but the condition is derived from the length of the message, which is public.
 }
 
 
