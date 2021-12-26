@@ -4,7 +4,7 @@
 
 ---
 
-### LiteChaCha is a basic, readable implementation of a cipher suite written for Arduino. It uses X25519 to perform ecdhe, Ed25519 for digital signatures, ChaCha20 for bulk encryption and decryption, and Poly1305 for message authentication.
+### LiteChaCha is a basic, readable, header-only implementation of a cipher suite written for Arduino. It uses X25519 to perform ecdhe, Ed25519 for digital signatures, ChaCha20 for bulk encryption and decryption, and Poly1305 for message authentication.
 
 ---
 
@@ -14,7 +14,7 @@
 
   * Lite ChaCha is not guaranteed to be performant, and is very likely susceptible to side-channel attacks. It is also not guaranteed to be updated. Frankly, it was made for fun, so **USE AT YOUR OWN PERIL**!
 
-  * LiteChaCha was made to be run on the Arduino Nano 33 IoT. It may work on other microcontrollers, but it should be noted that the Arduino Nano 33 IoT uses a 32-Bit processor. Microcontrollers that are unable to handle at least 32 Bits are very likely to run far less efficiently due to the fact that LiteChaCha primarily handles data in 32 Bit words.
+  * LiteChaCha was made to be run on the Arduino Nano 33 IoT. It may work on other microcontrollers, but has not been validated to run on anything else. LiteChaCha is not guaranteed to run on anything other than the Arduino Nano 33 IoT.
 
   * LiteChaCha is in the public domain for all to use freely.
 
