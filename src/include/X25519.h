@@ -58,24 +58,11 @@ private:
 	char* encodeXCoord(char*);
 	void checkAllZerosCase(char*);
 public:
-	X25519KeyExchange();
-	~X25519KeyExchange();
-
 	void curve25519(char[BYTE_LENGTH], char[BYTE_LENGTH]);
 };
 
 
-X25519KeyExchange::X25519KeyExchange() {
-
-}
-
-
-X25519KeyExchange::~X25519KeyExchange() {
-
-}
-
-
-char* X25519KeyExchange::decodeBytesLittleEndian(char* b) {
+inline char* X25519KeyExchange::decodeBytesLittleEndian(char* b) {
 	char temp;
 	for(unsigned short i = 0; i < BYTE_LENGTH/2; i += 1) {
 		temp = b[i];
@@ -87,7 +74,7 @@ char* X25519KeyExchange::decodeBytesLittleEndian(char* b) {
 }
 
 
-char* X25519KeyExchange::clampAndDecodeScalar(char* n) {
+inline char* X25519KeyExchange::clampAndDecodeScalar(char* n) {
 	n[0] &= 0xf8;
 	n[31] &= 0x7f;
 	n[31] |= 0x40;
@@ -98,14 +85,14 @@ char* X25519KeyExchange::clampAndDecodeScalar(char* n) {
 }
 
 
-void X25519KeyExchange::toUInt(uint32_t* outInt, char* b) {
+inline void X25519KeyExchange::toUInt(uint32_t* outInt, char* b) {
 	for(unsigned short i = 0; i < INT_LENGTH; i += 1) {
 		outInt[i] = (b[i*4] << 24) | (b[(i*4) + 1] << 16) | (b[(i*4) + 2] << 8) | b[(i*4) + 3];
 	}
 }
 
 
-char* X25519KeyExchange::maskAndDecodeXCoord(char* x) {
+inline char* X25519KeyExchange::maskAndDecodeXCoord(char* x) {
 	x[31] &= 0x7f;
 
 	x = decodeBytesLittleEndian(x);
@@ -114,7 +101,7 @@ char* X25519KeyExchange::maskAndDecodeXCoord(char* x) {
 }
 
 
-void X25519KeyExchange::cSwap(uint32_t s) {
+inline void X25519KeyExchange::cSwap(uint32_t s) {
 	mask = 0x00000000;
 	mask -= s;
 
@@ -132,7 +119,7 @@ void X25519KeyExchange::cSwap(uint32_t s) {
 }
 
 
-void X25519KeyExchange::ladderStep() {
+inline void X25519KeyExchange::ladderStep() {
 	math.base16Add(A, X2, Z2);
 	math.base16Mul(AA, A, A);
 	math.base16Sub(B, X2, Z2);
@@ -154,7 +141,7 @@ void X25519KeyExchange::ladderStep() {
 }
 
 
-void X25519KeyExchange::montgomeryLadder() {
+inline void X25519KeyExchange::montgomeryLadder() {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		X1[i] = xIntMulti[i];
 	}
@@ -187,7 +174,7 @@ void X25519KeyExchange::montgomeryLadder() {
 }
 
 
-void X25519KeyExchange::inverse() { // Copied directly from Daniel J. Bernstein.
+inline void X25519KeyExchange::inverse() { // Copied directly from Daniel J. Bernstein.
 	math.base16Mul(A, Z2, Z2);
 	math.base16Mul(Z3, A, A);
 	math.base16Mul(X3, Z3, Z3);
@@ -260,7 +247,7 @@ void X25519KeyExchange::inverse() { // Copied directly from Daniel J. Bernstein.
 }
 
 
-char* X25519KeyExchange::encodeXCoord(char* x) {
+inline char* X25519KeyExchange::encodeXCoord(char* x) {
 	for(unsigned short i = 0; i < INT_LENGTH; i += 1) {
 		x[i*4] = xInt[i] >> 24;
 		x[(i*4) + 1] = xInt[i] >> 16;
@@ -274,7 +261,7 @@ char* X25519KeyExchange::encodeXCoord(char* x) {
 }
 
 
-void X25519KeyExchange::checkAllZerosCase(char* x) {
+inline void X25519KeyExchange::checkAllZerosCase(char* x) {
 	zerosCheck = 0x00;
 
 	for(unsigned short i = 0; i < BYTE_LENGTH; i += 1) {
@@ -288,7 +275,7 @@ void X25519KeyExchange::checkAllZerosCase(char* x) {
 }
 
 
-void X25519KeyExchange::curve25519(char* n, char* xp) { // n is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
+inline void X25519KeyExchange::curve25519(char* n, char* xp) { // n is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
 	n = clampAndDecodeScalar(n);
 
 	toUInt(nInt, n);
