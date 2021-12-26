@@ -70,11 +70,24 @@ private:
 
 	void outputHash(char[HASH_BYTES]);
 public:
+	SHA512Hash();
+	~SHA512Hash();
+
 	void hashBytes(char[HASH_BYTES], char*, unsigned long long);
 };
 
 
-inline void SHA512Hash::initialize(unsigned long long messageBytes) {
+SHA512Hash::SHA512Hash() {
+
+}
+
+
+SHA512Hash::~SHA512Hash() {
+
+}
+
+
+void SHA512Hash::initialize(unsigned long long messageBytes) {
 	for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
 		h[i] = hInit[i];
 	}
@@ -91,7 +104,7 @@ inline void SHA512Hash::initialize(unsigned long long messageBytes) {
 }
 
 
-inline void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long long messageBytes) {
+void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigned long long messageBytes) {
 	for(unsigned long long i = 0; i < messageWords; i += 1) {
 		message[i] = 0x0000000000000000;
 		for(unsigned short j = 0; j < HALF_WORD_CONVERSION; j += 1) {
@@ -147,12 +160,12 @@ inline void SHA512Hash::buildMessage(uint64_t* message, char* messageIn, unsigne
 }
 
 
-inline void SHA512Hash::rotR(uint64_t n, unsigned short c) {
+void SHA512Hash::rotR(uint64_t n, unsigned short c) {
 	wordBuffer = ((n >> c) | (n << (WORD_BITS - c)));
 }
 
 
-inline void SHA512Hash::hashProcess(uint64_t* message) {
+void SHA512Hash::hashProcess(uint64_t* message) {
 	for(unsigned long long b = 0; b < blockCount; b += 1) {
 		for(unsigned short i = 0; i < BLOCK_WORDS; i += 1) {
 			w[i] = message[(BLOCK_WORDS*b) + i];
@@ -217,7 +230,7 @@ inline void SHA512Hash::hashProcess(uint64_t* message) {
 }
 
 
-inline void SHA512Hash::outputHash(char* hashOut) {
+void SHA512Hash::outputHash(char* hashOut) {
 	for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
 		for(unsigned short j = 0; j < WORD_CONVERSION; j += 1) {
 			hashOut[(WORD_CONVERSION*i) + j] = h[i] >> (WORD_SHIFT - (BIT_CONVERSION*j));
@@ -226,7 +239,7 @@ inline void SHA512Hash::outputHash(char* hashOut) {
 }
 
 
-inline void SHA512Hash::hashBytes(char* hashOut, char* messageIn, unsigned long long messageBytes) {
+void SHA512Hash::hashBytes(char* hashOut, char* messageIn, unsigned long long messageBytes) {
 	initialize(messageBytes);
 
 	uint64_t* message = new uint64_t[wordIndex + 1];

@@ -23,6 +23,9 @@ private:
 
 	char check;
 public:
+	KeyManagement();
+	~KeyManagement();
+
 	unsigned short getKeyBytes() {return KEY_BYTES;}
 	unsigned short getSignatureBytes() {return SIGNATURE_BYTES;}
 	unsigned short getIDBytes() {return ID_BYTES;}
@@ -37,7 +40,17 @@ public:
 };
 
 
-inline void KeyManagement::initialize(char* DSAPrivateKeyInOut, char* DSAPubKeyInOut, char* ephemeralKeyOut, char* signatureOut, char* IDOut, bool generateNewDSAKeys = true) {
+KeyManagement::KeyManagement() {
+
+}
+
+
+KeyManagement::~KeyManagement() {
+
+}
+
+
+void KeyManagement::initialize(char* DSAPrivateKeyInOut, char* DSAPubKeyInOut, char* ephemeralKeyOut, char* signatureOut, char* IDOut, bool generateNewDSAKeys = true) {
 	randnum.generateBytes(IDOut, ID_BYTES);
 	randnum.generateBytes(privateSessionKey, KEY_BYTES);
 
@@ -63,7 +76,7 @@ inline void KeyManagement::initialize(char* DSAPrivateKeyInOut, char* DSAPubKeyI
 }
 
 
-inline bool KeyManagement::IDUnique(char* userID, char* peerID) {
+bool KeyManagement::IDUnique(char* userID, char* peerID) {
 	check = 0x00;
 
 	for(unsigned short i = 0; i < ID_BYTES; i += 1) {
@@ -74,12 +87,12 @@ inline bool KeyManagement::IDUnique(char* userID, char* peerID) {
 }
 
 
-inline bool KeyManagement::signatureValid(char* DSAPubKey, char* ephemeralPubKey, char* signature) {
+bool KeyManagement::signatureValid(char* DSAPubKey, char* ephemeralPubKey, char* signature) {
 	return hancock.verify(DSAPubKey, ephemeralPubKey, signature);
 }
 
 
-inline void KeyManagement::createSessionKey(char* peerEphemeralPubKey) {
+void KeyManagement::createSessionKey(char* peerEphemeralPubKey) {
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
 		curveScalar[i] = privateSessionKey[i];
 	}

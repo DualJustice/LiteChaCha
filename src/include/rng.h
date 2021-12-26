@@ -16,11 +16,24 @@ private:
 
 	void initializeSeed();
 public:
+	RNGen();
+	~RNGen();
+
 	void generateBytes(char*, unsigned short);
 };
 
 
-inline void RNGen::initializeSeed() { // This should be handled as a bare minimum implementation of RNG. I am sure you can do better than me.
+RNGen::RNGen() {
+
+}
+
+
+RNGen::~RNGen() {
+
+}
+
+
+void RNGen::initializeSeed() { // This should be handled as a bare minimum implementation of RNG. I am sure you can do better than me.
 	analogReadResolution(ANALOG_RESOLUTION);
 
 	seedVal = 0;
@@ -35,7 +48,7 @@ inline void RNGen::initializeSeed() { // This should be handled as a bare minimu
 }
 
 
-inline void RNGen::generateBytes(char* out, unsigned short bytes) {
+void RNGen::generateBytes(char* out, unsigned short bytes) {
 	initializeSeed();
 
 	for(unsigned short i = 0; i < bytes; i += 1) {

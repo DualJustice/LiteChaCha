@@ -41,6 +41,9 @@ private:
 	void prepareOut(uint32_t*);
 	void prepareMulOut(uint32_t*); // Used after multiplication and the Barrett reduction.
 public:
+	MultiPrecisionArithmetic1305();
+	~MultiPrecisionArithmetic1305();
+
 	void base32_16(uint32_t*, const uint32_t*);
 
 	void base16Mod(uint32_t*, const uint32_t*);
@@ -49,7 +52,17 @@ public:
 };
 
 
-inline void MultiPrecisionArithmetic1305::base32_16(uint32_t* out, const uint32_t* a) {
+MultiPrecisionArithmetic1305::MultiPrecisionArithmetic1305() {
+
+}
+
+
+MultiPrecisionArithmetic1305::~MultiPrecisionArithmetic1305() {
+
+}
+
+
+void MultiPrecisionArithmetic1305::base32_16(uint32_t* out, const uint32_t* a) {
 	for(unsigned short i = 0; i < (n/2); i += 1) {
 		out[(i*2) + 1] = a[i] >> 16;
 		out[(i*2) + 2] = a[i] & 0x0000ffff;
@@ -59,7 +72,7 @@ inline void MultiPrecisionArithmetic1305::base32_16(uint32_t* out, const uint32_
 }
 
 
-inline void MultiPrecisionArithmetic1305::prepareModIn(const uint32_t* a) {
+void MultiPrecisionArithmetic1305::prepareModIn(const uint32_t* a) {
 	u[1] = 0x00000000;
 
 	for(unsigned short i = 0; i < n; i += 1) {
@@ -68,7 +81,7 @@ inline void MultiPrecisionArithmetic1305::prepareModIn(const uint32_t* a) {
 }
 
 
-inline void MultiPrecisionArithmetic1305::base16ModInternal() {
+void MultiPrecisionArithmetic1305::base16ModInternal() {
 // ---------- D1 ----------
 	carry = 0x00000000;
 
@@ -154,14 +167,14 @@ inline void MultiPrecisionArithmetic1305::base16ModInternal() {
 }
 
 
-inline void MultiPrecisionArithmetic1305::prepareOut(uint32_t* out) {
+void MultiPrecisionArithmetic1305::prepareOut(uint32_t* out) {
 	for(unsigned short i = 0; i < n; i += 1) {
 		out[i] = u[i + 2];
 	}
 }
 
 
-inline void MultiPrecisionArithmetic1305::prepareIn(const uint32_t* a, const uint32_t* b) {
+void MultiPrecisionArithmetic1305::prepareIn(const uint32_t* a, const uint32_t* b) {
 	u[1] = 0x00000000;
 	v[0] = 0x00000000;
 
@@ -172,7 +185,7 @@ inline void MultiPrecisionArithmetic1305::prepareIn(const uint32_t* a, const uin
 }
 
 
-inline void MultiPrecisionArithmetic1305::barrettReduce() {
+void MultiPrecisionArithmetic1305::barrettReduce() {
 // ---------- 1 ----------
 	for(unsigned short i = 0; i < (n + 1); i += 1) {
 		v[i] = u[i + 2]; // v is storing q1.
@@ -259,14 +272,14 @@ inline void MultiPrecisionArithmetic1305::barrettReduce() {
 }
 
 
-inline void MultiPrecisionArithmetic1305::prepareMulOut(uint32_t* out) {
+void MultiPrecisionArithmetic1305::prepareMulOut(uint32_t* out) {
 	for(unsigned short i = 0; i < n; i += 1) {
 		out[i] = u[i + 3];
 	}
 }
 
 
-inline void MultiPrecisionArithmetic1305::base16Mod(uint32_t* out, const uint32_t* a) {
+void MultiPrecisionArithmetic1305::base16Mod(uint32_t* out, const uint32_t* a) {
 	prepareModIn(a);
 
 	m = 1;
@@ -276,7 +289,7 @@ inline void MultiPrecisionArithmetic1305::base16Mod(uint32_t* out, const uint32_
 }
 
 
-inline void MultiPrecisionArithmetic1305::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b, bool mod = true) {
+void MultiPrecisionArithmetic1305::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b, bool mod = true) {
 	prepareIn(a, b);
 
 	carry = 0x00000000;
@@ -296,7 +309,7 @@ inline void MultiPrecisionArithmetic1305::base16Add(uint32_t* out, const uint32_
 }
 
 
-inline void MultiPrecisionArithmetic1305::base16Mul(uint32_t* out, const uint32_t* a, const uint32_t* b, bool barrett) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well.
+void MultiPrecisionArithmetic1305::base16Mul(uint32_t* out, const uint32_t* a, const uint32_t* b, bool barrett) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well.
 	prepareIn(a, b);
 
 	for(unsigned short i = ((n*2) - 1); i > (n - 1); i -= 1) {
