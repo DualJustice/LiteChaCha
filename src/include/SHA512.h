@@ -63,17 +63,17 @@ private:
 
 	void initialize(const unsigned long long);
 
-	void buildMessage(uint64_t*, const char*, const unsigned long long);
+	void buildMessage(uint64_t*, const unsigned char*, const unsigned long long);
 
 	void rotR(const uint64_t, const unsigned short);
 	void hashProcess(const uint64_t*);
 
-	void outputHash(char[HASH_BYTES]);
+	void outputHash(unsigned char[HASH_BYTES]);
 public:
 	SHA512Hash();
 	~SHA512Hash();
 
-	void hashBytes(char[HASH_BYTES], const char*, const unsigned long long);
+	void hashBytes(unsigned char[HASH_BYTES], const unsigned char*, const unsigned long long);
 };
 
 
@@ -104,7 +104,7 @@ void SHA512Hash::initialize(const unsigned long long messageBytes) {
 }
 
 
-void SHA512Hash::buildMessage(uint64_t* message, const char* messageIn, const unsigned long long messageBytes) {
+void SHA512Hash::buildMessage(uint64_t* message, const unsigned char* messageIn, const unsigned long long messageBytes) {
 	for(unsigned long long i = 0; i < messageWords; i += 1) {
 		message[i] = 0x0000000000000000;
 		for(unsigned short j = 0; j < HALF_WORD_CONVERSION; j += 1) {
@@ -230,7 +230,7 @@ void SHA512Hash::hashProcess(const uint64_t* message) {
 }
 
 
-void SHA512Hash::outputHash(char* hashOut) {
+void SHA512Hash::outputHash(unsigned char* hashOut) {
 	for(unsigned short i = 0; i < HASH_WORDS; i += 1) {
 		for(unsigned short j = 0; j < WORD_CONVERSION; j += 1) {
 			hashOut[(WORD_CONVERSION*i) + j] = h[i] >> (WORD_SHIFT - (BIT_CONVERSION*j));
@@ -239,7 +239,7 @@ void SHA512Hash::outputHash(char* hashOut) {
 }
 
 
-void SHA512Hash::hashBytes(char* hashOut, const char* messageIn, const unsigned long long messageBytes) {
+void SHA512Hash::hashBytes(unsigned char* hashOut, const unsigned char* messageIn, const unsigned long long messageBytes) {
 	initialize(messageBytes);
 
 	uint64_t* message = new uint64_t[wordIndex + 1];
