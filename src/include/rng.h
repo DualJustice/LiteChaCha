@@ -9,14 +9,14 @@ private:
 	const unsigned short ANALOG_RESOLUTION = 12;
 	const unsigned short ANALOG_PIN = A0; // This analog pin must be floating!
 
-	char bit;
+	unsigned char bit;
 	unsigned long seedVal;
 
 	const unsigned short base = 0x100;
 
 	void initializeSeed();
 public:
-	void generateBytes(char*, const unsigned short);
+	void generateBytes(unsigned char*, const unsigned short);
 };
 
 
@@ -35,7 +35,7 @@ inline void RNGen::initializeSeed() { // This should be handled as a bare minimu
 }
 
 
-inline void RNGen::generateBytes(char* out, const unsigned short bytes) {
+inline void RNGen::generateBytes(unsigned char* out, const unsigned short bytes) {
 	initializeSeed();
 
 	for(unsigned short i = 0; i < bytes; i += 1) {

@@ -43,27 +43,27 @@ private:
 	uint32_t A24[INT_LENGTH] = {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0001db41}; // (486662 - 2)/4.
 	uint32_t A24Multi[INT_LENGTH_MULTI];
 
-	char zerosCheck;
+	unsigned char zerosCheck;
 
-	char* decodeBytesLittleEndian(char*);
-	char* clampAndDecodeScalar(char*);
-	void toUInt(uint32_t*, const char*);
-	char* maskAndDecodeXCoord(char*);
+	unsigned char* decodeBytesLittleEndian(unsigned char*);
+	unsigned char* clampAndDecodeScalar(unsigned char*);
+	void toUInt(uint32_t*, const unsigned char*);
+	unsigned char* maskAndDecodeXCoord(unsigned char*);
 
 	void cSwap(const uint32_t);
 	void ladderStep();
 	void montgomeryLadder();
 	void inverse();
 
-	char* encodeXCoord(char*);
-	void checkAllZerosCase(const char*);
+	unsigned char* encodeXCoord(unsigned char*);
+	void checkAllZerosCase(const unsigned char*);
 public:
-	void curve25519(char[BYTE_LENGTH], char[BYTE_LENGTH]);
+	void curve25519(unsigned char[BYTE_LENGTH], unsigned char[BYTE_LENGTH]);
 };
 
 
-inline char* X25519KeyExchange::decodeBytesLittleEndian(char* b) {
-	char temp;
+inline unsigned char* X25519KeyExchange::decodeBytesLittleEndian(unsigned char* b) {
+	unsigned char temp;
 	for(unsigned short i = 0; i < BYTE_LENGTH/2; i += 1) {
 		temp = b[i];
 		b[i] = b[(BYTE_LENGTH - 1) - i];
@@ -74,7 +74,7 @@ inline char* X25519KeyExchange::decodeBytesLittleEndian(char* b) {
 }
 
 
-inline char* X25519KeyExchange::clampAndDecodeScalar(char* n) {
+inline unsigned char* X25519KeyExchange::clampAndDecodeScalar(unsigned char* n) {
 	n[0] &= 0xf8;
 	n[31] &= 0x7f;
 	n[31] |= 0x40;
@@ -85,14 +85,14 @@ inline char* X25519KeyExchange::clampAndDecodeScalar(char* n) {
 }
 
 
-inline void X25519KeyExchange::toUInt(uint32_t* outInt, const char* b) {
+inline void X25519KeyExchange::toUInt(uint32_t* outInt, const unsigned char* b) {
 	for(unsigned short i = 0; i < INT_LENGTH; i += 1) {
 		outInt[i] = (b[i*4] << 24) | (b[(i*4) + 1] << 16) | (b[(i*4) + 2] << 8) | b[(i*4) + 3];
 	}
 }
 
 
-inline char* X25519KeyExchange::maskAndDecodeXCoord(char* x) {
+inline unsigned char* X25519KeyExchange::maskAndDecodeXCoord(unsigned char* x) {
 	x[31] &= 0x7f;
 
 	x = decodeBytesLittleEndian(x);
@@ -247,7 +247,7 @@ inline void X25519KeyExchange::inverse() { // Copied directly from Daniel J. Ber
 }
 
 
-inline char* X25519KeyExchange::encodeXCoord(char* x) {
+inline unsigned char* X25519KeyExchange::encodeXCoord(unsigned char* x) {
 	for(unsigned short i = 0; i < INT_LENGTH; i += 1) {
 		x[i*4] = xInt[i] >> 24;
 		x[(i*4) + 1] = xInt[i] >> 16;
@@ -261,7 +261,7 @@ inline char* X25519KeyExchange::encodeXCoord(char* x) {
 }
 
 
-inline void X25519KeyExchange::checkAllZerosCase(const char* x) {
+inline void X25519KeyExchange::checkAllZerosCase(const unsigned char* x) {
 	zerosCheck = 0x00;
 
 	for(unsigned short i = 0; i < BYTE_LENGTH; i += 1) {
@@ -275,7 +275,7 @@ inline void X25519KeyExchange::checkAllZerosCase(const char* x) {
 }
 
 
-inline void X25519KeyExchange::curve25519(char* n, char* xp) { // n is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
+inline void X25519KeyExchange::curve25519(unsigned char* n, unsigned char* xp) { // n is the independent, uniform, random secret key. It is an array of 32 bytes and is used as the scalar for the elliptic curve.
 	n = clampAndDecodeScalar(n);
 
 	toUInt(nInt, n);
