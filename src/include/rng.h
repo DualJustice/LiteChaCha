@@ -19,7 +19,7 @@ public:
 	RNGen();
 	~RNGen();
 
-	void generateBytes(char*, unsigned short);
+	void generateBytes(char*, const unsigned short);
 };
 
 
@@ -48,7 +48,7 @@ void RNGen::initializeSeed() { // This should be handled as a bare minimum imple
 }
 
 
-void RNGen::generateBytes(char* out, unsigned short bytes) {
+void RNGen::generateBytes(char* out, const unsigned short bytes) {
 	initializeSeed();
 
 	for(unsigned short i = 0; i < bytes; i += 1) {

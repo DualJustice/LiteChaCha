@@ -47,8 +47,8 @@ public:
 	void base32_16(uint32_t*, const uint32_t*);
 
 	void base16Mod(uint32_t*, const uint32_t*);
-	void base16Add(uint32_t*, const uint32_t*, const uint32_t*, bool);
-	void base16Mul(uint32_t*, const uint32_t*, const uint32_t*, bool);
+	void base16Add(uint32_t*, const uint32_t*, const uint32_t*, const bool);
+	void base16Mul(uint32_t*, const uint32_t*, const uint32_t*, const bool);
 };
 
 
@@ -289,7 +289,7 @@ void MultiPrecisionArithmetic1305::base16Mod(uint32_t* out, const uint32_t* a) {
 }
 
 
-void MultiPrecisionArithmetic1305::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b, bool mod = true) {
+void MultiPrecisionArithmetic1305::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b, const bool mod = true) {
 	prepareIn(a, b);
 
 	carry = 0x00000000;
@@ -309,7 +309,7 @@ void MultiPrecisionArithmetic1305::base16Add(uint32_t* out, const uint32_t* a, c
 }
 
 
-void MultiPrecisionArithmetic1305::base16Mul(uint32_t* out, const uint32_t* a, const uint32_t* b, bool barrett) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well.
+void MultiPrecisionArithmetic1305::base16Mul(uint32_t* out, const uint32_t* a, const uint32_t* b, const bool barrett) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well.
 	prepareIn(a, b);
 
 	for(unsigned short i = ((n*2) - 1); i > (n - 1); i -= 1) {

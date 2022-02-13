@@ -47,16 +47,16 @@ private:
 
 	char* decodeBytesLittleEndian(char*);
 	char* clampAndDecodeScalar(char*);
-	void toUInt(uint32_t*, char*);
+	void toUInt(uint32_t*, const char*);
 	char* maskAndDecodeXCoord(char*);
 
-	void cSwap(uint32_t);
+	void cSwap(const uint32_t);
 	void ladderStep();
 	void montgomeryLadder();
 	void inverse();
 
 	char* encodeXCoord(char*);
-	void checkAllZerosCase(char*);
+	void checkAllZerosCase(const char*);
 public:
 	X25519KeyExchange();
 	~X25519KeyExchange();
@@ -98,7 +98,7 @@ char* X25519KeyExchange::clampAndDecodeScalar(char* n) {
 }
 
 
-void X25519KeyExchange::toUInt(uint32_t* outInt, char* b) {
+void X25519KeyExchange::toUInt(uint32_t* outInt, const char* b) {
 	for(unsigned short i = 0; i < INT_LENGTH; i += 1) {
 		outInt[i] = (b[i*4] << 24) | (b[(i*4) + 1] << 16) | (b[(i*4) + 2] << 8) | b[(i*4) + 3];
 	}
@@ -114,7 +114,7 @@ char* X25519KeyExchange::maskAndDecodeXCoord(char* x) {
 }
 
 
-void X25519KeyExchange::cSwap(uint32_t s) {
+void X25519KeyExchange::cSwap(const uint32_t s) {
 	mask = 0x00000000;
 	mask -= s;
 
@@ -274,7 +274,7 @@ char* X25519KeyExchange::encodeXCoord(char* x) {
 }
 
 
-void X25519KeyExchange::checkAllZerosCase(char* x) {
+void X25519KeyExchange::checkAllZerosCase(const char* x) {
 	zerosCheck = 0x00;
 
 	for(unsigned short i = 0; i < BYTE_LENGTH; i += 1) {
