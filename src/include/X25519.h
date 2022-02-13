@@ -47,16 +47,16 @@ private:
 
 	char* decodeBytesLittleEndian(char*);
 	char* clampAndDecodeScalar(char*);
-	void toUInt(uint32_t*, char*);
+	void toUInt(uint32_t*, const char*);
 	char* maskAndDecodeXCoord(char*);
 
-	void cSwap(uint32_t);
+	void cSwap(const uint32_t);
 	void ladderStep();
 	void montgomeryLadder();
 	void inverse();
 
 	char* encodeXCoord(char*);
-	void checkAllZerosCase(char*);
+	void checkAllZerosCase(const char*);
 public:
 	void curve25519(char[BYTE_LENGTH], char[BYTE_LENGTH]);
 };
@@ -85,7 +85,7 @@ inline char* X25519KeyExchange::clampAndDecodeScalar(char* n) {
 }
 
 
-inline void X25519KeyExchange::toUInt(uint32_t* outInt, char* b) {
+inline void X25519KeyExchange::toUInt(uint32_t* outInt, const char* b) {
 	for(unsigned short i = 0; i < INT_LENGTH; i += 1) {
 		outInt[i] = (b[i*4] << 24) | (b[(i*4) + 1] << 16) | (b[(i*4) + 2] << 8) | b[(i*4) + 3];
 	}
@@ -101,7 +101,7 @@ inline char* X25519KeyExchange::maskAndDecodeXCoord(char* x) {
 }
 
 
-inline void X25519KeyExchange::cSwap(uint32_t s) {
+inline void X25519KeyExchange::cSwap(const uint32_t s) {
 	mask = 0x00000000;
 	mask -= s;
 
@@ -261,7 +261,7 @@ inline char* X25519KeyExchange::encodeXCoord(char* x) {
 }
 
 
-inline void X25519KeyExchange::checkAllZerosCase(char* x) {
+inline void X25519KeyExchange::checkAllZerosCase(const char* x) {
 	zerosCheck = 0x00;
 
 	for(unsigned short i = 0; i < BYTE_LENGTH; i += 1) {

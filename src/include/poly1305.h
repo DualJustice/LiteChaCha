@@ -40,22 +40,22 @@ private:
 	char zerosCheck;
 
 	void clamp();
-	void prepareInt(uint32_t*);
-	void initializeMAC(uint32_t*, unsigned long long);
+	void prepareInt(const uint32_t*);
+	void initializeMAC(const uint32_t*, const unsigned long long);
 
-	void prepareBlockLittleEndian(char*);
-	void prepareFinalBlockLittleEndian(char*);
+	void prepareBlockLittleEndian(const char*);
+	void prepareFinalBlockLittleEndian(const char*);
 	void tagSubProcess();
 	void incrementBlockCounter();
-	void tagProcess(char*);
+	void tagProcess(const char*);
 
-	void createAndAuthenticateProcess(uint32_t*, char*, unsigned long long);
+	void createAndAuthenticateProcess(const uint32_t*, const char*, const unsigned long long);
 
 	void serializeLittleEndian(char*);
-	bool authenticateLittleEndian(char*);
+	bool authenticateLittleEndian(const char*);
 public:
-	void createTag(char[TAG_BYTES], uint32_t[KEY_LENGTH], char*, unsigned long long);
-	bool authenticateTag(char[TAG_BYTES], uint32_t[KEY_LENGTH], char*, unsigned long long);
+	void createTag(char[TAG_BYTES], const uint32_t[KEY_LENGTH], const char*, const unsigned long long);
+	bool authenticateTag(const char[TAG_BYTES], const uint32_t[KEY_LENGTH], const char*, const unsigned long long);
 };
 
 
@@ -68,7 +68,7 @@ inline void Poly1305MAC::clamp() {
 }
 
 
-inline void Poly1305MAC::prepareInt(uint32_t* key) {
+inline void Poly1305MAC::prepareInt(const uint32_t* key) {
 	for(unsigned short i = 0; i < INT_LENGTH; i += 1) {
 		r[i] = key[(INT_LENGTH - 1) - i] << 24;
 		r[i] |= ((key[(INT_LENGTH - 1) - i] & 0x0000ff00) << 8);
@@ -96,7 +96,7 @@ inline void Poly1305MAC::prepareInt(uint32_t* key) {
 }
 
 
-inline void Poly1305MAC::initializeMAC(uint32_t* key, unsigned long long bytes) {
+inline void Poly1305MAC::initializeMAC(const uint32_t* key, const unsigned long long bytes) {
 	blockCounter = 0x00000000;
 	messageBlockCount = ((bytes - 1)/BLOCK_BYTES) + 1;
 	messageRemainder = bytes % BLOCK_BYTES;
@@ -105,7 +105,7 @@ inline void Poly1305MAC::initializeMAC(uint32_t* key, unsigned long long bytes) 
 }
 
 
-inline void Poly1305MAC::prepareBlockLittleEndian(char* message) {
+inline void Poly1305MAC::prepareBlockLittleEndian(const char* message) {
 	blockIndexBytes = ((unsigned long)blockCounter)*BLOCK_BYTES;
 
 	for(unsigned short i = 0; i < DEPENDENT_BLOCK_LENGTH; i += 1) {
@@ -116,7 +116,7 @@ inline void Poly1305MAC::prepareBlockLittleEndian(char* message) {
 }
 
 
-inline void Poly1305MAC::prepareFinalBlockLittleEndian(char* message) {
+inline void Poly1305MAC::prepareFinalBlockLittleEndian(const char* message) {
 	finalBlockLastWordIndex = DEPENDENT_BLOCK_LENGTH - ((messageRemainder - 1)/2);
 	blockIndexBytes = ((unsigned long)blockCounter)*BLOCK_BYTES;
 
@@ -153,7 +153,7 @@ inline void Poly1305MAC::incrementBlockCounter() {
 }
 
 
-inline void Poly1305MAC::tagProcess(char* message) {
+inline void Poly1305MAC::tagProcess(const char* message) {
 	for(unsigned long long i = 0; i < (messageBlockCount - 1); i += 1) {
 		prepareBlockLittleEndian(message);
 		tagSubProcess();
@@ -171,7 +171,7 @@ inline void Poly1305MAC::tagProcess(char* message) {
 }
 
 
-inline void Poly1305MAC::createAndAuthenticateProcess(uint32_t* key, char* message, unsigned long long bytes) {
+inline void Poly1305MAC::createAndAuthenticateProcess(const uint32_t* key, const char* message, const unsigned long long bytes) {
 		initializeMAC(key, bytes);
 		tagProcess(message);
 }
@@ -185,7 +185,7 @@ inline void Poly1305MAC::serializeLittleEndian(char* out) {
 }
 
 
-inline bool Poly1305MAC::authenticateLittleEndian(char* tag) {
+inline bool Poly1305MAC::authenticateLittleEndian(const char* tag) {
 	for(unsigned short i = 0; i < TAG_BYTES; i += 1) {
 		tempTag[i] = tag[i];
 	}
@@ -204,7 +204,7 @@ inline bool Poly1305MAC::authenticateLittleEndian(char* tag) {
 }
 
 
-inline void Poly1305MAC::createTag(char* out, uint32_t* key, char* message, unsigned long long bytes) {
+inline void Poly1305MAC::createTag(char* out, const uint32_t* key, const char* message, const unsigned long long bytes) {
 	if(bytes > 0) {
 		createAndAuthenticateProcess(key, message, bytes);
 		serializeLittleEndian(out);
@@ -212,7 +212,7 @@ inline void Poly1305MAC::createTag(char* out, uint32_t* key, char* message, unsi
 }
 
 
-inline bool Poly1305MAC::authenticateTag(char* tag, uint32_t* key, char* message, unsigned long long bytes) {
+inline bool Poly1305MAC::authenticateTag(const char* tag, const uint32_t* key, const char* message, const unsigned long long bytes) {
 	if(bytes > 0) {
 		createAndAuthenticateProcess(key, message, bytes);
 		return authenticateLittleEndian(tag);

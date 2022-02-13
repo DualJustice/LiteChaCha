@@ -16,7 +16,7 @@ private:
 
 	void initializeSeed();
 public:
-	void generateBytes(char*, unsigned short);
+	void generateBytes(char*, const unsigned short);
 };
 
 
@@ -35,7 +35,7 @@ inline void RNGen::initializeSeed() { // This should be handled as a bare minimu
 }
 
 
-inline void RNGen::generateBytes(char* out, unsigned short bytes) {
+inline void RNGen::generateBytes(char* out, const unsigned short bytes) {
 	initializeSeed();
 
 	for(unsigned short i = 0; i < bytes; i += 1) {

@@ -27,17 +27,17 @@ public:
 	unsigned short getSignatureBytes() {return SIGNATURE_BYTES;}
 	unsigned short getIDBytes() {return ID_BYTES;}
 
-	void initialize(char[KEY_BYTES], char[KEY_BYTES], char[KEY_BYTES], char[SIGNATURE_BYTES], char[ID_BYTES], bool);
+	void initialize(char[KEY_BYTES], char[KEY_BYTES], char[KEY_BYTES], char[SIGNATURE_BYTES], char[ID_BYTES], const bool);
 
-	bool IDUnique(char[ID_BYTES], char[ID_BYTES]);
+	bool IDUnique(const char[ID_BYTES], const char[ID_BYTES]);
 
-	bool signatureValid(char[KEY_BYTES], char[KEY_BYTES], char[SIGNATURE_BYTES]);
+	bool signatureValid(const char[KEY_BYTES], const char[KEY_BYTES], const char[SIGNATURE_BYTES]);
 
 	void createSessionKey(char[KEY_BYTES]);
 };
 
 
-inline void KeyManagement::initialize(char* DSAPrivateKeyInOut, char* DSAPubKeyInOut, char* ephemeralKeyOut, char* signatureOut, char* IDOut, bool generateNewDSAKeys = true) {
+inline void KeyManagement::initialize(char* DSAPrivateKeyInOut, char* DSAPubKeyInOut, char* ephemeralKeyOut, char* signatureOut, char* IDOut, const bool generateNewDSAKeys = true) {
 	randnum.generateBytes(IDOut, ID_BYTES);
 	randnum.generateBytes(privateSessionKey, KEY_BYTES);
 
@@ -63,7 +63,7 @@ inline void KeyManagement::initialize(char* DSAPrivateKeyInOut, char* DSAPubKeyI
 }
 
 
-inline bool KeyManagement::IDUnique(char* userID, char* peerID) {
+inline bool KeyManagement::IDUnique(const char* userID, const char* peerID) {
 	check = 0x00;
 
 	for(unsigned short i = 0; i < ID_BYTES; i += 1) {
@@ -74,7 +74,7 @@ inline bool KeyManagement::IDUnique(char* userID, char* peerID) {
 }
 
 
-inline bool KeyManagement::signatureValid(char* DSAPubKey, char* ephemeralPubKey, char* signature) {
+inline bool KeyManagement::signatureValid(const char* DSAPubKey, const char* ephemeralPubKey, const char* signature) {
 	return hancock.verify(DSAPubKey, ephemeralPubKey, signature);
 }
 

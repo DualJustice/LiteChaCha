@@ -91,7 +91,7 @@ private:
 
 	const uint32_t complex[INT_LENGTH_MULTI] = {0x00002b83, 0x00002480, 0x00004fc1, 0x0000df0b, 0x00002b4d, 0x00000099, 0x00003dfb, 0x0000d7a7, 0x00002f43, 0x00001806, 0x0000ad2f, 0x0000e478, 0x0000c4ee, 0x00001b27, 0x00004a0e, 0x0000a0b0}; // sqrt(-1) = 2^(((2^255) - 20)/4) % p.
 
-	void generateReadAndPruneHash(char[KEY_BYTES]);
+	void generateReadAndPruneHash(const char[KEY_BYTES]);
 
 	void ladderAdd(uint32_t*, uint32_t*, uint32_t*, uint32_t*);
 	void ladderDouble();
@@ -104,24 +104,24 @@ private:
 
 	void encodePoint();
 
-	void hashModOrder(uint32_t*, char*, unsigned long long);
+	void hashModOrder(uint32_t*, const char*, const unsigned long long);
 
-	bool greaterThanOrEqualToP(uint32_t*);
-	bool equalToZero(uint32_t*);
-	bool greaterThanOrEqualToOrder(uint32_t*);
+	bool greaterThanOrEqualToP(const uint32_t*);
+	bool equalToZero(const uint32_t*);
+	bool greaterThanOrEqualToOrder(const uint32_t*);
 
 	bool recoverXCoord();
 
-	bool decodePoint(uint32_t*, uint32_t*, uint32_t*, uint32_t*, char*);
+	bool decodePoint(uint32_t*, uint32_t*, uint32_t*, uint32_t*, const char*);
 public:
-	void initialize(char[KEY_BYTES], char[KEY_BYTES]);
+	void initialize(char[KEY_BYTES], const char[KEY_BYTES]);
 
-	void sign(char[SIGNATURE_BYTES], char[KEY_BYTES], char[KEY_BYTES], char*, bool, unsigned long long);
-	bool verify(char[KEY_BYTES], char*, char[SIGNATURE_BYTES], unsigned long long);
+	void sign(char[SIGNATURE_BYTES], char[KEY_BYTES], const char[KEY_BYTES], const char*, const bool, const unsigned long long);
+	bool verify(const char[KEY_BYTES], const char*, const char[SIGNATURE_BYTES], const unsigned long long);
 };
 
 
-inline void Ed25519SignatureAlgorithm::generateReadAndPruneHash(char* privateKey) {
+inline void Ed25519SignatureAlgorithm::generateReadAndPruneHash(const char* privateKey) {
 	hash.hashBytes(hashBuffer, privateKey, KEY_BYTES);
 
 	for(unsigned short i = 0; i < KEY_BYTES; i += 1) {
@@ -299,7 +299,7 @@ inline void Ed25519SignatureAlgorithm::encodePoint() {
 }
 
 
-inline void Ed25519SignatureAlgorithm::hashModOrder(uint32_t* intOut, char* message, unsigned long long messageBytes) {
+inline void Ed25519SignatureAlgorithm::hashModOrder(uint32_t* intOut, const char* message, const unsigned long long messageBytes) {
 	hash.hashBytes(hashBuffer, message, messageBytes);
 
 	for(unsigned short i = 0; i < (2*INT_LENGTH_MULTI); i += 1) {
@@ -311,7 +311,7 @@ inline void Ed25519SignatureAlgorithm::hashModOrder(uint32_t* intOut, char* mess
 }
 
 
-inline bool Ed25519SignatureAlgorithm::greaterThanOrEqualToP(uint32_t* a) {
+inline bool Ed25519SignatureAlgorithm::greaterThanOrEqualToP(const uint32_t* a) {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		if(a[i] > p[i]) {
 			return true;
@@ -325,7 +325,7 @@ inline bool Ed25519SignatureAlgorithm::greaterThanOrEqualToP(uint32_t* a) {
 }
 
 
-inline bool Ed25519SignatureAlgorithm::equalToZero(uint32_t* a) {
+inline bool Ed25519SignatureAlgorithm::equalToZero(const uint32_t* a) {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		if(a[i] != 0x00000000) {
 			return false;
@@ -389,7 +389,7 @@ inline bool Ed25519SignatureAlgorithm::recoverXCoord() {
 }
 
 
-inline bool Ed25519SignatureAlgorithm::decodePoint(uint32_t* pointOutX, uint32_t* pointOutY, uint32_t* pointOutZ, uint32_t* pointOutT, char* encodedPoint) {
+inline bool Ed25519SignatureAlgorithm::decodePoint(uint32_t* pointOutX, uint32_t* pointOutY, uint32_t* pointOutZ, uint32_t* pointOutT, const char* encodedPoint) {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		ptQ.Y[i] = encodedPoint[31 - (i*2)] << 8; // 31 = KEY_BYTES - 1, or (SIGNATURE_BYTES/2) - 1.
 		ptQ.Y[i] |= encodedPoint[31 - ((i*2) + 1)];
@@ -413,7 +413,7 @@ inline bool Ed25519SignatureAlgorithm::decodePoint(uint32_t* pointOutX, uint32_t
 }
 
 
-inline bool Ed25519SignatureAlgorithm::greaterThanOrEqualToOrder(uint32_t* a) {
+inline bool Ed25519SignatureAlgorithm::greaterThanOrEqualToOrder(const uint32_t* a) {
 	for(unsigned short i = 0; i < INT_LENGTH_MULTI; i += 1) {
 		if(a[i] > L[i]) {
 			return true;
@@ -454,7 +454,7 @@ inline void Ed25519SignatureAlgorithm::quickEd25519(const uint32_t* PX, const ui
 }
 
 
-inline void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* privateKey) {
+inline void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, const char* privateKey) {
 	generateReadAndPruneHash(privateKey);
 
 	Ed25519(BaseX, BaseY, oneInt, BaseT);
@@ -472,7 +472,7 @@ inline void Ed25519SignatureAlgorithm::initialize(char* publicKeyOut, char* priv
 }
 
 
-inline void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, char* privateKey, char* message, bool createPublicKey, unsigned long long messageBytes = KEY_BYTES) {
+inline void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyInOut, const char* privateKey, const char* message, const bool createPublicKey, const unsigned long long messageBytes = KEY_BYTES) {
 	if(createPublicKey == true) {
 		initialize(publicKeyInOut, privateKey);
 	} else {
@@ -530,7 +530,7 @@ inline void Ed25519SignatureAlgorithm::sign(char* signatureOut, char* publicKeyI
 }
 
 
-inline bool Ed25519SignatureAlgorithm::verify(char* publicKey, char* message, char* signature, unsigned long long messageBytes = KEY_BYTES) { // Not constant time: all components are public.
+inline bool Ed25519SignatureAlgorithm::verify(const char* publicKey, const char* message, const char* signature, const unsigned long long messageBytes = KEY_BYTES) { // Not constant time: all components are public.
 	if(!decodePoint(ptA.X, ptA.Y, ptA.Z, ptA.T, publicKey)) {
 		return false;
 	}

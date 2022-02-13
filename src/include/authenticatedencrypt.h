@@ -26,15 +26,15 @@ private:
 public:
 	unsigned short getTagBytes() {return TAG_BYTES;}
 
-	void initialize(char[KEY_BYTES], char[FIXED_NONCE_BYTES], char[FIXED_NONCE_BYTES]);
+	void initialize(const char[KEY_BYTES], const char[FIXED_NONCE_BYTES], const char[FIXED_NONCE_BYTES]);
 
-	void encryptAndTagMessage(unsigned long long&, char[TAG_BYTES], char*, unsigned long long);
-	bool messageAuthentic(char*, unsigned long long, unsigned long long, char[TAG_BYTES]);
-	void decryptAuthenticatedMessage(char*, unsigned long long, unsigned long long);
+	void encryptAndTagMessage(unsigned long long&, char[TAG_BYTES], char*, const unsigned long long);
+	bool messageAuthentic(const char*, const unsigned long long, const unsigned long long, const char[TAG_BYTES]);
+	void decryptAuthenticatedMessage(char*, const unsigned long long, const unsigned long long);
 };
 
 
-inline void CipherManagement::initialize(char* sharedPrivateKey, char* userFixedNonce, char* peerFixedNonce) {
+inline void CipherManagement::initialize(const char* sharedPrivateKey, const char* userFixedNonce, const char* peerFixedNonce) {
 	cipher.buildEncryption(sharedPrivateKey, userFixedNonce, peerFixedNonce);
 }
 
@@ -49,7 +49,7 @@ inline void CipherManagement::createPolyKey() {
 }
 
 
-inline void CipherManagement::encryptAndTagMessage(unsigned long long& messageCountOut, char* tagOut, char* message, unsigned long long messageBytes) {
+inline void CipherManagement::encryptAndTagMessage(unsigned long long& messageCountOut, char* tagOut, char* message, const unsigned long long messageBytes) {
 	if(messageBytes > 0) {
 		polyKeyMaterial = cipher.generateEndState();
 		createPolyKey();
@@ -62,7 +62,7 @@ inline void CipherManagement::encryptAndTagMessage(unsigned long long& messageCo
 }
 
 
-inline bool CipherManagement::messageAuthentic(char* message, unsigned long long messageBytes, unsigned long long messageCount, char* tag) {
+inline bool CipherManagement::messageAuthentic(const char* message, const unsigned long long messageBytes, const unsigned long long messageCount, const char* tag) {
 	if(messageBytes > 0) {
 		polyKeyMaterial = cipher.generatePeerEndState(messageCount);
 		createPolyKey();
@@ -74,7 +74,7 @@ inline bool CipherManagement::messageAuthentic(char* message, unsigned long long
 }
 
 
-inline void CipherManagement::decryptAuthenticatedMessage(char* message, unsigned long long messageBytes, unsigned long long messageCount) {
+inline void CipherManagement::decryptAuthenticatedMessage(char* message, const unsigned long long messageBytes, const unsigned long long messageCount) {
 	if(messageBytes > 0) {
 		cipher.decryptMessage(message, messageBytes, messageCount, INITIAL_BLOCK);
 	}
