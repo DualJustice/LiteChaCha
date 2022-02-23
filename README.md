@@ -61,7 +61,9 @@
 
    * To truly ensure a secure connection, DSA public keys must be validated via some secure, out-of-band method.
 
-8. The implementation of RNG that LiteChaCha uses to generate a random ID, private ephemeral key, and private DSA key requires there be a floating analog pin! By default, pin A0 is used. The pin that is read from can be changed in `rng.h`.
+8. The implementation of RNG that LiteChaCha uses to generate a random ID, private ephemeral key, and private DSA key **requires there be a floating analog pin!** By default, pin A0 is used. The pin that is read from can be changed in `rng.h`.
+
+9. Whichever method is chosen to send encrypted data, it must be able to successfully send null characters (`0x00`). Alternatively, the encrypted data must be altered to exclude any null characters. It was found during testing that some Arduino libraries which aid in the sending and receiving of data may handle null characters differentially, and any users of LiteChaCha should be aware of this.
 
 ---
 
@@ -91,7 +93,7 @@
 
 * If you would like to test the X25519, Ed25519, or Poly1305 implementations yourself, there is a `ManualTests.ino` example file included. `ManualTests.ino` can also be used to find the approximate runtimes of these implementations.
 
-* One note worth mentioning is that, whichever method is chosen to send data, it must be able to successfully send null characters (`0x00`). It was found during testing that some Arduino libraries which aid in the sending and receiving of data may handle null characters differentially, and any users of LiteChaCha should be aware of this.
+  * All tests use outdated versions of LiteChaCha. They are functionally similar to the latest version, but include code which makes it easier, if not possible, to run manual tests.
 
 ---
 
@@ -155,10 +157,10 @@
 
 ---
 
-## Potential future plans:
+## Potential Future Plans:
 
 1. AEAD construction to allow for the authentication of unencrypted data.
 
-   * Currently, if any unencrypted data which is necessary for decryption is changed in-transit, but the accompanying ciphertext is unchanged, the MAC will show the message to be authentic. Thus, the ciphertext will be incorrectly decrypted.
+   * Currently, if any unencrypted data necessary for decryption is changed in-transit while the accompanying ciphertext is left unchanged the MAC will show the message to be authentic. Thus the ciphertext will be incorrectly decrypted.
 
-2. Optimize X25519 implementation.
+2. General optimizations, particularly to the implementation of X25519 and multiple-precision arithmetic.
