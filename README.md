@@ -16,8 +16,6 @@
 
   * LiteChaCha was made to be run on the Arduino Nano 33 IoT. It may work on other microcontrollers, but has not been validated to run on anything else. LiteChaCha is not guaranteed to run on anything other than the Arduino Nano 33 IoT.
 
-  * LiteChaCha is in the public domain for all to use freely.
-
 ---
 
 ## How To Use:
