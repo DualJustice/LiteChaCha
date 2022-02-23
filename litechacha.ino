@@ -3,26 +3,33 @@
 
 
 /*
-This file exists to demonstrate the functions that are available to users in LiteChaCha, as well as the order of operations necessary to implement encrypted peer-to-peer communication.
+This file exists to demonstrate the functions that are available to users in LiteChaCha, 
+as well as the order of operations necessary to implement encrypted peer-to-peer communication.
 
 The necessary order of operations is laid out by this file when read from the top down, line by line.
-Although the functions used here should maintain their order, they need not be run successively! Place them in your implementation wherever it makes sense.
-The instructions on any commented lines which come between functions should be carried out by you, and in the correct order.
+Although the functions used here should maintain their order, they need not be run successively! 
+Place them in your implementation wherever it makes sense. The instructions on any commented lines 
+which come between functions should be carried out by you, and in the correct order.
 
-There are two units to LiteChaCha: establishing a secure connection and processing messages.
-These are shown below in the Establish Connection, and Encrypt and Decrypt blocks.
-Generally speaking the KeyManagement object is used for establishing a connection while the CipherManagement object is used for processing messages.
-A secure connection need only be established once per session. Processing messages, on the other hand, can be carried out multiple times in a session.
-Once you are done with the Establish Connection Block, you may safely destruct the KeyManagement object, as well as the associated variables.
+There are two basic units to LiteChaCha: establishing a secure connection and processing messages.
+These are shown below in the Establish Connection, and Encrypt and Decrypt Blocks.
+Generally speaking the KeyManagement object is used for establishing a connection 
+while the CipherManagement object is used for processing messages. A secure connection need only be 
+established once per session. Processing messages, on the other hand, can be carried out multiple 
+times in a session. Once you are done with the Establish Connection Block, and you have stored all 
+desired variables, you may safely destruct the KeyManagement object, as well as the associated variables.
 
-In encrypted peer-to-peer communication there are, unsurprisingly, two users: the user (you) and the peer (who you're communicating with).
-The variable names used below are not arbitrary; "user" variables apply to you while "peer" variables apply to your peer. Your "user" variables are your peer's "peer" variables, and vice versa.
-As such, when you see the "Exchange DSA public keys, ephemeral public keys, signatures, and IDs unencrypted" step below, you should send your user versions, 
-and should write to your peer versions (upon receiving) of said variables.
-Variables that don't specify "user" or "peer" can be used interchangeably.
+In encrypted peer-to-peer communication there are, unsurprisingly, two users: the user (you) 
+and the peer (who you're communicating with). The variable names used below are not arbitrary; 
+"user" variables apply to you while "peer" variables apply to your peer. 
+Your "user" variables are your peer's "peer" variables, and vice versa.
+As such, when you see the "Exchange DSA public keys, ephemeral public keys, signatures, and IDs unencrypted" 
+step below, you should send your user versions, and should write to your peer versions (upon receiving) 
+of said variables. Variables that don't specify "user" or "peer" can be used interchangeably.
 
-This goes without saying, but do not send private variables unless you explicitly intend to do so and know the consequences!
-The private variables used by LiteChaCha are peerEphemeralPubKey after pki.createSessionKey(peerEphemeralPubKey) is called, and userDSAPrivateKey.
+This goes without saying, but do not send private variables unless you explicitly intend to do so 
+and know the consequences! The private variables used by LiteChaCha are peerEphemeralPubKey after 
+pki.createSessionKey(peerEphemeralPubKey) is called, and userDSAPrivateKey.
 */
 
 
@@ -82,7 +89,7 @@ void setup() {
 
 // -------------------- Encrypt and Decrypt Block --------------------
 
-//	Input message and the number of bytes in message:
+//	Outgoing message and the number of bytes in the message:
 	const unsigned long long messageBytes = 2;
 	char messageBuffer[messageBytes + 1] = {"42"};
 	char message[messageBytes];
