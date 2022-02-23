@@ -137,7 +137,7 @@
 
 * [It’s 255:19AM](https://hdevalence.ca/blog/2020-10-04-its-25519am). Written by Henry de Valence.
 
-  * Gives a quickly digestable summary of non-canonical signatures.
+  * Gives a quickly digestible summary of non-canonical signatures.
 
 ### chacha.h:
 
