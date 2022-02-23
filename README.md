@@ -33,7 +33,7 @@
 
 4. The example file, `Overview.ino`, is included to show you the ropes.
 
-   * The random ID that is generated each session **must *not* match** between peers. As such, it is recommended that you use the `IDUnique()` function as it is used in `litechacha.h`.
+   * The random ID that is generated each session **must *not* match** between peers. As such, it is recommended that you use the `IDUnique()` function as it is used in `Overview.h`.
 
      * The ID does not need to be random, nor does it need to be generated each session. If it is stored, it need only be generated once, and confirmed to be different from all other peers' IDs.
 
