@@ -22,11 +22,11 @@
 
 ## How To Use:
 
-1. All necessary header files are within the src\include folder.
+1. All necessary header files are within the src folder.
 
 2. ```
-   #include "src/include/keyinfrastructure.h"
-   #include "src/include/authenticatedencrypt.h"
+   #include "src/keyinfrastructure.h"
+   #include "src/authenticatedencrypt.h"
    ```
 
 3. All functions are handled within `KeyManagement` and `CipherManagement`.
