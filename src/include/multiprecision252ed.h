@@ -36,26 +36,13 @@ private:
 
 	void prepareOut(uint32_t*);
 public:
-	MultiPrecisionArithmetic252ed();
-	~MultiPrecisionArithmetic252ed();
-
 	void base16Mod(uint32_t*, const uint32_t*);
 	void base16Add(uint32_t*, const uint32_t*, const uint32_t*);
 	void base16Mul(uint32_t*, const uint32_t*, const uint32_t*);
 };
 
 
-MultiPrecisionArithmetic252ed::MultiPrecisionArithmetic252ed() {
-
-}
-
-
-MultiPrecisionArithmetic252ed::~MultiPrecisionArithmetic252ed() {
-
-}
-
-
-void MultiPrecisionArithmetic252ed::prepareDoubleIn(const uint32_t* a) {
+inline void MultiPrecisionArithmetic252ed::prepareDoubleIn(const uint32_t* a) {
 	u[1] = 0x00000000;
 
 	for(unsigned short i = 0; i < (2*n); i += 1) {
@@ -64,7 +51,7 @@ void MultiPrecisionArithmetic252ed::prepareDoubleIn(const uint32_t* a) {
 }
 
 
-void MultiPrecisionArithmetic252ed::base16ModInternal() {
+inline void MultiPrecisionArithmetic252ed::base16ModInternal() {
 // ---------- D1 ----------
 	carry = 0x00000000;
 
@@ -150,14 +137,14 @@ void MultiPrecisionArithmetic252ed::base16ModInternal() {
 }
 
 
-void MultiPrecisionArithmetic252ed::prepareOut(uint32_t* out) {
+inline void MultiPrecisionArithmetic252ed::prepareOut(uint32_t* out) {
 	for(unsigned short i = 0; i < n; i += 1) {
 		out[i] = u[i + 2];
 	}
 }
 
 
-void MultiPrecisionArithmetic252ed::prepareIn(const uint32_t* a, const uint32_t* b) {
+inline void MultiPrecisionArithmetic252ed::prepareIn(const uint32_t* a, const uint32_t* b) {
 	u[1] = 0x00000000;
 	v[0] = 0x00000000;
 
@@ -168,7 +155,7 @@ void MultiPrecisionArithmetic252ed::prepareIn(const uint32_t* a, const uint32_t*
 }
 
 
-void MultiPrecisionArithmetic252ed::quickAMod() {
+inline void MultiPrecisionArithmetic252ed::quickAMod() {
 	c = 0x00000000;
 	s = 0x00000001;
 
@@ -189,7 +176,7 @@ void MultiPrecisionArithmetic252ed::quickAMod() {
 }
 
 
-void MultiPrecisionArithmetic252ed::base16Mod(uint32_t* out, const uint32_t* a) {
+inline void MultiPrecisionArithmetic252ed::base16Mod(uint32_t* out, const uint32_t* a) {
 	prepareDoubleIn(a);
 
 	m = n + 1;
@@ -199,7 +186,7 @@ void MultiPrecisionArithmetic252ed::base16Mod(uint32_t* out, const uint32_t* a) 
 }
 
 
-void MultiPrecisionArithmetic252ed::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b) {
+inline void MultiPrecisionArithmetic252ed::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b) {
 	prepareIn(a, b);
 
 	carry = 0x00000000;
@@ -216,7 +203,7 @@ void MultiPrecisionArithmetic252ed::base16Add(uint32_t* out, const uint32_t* a, 
 }
 
 
-void MultiPrecisionArithmetic252ed::base16Mul(uint32_t* out, const uint32_t* a, const uint32_t* b) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well.
+inline void MultiPrecisionArithmetic252ed::base16Mul(uint32_t* out, const uint32_t* a, const uint32_t* b) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well.
 	prepareIn(a, b);
 
 	for(unsigned short i = ((n*2) - 1); i > (n - 1); i -= 1) {

@@ -46,9 +46,6 @@ private:
 	void prepareOut(uint32_t*);
 	void prepareMulOut(uint32_t*); // Used after multiplication and the Barrett reduction.
 public:
-	MultiPrecisionArithmetic25519();
-	~MultiPrecisionArithmetic25519();
-
 	void base32_16(uint32_t*, const uint32_t*);
 
 	void base16Mod(uint32_t*, const uint32_t*);
@@ -60,17 +57,7 @@ public:
 };
 
 
-MultiPrecisionArithmetic25519::MultiPrecisionArithmetic25519() {
-
-}
-
-
-MultiPrecisionArithmetic25519::~MultiPrecisionArithmetic25519() {
-
-}
-
-
-void MultiPrecisionArithmetic25519::base32_16(uint32_t* out, const uint32_t* a) {
+inline void MultiPrecisionArithmetic25519::base32_16(uint32_t* out, const uint32_t* a) {
 	for(unsigned short i = 0; i < (n/2); i += 1) {
 		out[i*2] = a[i] >> 16;
 		out[(i*2) + 1] = a[i] & 0x0000ffff;
@@ -78,7 +65,7 @@ void MultiPrecisionArithmetic25519::base32_16(uint32_t* out, const uint32_t* a) 
 }
 
 
-void MultiPrecisionArithmetic25519::prepareModIn(const uint32_t* a) {
+inline void MultiPrecisionArithmetic25519::prepareModIn(const uint32_t* a) {
 	u[1] = 0x00000000;
 
 	for(unsigned short i = 0; i < n; i += 1) {
@@ -87,7 +74,7 @@ void MultiPrecisionArithmetic25519::prepareModIn(const uint32_t* a) {
 }
 
 
-void MultiPrecisionArithmetic25519::base16ModInternal() {
+inline void MultiPrecisionArithmetic25519::base16ModInternal() {
 // ---------- D1 ----------
 	carry = 0x00000000;
 
@@ -173,14 +160,14 @@ void MultiPrecisionArithmetic25519::base16ModInternal() {
 }
 
 
-void MultiPrecisionArithmetic25519::prepareOut(uint32_t* out) {
+inline void MultiPrecisionArithmetic25519::prepareOut(uint32_t* out) {
 	for(unsigned short i = 0; i < n; i += 1) {
 		out[i] = u[i + 2];
 	}
 }
 
 
-void MultiPrecisionArithmetic25519::prepareIn(const uint32_t* a, const uint32_t* b) {
+inline void MultiPrecisionArithmetic25519::prepareIn(const uint32_t* a, const uint32_t* b) {
 	u[1] = 0x00000000;
 	v[0] = 0x00000000;
 
@@ -191,7 +178,7 @@ void MultiPrecisionArithmetic25519::prepareIn(const uint32_t* a, const uint32_t*
 }
 
 
-void MultiPrecisionArithmetic25519::quickAMod() {
+inline void MultiPrecisionArithmetic25519::quickAMod() {
 	c = 0x00000000;
 	s = 0x00000001;
 
@@ -212,7 +199,7 @@ void MultiPrecisionArithmetic25519::quickAMod() {
 }
 
 
-void MultiPrecisionArithmetic25519::barrettReduce() {
+inline void MultiPrecisionArithmetic25519::barrettReduce() {
 // ---------- 1 ----------
 	for(unsigned short i = 0; i < (n + 1); i += 1) {
 		v[i] = u[i + 2]; // v is storing q1.
@@ -299,14 +286,14 @@ void MultiPrecisionArithmetic25519::barrettReduce() {
 }
 
 
-void MultiPrecisionArithmetic25519::prepareMulOut(uint32_t* out) {
+inline void MultiPrecisionArithmetic25519::prepareMulOut(uint32_t* out) {
 	for(unsigned short i = 0; i < n; i += 1) {
 		out[i] = u[i + 3];
 	}
 }
 
 
-void MultiPrecisionArithmetic25519::quickSMod() {
+inline void MultiPrecisionArithmetic25519::quickSMod() {
 	carry = 0x00000000;
 
 	for(unsigned short i = (n + 1); i > 1; i -= 1) {
@@ -319,7 +306,7 @@ void MultiPrecisionArithmetic25519::quickSMod() {
 }
 
 
-void MultiPrecisionArithmetic25519::base16Mod(uint32_t* out, const uint32_t* a) {
+inline void MultiPrecisionArithmetic25519::base16Mod(uint32_t* out, const uint32_t* a) {
 	prepareModIn(a);
 
 	m = 1;
@@ -329,7 +316,7 @@ void MultiPrecisionArithmetic25519::base16Mod(uint32_t* out, const uint32_t* a) 
 }
 
 
-void MultiPrecisionArithmetic25519::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b) {
+inline void MultiPrecisionArithmetic25519::base16Add(uint32_t* out, const uint32_t* a, const uint32_t* b) {
 	prepareIn(a, b);
 
 	carry = 0x00000000;
@@ -346,7 +333,7 @@ void MultiPrecisionArithmetic25519::base16Add(uint32_t* out, const uint32_t* a, 
 }
 
 
-void MultiPrecisionArithmetic25519::base16Mul(uint32_t* out, const uint32_t* a, const uint32_t* b) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well.
+inline void MultiPrecisionArithmetic25519::base16Mul(uint32_t* out, const uint32_t* a, const uint32_t* b) { // Might be able to optimize by using the Karatsuba method, or some other method. Maybe within the modulus operation as well.
 	prepareIn(a, b);
 
 	for(unsigned short i = ((n*2) - 1); i > (n - 1); i -= 1) {
@@ -375,7 +362,7 @@ void MultiPrecisionArithmetic25519::base16Mul(uint32_t* out, const uint32_t* a, 
 }
 
 
-void MultiPrecisionArithmetic25519::base16Sub(uint32_t* out, const uint32_t* a, const uint32_t* b) {
+inline void MultiPrecisionArithmetic25519::base16Sub(uint32_t* out, const uint32_t* a, const uint32_t* b) {
 	prepareIn(a, b);
 
 	carry = 0x00000000;
@@ -394,7 +381,7 @@ void MultiPrecisionArithmetic25519::base16Sub(uint32_t* out, const uint32_t* a, 
 }
 
 
-void MultiPrecisionArithmetic25519::base16_32(uint32_t* out, const uint32_t* a) {
+inline void MultiPrecisionArithmetic25519::base16_32(uint32_t* out, const uint32_t* a) {
 	for(unsigned short i = 0; i < (n/2); i += 1) {
 		out[i] = (a[i*2] << 16) | a[(i*2) + 1];
 	}
