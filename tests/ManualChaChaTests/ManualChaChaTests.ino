@@ -3,7 +3,8 @@
 
 
 /*
-EXAMPLE OF LAST CHACHA TEST VECTOR IN TestVectors.txt:
+EXAMPLE OF RFC8439 TEST VECTOR #3 WITH CIPHERTEXT IN TestVectors.txt:
+---------------------------------------------------------------------
 
 Note: If no ciphertext is involved with a test vector, comment out the message, MESSAGE_BYTES, cipher.encryptMessage, all printMessages, and cipher.decryptMessage.
 Then uncomment cipher.generateEndState and printLastEndState. All other steps should be done in a similar fashion to test vectors which use ciphertexts.
