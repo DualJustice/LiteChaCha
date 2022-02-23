@@ -31,7 +31,7 @@
 
 3. All functions are handled within `KeyManagement` and `CipherManagement`.
 
-4. The example file, `litechacha.ino`, is included to show you the ropes.
+4. The example file, `Overview.ino`, is included to show you the ropes.
 
    * The random ID that is generated each session **must *not* match** between peers. As such, it is recommended that you use the `IDUnique()` function as it is used in `litechacha.h`.
 

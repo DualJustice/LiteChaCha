@@ -1,7 +1,3 @@
-#include "src/keyinfrastructure.h"
-#include "src/authenticatedencrypt.h"
-
-
 /*
 This file exists to demonstrate the functions that are available to users in LiteChaCha, 
 as well as the order of operations necessary to implement encrypted peer-to-peer communication.
@@ -16,7 +12,7 @@ These are shown below in the Establish Connection, and Encrypt and Decrypt Block
 Generally speaking the KeyManagement object is used for establishing a connection 
 while the CipherManagement object is used for processing messages. A secure connection need only be 
 established once per session. Processing messages, on the other hand, can be carried out multiple 
-times in a session. Once you are done with the Establish Connection Block, and you have stored all 
+times in a session. Once you are done with the Establish Connection Block, and have stored all 
 desired variables, you may safely destruct the KeyManagement object, as well as the associated variables.
 
 In encrypted peer-to-peer communication there are, unsurprisingly, two users: the user (you) 
@@ -24,13 +20,17 @@ and the peer (who you're communicating with). The variable names used below are 
 "user" variables apply to you while "peer" variables apply to your peer. 
 Your "user" variables are your peer's "peer" variables, and vice versa.
 As such, when you see the "Exchange DSA public keys, ephemeral public keys, signatures, and IDs unencrypted" 
-step below, you should send your user versions, and should write to your peer versions (upon receiving) 
+step below, you should send the "user" versions, and should write to the "peer" versions (upon receiving) 
 of said variables. Variables that don't specify "user" or "peer" can be used interchangeably.
 
 This goes without saying, but do not send private variables unless you explicitly intend to do so 
 and know the consequences! The private variables used by LiteChaCha are peerEphemeralPubKey after 
 pki.createSessionKey(peerEphemeralPubKey) is called, and userDSAPrivateKey.
 */
+
+
+#include "src/keyinfrastructure.h"
+#include "src/authenticatedencrypt.h"
 
 
 void setup() {
