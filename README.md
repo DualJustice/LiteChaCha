@@ -91,7 +91,7 @@
 
 * If you would like to test the X25519, Ed25519, or Poly1305 implementations yourself, there is a `ManualTests.ino` example file included. `ManualTests.ino` can also be used to find the approximate runtimes of these implementations.
 
-  * All tests use outdated versions of LiteChaCha. They are functionally similar to the latest version, but include code which makes it easier, if not possible, to run manual tests.
+  * All tests use outdated versions of LiteChaCha. They are functionally similar to the latest version, but include code which makes it possible to run manual tests.
 
 ---
 
