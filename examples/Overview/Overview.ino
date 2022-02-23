@@ -29,8 +29,8 @@ pki.createSessionKey(peerEphemeralPubKey) is called, and userDSAPrivateKey.
 */
 
 
-#include "src/keyinfrastructure.h"
-#include "src/authenticatedencrypt.h"
+#include "keyinfrastructure.h"
+#include "authenticatedencrypt.h"
 
 
 void setup() {
