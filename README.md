@@ -12,9 +12,11 @@
 
   * I am not an authority with regards to cryptography. I would strongly advise you use a mature and well-tested library such as OpenSSL, LibSodium, or the Crypto library for Arduino if possible, particularly if the application is of any importance.
 
-  * Lite ChaCha is not guaranteed to be performant, and is very likely susceptible to side-channel attacks. It is also not guaranteed to be updated. Frankly, it was made for fun, so **USE AT YOUR OWN PERIL**!
+  * LiteChaCha is not guaranteed to be performant, and is very likely susceptible to side-channel attacks. It is also not guaranteed to be updated. Frankly, it was made for fun, so **USE AT YOUR OWN PERIL**!
 
   * LiteChaCha was made to be run on the Arduino Nano 33 IoT. It may work on other microcontrollers, but has not been validated to run on anything else. LiteChaCha is not guaranteed to run on anything other than the Arduino Nano 33 IoT.
+
+  * LiteChaCha is structured to be used in a communication application. It is possible to use LiteChaCha to encrypt and decrypt stored data, but you will need to implement it yourself. The tools necessary to do so can be found inside of `src/chacha.h`. It is recommended that anyone trying to use LiteChaCha in a storage application read the relevant sources below to better understand both how to use `chacha.h` as well as its limitations.
 
 ---
 
@@ -25,15 +27,18 @@
 2. ```
    #include "src/keyinfrastructure.h"
    #include "src/authenticatedencrypt.h"
+   #include "src/errorflags.h"
    ```
 
 3. All functions are handled within `KeyManagement` and `CipherManagement`.
 
 4. The example file, `Overview.ino`, is included to show you the ropes.
 
-   * The random ID that is generated each session **must *not* match** between peers. As such, it is recommended that you use the `IDUnique()` function as it is used in `Overview.h`.
+   * The random ID that is generated each session **must *not* match** between peers. As such, it is recommended that you use the `IDUnique()` function as it is used in `Overview.ino`.
 
      * The ID does not need to be random, nor does it need to be generated each session. If it is stored, it need only be generated once, and confirmed to be different from all other peers' IDs.
+
+	 * Note that in a communication application these IDs must not match, but in a storage application they will match.
 
    * It is absolutely vital that **no two messages, whether from the same user or two peers, ever be sent using the same ephemeral key and nonce pair**!
 
@@ -62,6 +67,29 @@
 8. The implementation of RNG that LiteChaCha uses to generate a random ID, private ephemeral key, and private DSA key **requires there be a floating analog pin!** By default, pin A0 is used. The pin that is read from can be changed in `rng.h`.
 
 9. Whichever method is chosen to send encrypted data, it must be able to successfully send null characters (`0x00`). Alternatively, the encrypted data must be altered to exclude any null characters. It was found during testing that some Arduino libraries which aid in the sending and receiving of data may handle null characters differentially, and any users of LiteChaCha should be aware of this.
+
+---
+
+## When Errors Arise:
+
+### There are a few places within LiteChaCha where things can go awry due to the known limitations of the algorithms used within. A summary of these errors, as well as how to deal with them, can be found here.
+
+* These errors should effectively never occurr under normal use cases. That being said, proper implementations of LiteChaCha should account for them all the same.
+
+* This section refers to an *Establish Connection Block*. This can be found within `Overview.ino`.
+
+* Note that each error shown below is represented as a single bit in a byte. If you are confused about how errors are handled within LiteChaCha, consider looking through `errorflags.h` to gain a better understanding.
+
+| Error Name:                  | Error Bit:   | Where It Can Occurr:                                      | What To Do: |
+| ---------------------------- | ------------ | --------------------------------------------------------- | ----------- |
+| CURVE25519_ALL_ZEROS_CASE    | `0b00000001` | `KeyManagement::initialize()`, `createSessionKey()`       | Both parties restart the *Establish Connection Block*. Note that new DSA key pairs are not necessary. |
+| MPA25519_MATH_ERROR          | `0b00000010` | `KeyManagement::initialize()`, `createSessionKey()`       | Both parties restart the *Establish Connection Block*. Note that new DSA key pairs are not necessary. |
+| MPA252ED_MATH_ERROR          | `0b00000100` | `KeyManagement::initialize()`, `signatureValid()`         | Both parties restart the *Establish Connection Block*. To guarantee success, generate new DSA key pairs as well. |
+| CHACHA_BLOCK_COUNT_OVERFLOW  | `0b00001000` | `encryptAndTagMessage()`, `decryptAuthenticatedMessage()` | If encrypting, discard the encrypted message. The message will need to be broken up into smaller messages. If decrypting, drop your connection. Your peer is using unsafe practices. |
+| USER_NONCE_OVERFLOW_IMMINENT | `0b00010000` | `encryptAndTagMessage()`                                  | Send the current encrypted message. Both parties must restart the *Establish Connection Block* **before** encrypting and sending the next message. Note that new DSA key pairs are not necessary. |
+| PEER_NONCE_OVERFLOW_IMMINENT | `0b00100000` | `decryptAuthenticatedMessage()`                           | Both parties restart the *Establish Connection Block* after you process the current message. Note that new DSA key pairs are not necessary. |
+| POLY_BLOCK_COUNT_OVERFLOW    | `0b01000000` | `encryptAndTagMessage()`, `messageAuthentic()`            | If tagging, discard the encrypted message and its tag. The message will need to be broken up into smaller messages. If authenticating, drop your connection. Your peer is using unsafe practices. |
+| MPA1305_MATH_ERROR           | `0b10000000` | `encryptAndTagMessage()`, `messageAuthentic()`            | Both parties restart the *Establish Connection Block*. Note that new DSA key pairs are not necessary. |
 
 ---
 

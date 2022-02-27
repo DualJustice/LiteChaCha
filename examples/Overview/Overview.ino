@@ -31,6 +31,7 @@ pki.createSessionKey(peerEphemeralPubKey) is called, and userDSAPrivateKey.
 
 #include "keyinfrastructure.h"
 #include "authenticatedencrypt.h"
+#include "errorflags.h"
 
 
 void setup() {
@@ -53,7 +54,7 @@ void setup() {
 	unsigned char userDSAPrivateKey[keyBytes]; // Used as either an input or an output depending on whether the user would like to generate a new key pair.
 	unsigned char userDSAPubKey[keyBytes]; // Used as either an input or an output depending on whether the user would like to generate a new key pair.
 	unsigned char peerDSAPubKey[keyBytes];
-	bool generateNewDSAKeys = true;
+	bool generateNewDSAKeys = true; // A new DSA key pair will be generated if this is set to true.
 
 	unsigned char userEphemeralPubKey[keyBytes];
 	unsigned char peerEphemeralPubKey[keyBytes];
@@ -75,11 +76,21 @@ void setup() {
 // -------------------- Establish Connection Block --------------------
 
 	pki.initialize(userDSAPrivateKey, userDSAPubKey, userEphemeralPubKey, userSignature, userID, generateNewDSAKeys);
+	if(Canary::getFlags().readFlags()) {
+//		An error has occurred! Refer to the README.
+		Canary::getFlags().clearFlags();
+	}
 
 //	Exchange DSA public keys, ephemeral public keys, signatures, and IDs unencrypted.
 
 	if((pki.IDUnique(userID, peerID)) && (pki.signatureValid(peerDSAPubKey, peerEphemeralPubKey, peerSignature))) {
 		pki.createSessionKey(peerEphemeralPubKey); // Creates a shared private session key, overwriting peerEphemeralPubKey, if both users have different IDs and the peer's signature is valid.
+	} else {
+//		Restart the Establish Connection Block.
+	}
+	if(Canary::getFlags().readFlags()) {
+//		An error has occurred! Refer to the README.
+		Canary::getFlags().clearFlags();
 	}
 
 //	If possible, ensure that the shared private session key has never been used by you before!
@@ -99,12 +110,20 @@ void setup() {
 	}
 
 	ae.encryptAndTagMessage(messageCount, tag, (unsigned char*)message, messageBytes); // Encrypts message, overwriting it with the ciphertext. Outputs messageCount and the MAC tag as well.
+	if(Canary::getFlags().readFlags()) {
+//		An error has occurred! Refer to the README.
+		Canary::getFlags().clearFlags();
+	}
 
 //	Send the messageCount, tag, and message.
 
 //	Upon receiving a ciphertext, messageCount, and tag:
 	if(ae.messageAuthentic((unsigned char*)message, messageBytes, messageCount, tag)) { // Authenticates the message with the MAC tag.
 		ae.decryptAuthenticatedMessage((unsigned char*)message, messageBytes, messageCount); // Decrypts message, overwriting it with the plaintext.
+	}
+	if(Canary::getFlags().readFlags()) {
+//		An error has occurred! Refer to the README.
+		Canary::getFlags().clearFlags();
 	}
 }
 

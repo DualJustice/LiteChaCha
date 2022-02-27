@@ -1,6 +1,8 @@
 #ifndef MULTIPRECISION252ED_H
 #define MULTIPRECISION252ED_H
 
+#include "errorflags.h"
+
 #include <stdint.h>
 
 
@@ -83,6 +85,8 @@ inline void MultiPrecisionArithmetic252ed::base16ModInternal() {
 		if(rHat < base) {
 			// Log an error here.
 			// Wait until new scalar is chosen.
+
+			Canary::getFlags().flagError(ERROR_BIT::MPA252ED_MATH_ERROR);
 		}
 
 // ---------- D4 ----------

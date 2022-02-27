@@ -125,7 +125,7 @@ bool setupEncryption() {
 
 // Print instructions and generated random suggested fixed nonce in HEX:
 	Serial.println("Please input your unique, 4-Byte, hex nonce in the form of the suggested nonce given below.");
-	Serial.println("This must be different for both users!\n");
+//	Serial.println("This must be different for both users!\n");
 	Serial.print("Suggested random nonce:");
 	printHex(suggestedFixedNonce, FIXED_NONCE_BYTES);
 
@@ -184,7 +184,7 @@ bool setupEncryption() {
 
 // Print instructions:
 	Serial.println("Please input your peer's unique, 4-Byte, hex nonce in the form of the suggested nonce given above.");
-	Serial.println("This cannot be the same as your nonce!\n");
+//	Serial.println("This cannot be the same as your nonce!\n");
 
 // Read in peer's fixed nonce:
 	while(true) {

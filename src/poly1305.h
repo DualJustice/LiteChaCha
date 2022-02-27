@@ -2,6 +2,7 @@
 #define POLY1305_H
 
 #include "multiprecision1305.h"
+#include "errorflags.h"
 
 #include <stdint.h>
 
@@ -147,6 +148,8 @@ inline void Poly1305MAC::tagSubProcess() {
 inline void Poly1305MAC::incrementBlockCounter() {
 	if(blockCounter == 0xffffffff) {
 		// Log an error here.
+
+		Canary::getFlags().flagError(ERROR_BIT::POLY_BLOCK_COUNT_OVERFLOW);
 	}
 
 	blockCounter += 0x00000001;
