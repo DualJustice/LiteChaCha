@@ -168,7 +168,6 @@ inline void ChaChaEncryption::createCipherText(unsigned char* message) { // Not 
 inline void ChaChaEncryption::incrementBlockCounter() { // Not generalized for BLOCK_COUNTER_LENGTH > 1.
 	if(blockCounter == 0xffffffff) {
 		// Log an error here.
-
 		Canary::getFlags().flagError(ERROR_BIT::CHACHA_BLOCK_COUNT_OVERFLOW);
 	}
 
@@ -187,7 +186,6 @@ inline void ChaChaEncryption::incrementNonceCounter() { // Not generalized for B
 	} else {
 		// Log an error here.
 		// Wait until new user key and / or fixedNonce is chosen.
-
 		Canary::getFlags().flagError(ERROR_BIT::USER_NONCE_OVERFLOW_IMMINENT);
 	}
 }
@@ -204,7 +202,6 @@ inline void ChaChaEncryption::incrementPeerNonceCounter() { // Not generalized f
 	} else {
 		// Log an error here.
 		// Wait until new peer key and / or fixedNonce is chosen.
-
 		Canary::getFlags().flagError(ERROR_BIT::PEER_NONCE_OVERFLOW_IMMINENT);
 	}
 }

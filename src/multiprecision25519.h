@@ -108,7 +108,6 @@ inline void MultiPrecisionArithmetic25519::base16ModInternal() {
 		if(rHat < base) {
 			// Log an error here.
 			// Wait until new scalar is chosen.
-
 			Canary::getFlags().flagError(ERROR_BIT::MPA25519_MATH_ERROR);
 		}
 

@@ -148,7 +148,6 @@ inline void Poly1305MAC::tagSubProcess() {
 inline void Poly1305MAC::incrementBlockCounter() {
 	if(blockCounter == 0xffffffff) {
 		// Log an error here.
-
 		Canary::getFlags().flagError(ERROR_BIT::POLY_BLOCK_COUNT_OVERFLOW);
 	}
 

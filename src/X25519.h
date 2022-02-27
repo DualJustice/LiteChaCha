@@ -272,7 +272,6 @@ inline void X25519KeyExchange::checkAllZerosCase(const unsigned char* x) {
 	if(!zerosCheck) {
 		// Log an error here.
 		// Wait until new private keys are chosen.
-
 		Canary::getFlags().flagError(ERROR_BIT::CURVE25519_ALL_ZEROS_CASE);
 	}
 }
