@@ -80,16 +80,28 @@
 
 * Note that each error shown below is represented as a single bit in a byte. If you are confused about how errors are handled within LiteChaCha, consider looking through `errorflags.h` to gain a better understanding.
 
-| Error Name:                  | Error Bit:   | Where It Can Occurr:                                      | What To Do: |
-| ---------------------------- | ------------ | --------------------------------------------------------- | ----------- |
-| CURVE25519_ALL_ZEROS_CASE    | `0b00000001` | `KeyManagement::initialize()`, `createSessionKey()`       | Both parties restart the *Establish Connection Block*. Note that new DSA key pairs are not necessary. |
-| MPA25519_MATH_ERROR          | `0b00000010` | `KeyManagement::initialize()`, `createSessionKey()`       | Both parties restart the *Establish Connection Block*. Note that new DSA key pairs are not necessary. |
-| MPA252ED_MATH_ERROR          | `0b00000100` | `KeyManagement::initialize()`, `signatureValid()`         | Both parties restart the *Establish Connection Block*. To guarantee success, generate new DSA key pairs as well. |
-| CHACHA_BLOCK_COUNT_OVERFLOW  | `0b00001000` | `encryptAndTagMessage()`, `decryptAuthenticatedMessage()` | If encrypting, discard the encrypted message. The message will need to be broken up into smaller messages. If decrypting, drop your connection. Your peer is using unsafe practices. |
-| USER_NONCE_OVERFLOW_IMMINENT | `0b00010000` | `encryptAndTagMessage()`                                  | Send the current encrypted message. Both parties must restart the *Establish Connection Block* **before** encrypting and sending the next message. Note that new DSA key pairs are not necessary. |
-| PEER_NONCE_OVERFLOW_IMMINENT | `0b00100000` | `decryptAuthenticatedMessage()`                           | Both parties restart the *Establish Connection Block* after you process the current message. Note that new DSA key pairs are not necessary. |
-| POLY_BLOCK_COUNT_OVERFLOW    | `0b01000000` | `encryptAndTagMessage()`, `messageAuthentic()`            | If tagging, discard the encrypted message and its tag. The message will need to be broken up into smaller messages. If authenticating, drop your connection. Your peer is using unsafe practices. |
-| MPA1305_MATH_ERROR           | `0b10000000` | `encryptAndTagMessage()`, `messageAuthentic()`            | Both parties restart the *Establish Connection Block*. Note that new DSA key pairs are not necessary. |
+| Error Name:                  | Error Bit:   | Where It Can Occurr:                                      | What To Do:   |
+| ---------------------------- | ------------ | --------------------------------------------------------- | ------------- |
+| CURVE25519_ALL_ZEROS_CASE    | `0b00000001` | `KeyManagement::initialize()`, `createSessionKey()`       | See 1. Below. |
+| MPA25519_MATH_ERROR          | `0b00000010` | `KeyManagement::initialize()`, `createSessionKey()`       | See 1. Below. |
+| MPA252ED_MATH_ERROR          | `0b00000100` | `KeyManagement::initialize()`, `signatureValid()`         | See 2. Below. |
+| CHACHA_BLOCK_COUNT_OVERFLOW  | `0b00001000` | `encryptAndTagMessage()`, `decryptAuthenticatedMessage()` | See 3. Below. |
+| USER_NONCE_OVERFLOW_IMMINENT | `0b00010000` | `encryptAndTagMessage()`                                  | See 4. Below. |
+| PEER_NONCE_OVERFLOW_IMMINENT | `0b00100000` | `decryptAuthenticatedMessage()`                           | See 5. Below. |
+| POLY_BLOCK_COUNT_OVERFLOW    | `0b01000000` | `encryptAndTagMessage()`, `messageAuthentic()`            | See 6. Below. |
+| MPA1305_MATH_ERROR           | `0b10000000` | `encryptAndTagMessage()`, `messageAuthentic()`            | See 1. Below. |
+
+1. Both parties restart the *Establish Connection Block*. Note that new DSA key pairs are not necessary.
+
+2. Both parties restart the *Establish Connection Block*. To guarantee success, generate new DSA key pairs as well.
+
+3. If encrypting, discard the encrypted message. The message will need to be broken up into smaller messages. If decrypting, drop your connection. Your peer is using unsafe practices.
+
+4. Send the current encrypted message. Both parties must restart the *Establish Connection Block* **before** encrypting and sending the next message. Note that new DSA key pairs are not necessary.
+
+5. Both parties restart the *Establish Connection Block* after you process the current message. Note that new DSA key pairs are not necessary.
+
+6. If tagging, discard the encrypted message and its tag. The message will need to be broken up into smaller messages. If authenticating, drop your connection. Your peer is using unsafe practices.
 
 ---
 
