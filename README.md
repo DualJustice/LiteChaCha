@@ -74,13 +74,13 @@
 
 ### There are a few places within LiteChaCha where things can go awry due to the known limitations of the algorithms used within. A summary of these errors, as well as how to deal with them, can be found here.
 
-* These errors should effectively never occurr under normal use cases. That being said, proper implementations of LiteChaCha should account for them all the same.
+* These errors should effectively never occur under normal use cases. That being said, proper implementations of LiteChaCha should account for them all the same.
 
 * This section refers to an *Establish Connection Block*. This can be found within `Overview.ino`.
 
 * Note that each error shown below is represented as a single bit in a byte. If you are confused about how errors are handled within LiteChaCha, consider looking through `errorflags.h` to gain a better understanding.
 
-| Error Name:                  | Error Bit:   | Where It Can Occurr:                                      | What To Do:   |
+| Error Name:                  | Error Bit:   | Where It Can Occur:                                      | What To Do:   |
 | ---------------------------- | ------------ | --------------------------------------------------------- | ------------- |
 | CURVE25519_ALL_ZEROS_CASE    | `0b00000001` | `KeyManagement::initialize()`, `createSessionKey()`       | See 1. Below. |
 | MPA25519_MATH_ERROR          | `0b00000010` | `KeyManagement::initialize()`, `createSessionKey()`       | See 1. Below. |
