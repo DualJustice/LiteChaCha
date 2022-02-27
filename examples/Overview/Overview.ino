@@ -76,10 +76,6 @@ void setup() {
 // -------------------- Establish Connection Block --------------------
 
 	pki.initialize(userDSAPrivateKey, userDSAPubKey, userEphemeralPubKey, userSignature, userID, generateNewDSAKeys);
-	if(Canary::getFlags().readFlags()) {
-//		An error has occurred! Refer to the README.
-		Canary::getFlags().clearFlags();
-	}
 
 //	Exchange DSA public keys, ephemeral public keys, signatures, and IDs unencrypted.
 
@@ -88,12 +84,13 @@ void setup() {
 	} else {
 //		Restart the Establish Connection Block.
 	}
+
+//	If possible, ensure that the shared private session key has never been used by you before!
+
 	if(Canary::getFlags().readFlags()) {
 //		An error has occurred! Refer to the README.
 		Canary::getFlags().clearFlags();
 	}
-
-//	If possible, ensure that the shared private session key has never been used by you before!
 
 	ae.initialize(peerEphemeralPubKey, userID, peerID);
 

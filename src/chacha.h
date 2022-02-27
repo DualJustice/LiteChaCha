@@ -187,6 +187,9 @@ inline void ChaChaEncryption::incrementNonceCounter() { // Not generalized for B
 		// Log an error here.
 		// Wait until new user key and / or fixedNonce is chosen.
 		Canary::getFlags().flagError(ERROR_BIT::USER_NONCE_OVERFLOW_IMMINENT);
+
+		nonceCounter[0] = 0x00000000;
+		nonceCounter[1] = 0x00000000;
 	}
 }
 
@@ -203,6 +206,9 @@ inline void ChaChaEncryption::incrementPeerNonceCounter() { // Not generalized f
 		// Log an error here.
 		// Wait until new peer key and / or fixedNonce is chosen.
 		Canary::getFlags().flagError(ERROR_BIT::PEER_NONCE_OVERFLOW_IMMINENT);
+
+		peerNonceCounter[0] = 0x00000000;
+		peerNonceCounter[1] = 0x00000000;
 	}
 }
 
