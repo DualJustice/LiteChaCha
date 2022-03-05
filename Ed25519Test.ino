@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 
-#include "Ed25519.h"
+#include "src/Ed25519.h"
 
 
 /*

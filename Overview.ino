@@ -1,6 +1,6 @@
-#include "keyinfrastructure.h"
-#include "authenticatedencrypt.h"
-#include "errorflags.h"
+#include "src/keyinfrastructure.h"
+#include "src/authenticatedencrypt.h"
+#include "src/errorflags.h"
 
 
 /*

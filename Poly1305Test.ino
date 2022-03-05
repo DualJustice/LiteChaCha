@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 
-#include "poly1305.h"
+#include "src/poly1305.h"
 
 #include <stdint.h>
 

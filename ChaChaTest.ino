@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "HardwareSerial.h"
 
-#include "chacha.h"
+#include "src/chacha.h"
 
 
 /*
