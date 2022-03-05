@@ -78,7 +78,7 @@ void setup() {
 	unsigned long timestamp = 0;
 
 
-// -------------------- User Inputs --------------------
+// ==================== User Inputs ====================
 
 	const char keyBuffer[(KEY_BYTES*2) + TERMINATOR_BYTE] = "0000000000000000000000000000000000000000000000000000000000000000";
 	unsigned long long nonce = 0;

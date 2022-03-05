@@ -99,14 +99,14 @@ void setup() {
 
 //	Outgoing message and the number of bytes in the message:
 	const size_t messageBytes = 2;
-	char messageBuffer[messageBytes + 1] = {"42"};
-	char message[messageBytes];
+	const char messageBuffer[messageBytes + 1] = {"42"};
+	unsigned char message[messageBytes];
 
 	for(unsigned long long i = 0; i < messageBytes; i += 1) {
 		message[i] = messageBuffer[i];
 	}
 
-	ae.encryptAndTagMessage(messageCount, tag, (unsigned char*)message, messageBytes); // Encrypts message, overwriting it with the ciphertext. Outputs messageCount and the MAC tag as well.
+	ae.encryptAndTagMessage(messageCount, tag, message, messageBytes); // Encrypts message, overwriting it with the ciphertext. Outputs messageCount and the MAC tag as well.
 	if(Canary::getFlags().readFlags()) {
 //		An error has occurred! Refer to the README.
 		Canary::getFlags().clearFlags();
@@ -115,8 +115,8 @@ void setup() {
 //	Send the messageCount, tag, and message.
 
 //	Upon receiving a ciphertext, messageCount, and tag:
-	if(ae.messageAuthentic((unsigned char*)message, messageBytes, messageCount, tag)) { // Authenticates the message with the MAC tag.
-		ae.decryptAuthenticatedMessage((unsigned char*)message, messageBytes, messageCount); // Decrypts message, overwriting it with the plaintext.
+	if(ae.messageAuthentic(message, messageBytes, messageCount, tag)) { // Authenticates the message with the MAC tag.
+		ae.decryptAuthenticatedMessage(message, messageBytes, messageCount); // Decrypts message, overwriting it with the plaintext.
 	}
 	if(Canary::getFlags().readFlags()) {
 //		An error has occurred! Refer to the README.
