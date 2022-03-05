@@ -44,7 +44,7 @@
 
      * Every time a new session is set up, a *new* shared private session key, ID (for each user), or both *must* be used. It is recommended that a new shared private session key be used for each session.
 
-5. In order to fulfill the requirements in step 4 above, and thus to use litechacha safely, it is recommended that users have a way to store and compare keys between sessions.
+5. In order to fulfill the requirements in step 4 above, and thus to use LiteChaCha safely, it is recommended that users have a way to store and compare keys between sessions.
 
 6. `pki.initialize()`:
 
@@ -127,13 +127,11 @@
 
 ## Testing:
 
-* All functions of LiteChaCha were tested against relevant test vectors. A text file including most of the test vectors used is provided in this repository.
+* All functions of LiteChaCha were tested against relevant test vectors. A text file including most of the test vectors used is provided in the extras folder of this repository.
 
-* If you would like to test the ChaCha20 implementation yourself, there is a `ManualChaChaTests.ino` example file included. It should have enough information to help you get started.
+  * The used test vectors can be found, for the most part, in the included sources below.
 
-* If you would like to test the X25519, Ed25519, or Poly1305 implementations yourself, there is a `ManualTests.ino` example file included. `ManualTests.ino` can also be used to find the approximate runtimes of these implementations.
-
-  * All tests use outdated versions of LiteChaCha. They are functionally similar to the latest version, but include code which makes it possible to run manual tests.
+* If you would like to test the functionality and approximate runtime of the components of LiteChaCha yourself, there are test files included in the examples folder. They should have enough information to help you get started.
 
 ---
 

@@ -3,7 +3,11 @@
 
 X25519 TEST VECTORS BEGIN
 
--	These can be tested within ManualTests.ino.
+-	These can be tested within X25519Test.ino.
+
+-	If no Input U-Coordinate is explicitly provided, the base point is assumed:
+	0900000000000000000000000000000000000000000000000000000000000000
+	{0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 
 RFC7748 & RFC8031 TEST VECTORS (HEX):
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -140,7 +144,7 @@ X25519 TEST VECTORS END
 
 ED25519 TEST VECTORS BEGIN
 
--	These can be tested within ManualTests.ino.
+-	These can be tested within Ed25519Test.ino.
 
 RFC8032 & CONTRIVED TEST VECTORS (HEX):
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -258,7 +262,7 @@ ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a8
 dc2a4459e7369633a52b1bf277839a00201009a3efbf3ecb69bea2186c26b58909351fc9ac90b3ecfdfbc7c66431e0303dca179c138ac17ad9bef1177331a704
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-FB Research Verification Test Vectors (HEX):
+FB RESEARCH VERIFICATION TEST VECTORS (HEX):
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 TEST VECTOR #0:		VALID SIGNATURE
@@ -387,7 +391,7 @@ ED25519 TEST VECTORS END
 
 CHACHA TEST VECTORS BEGIN
 
--	In order to test the ChaCha20 streamcipher, you will need to use the ManualChaChaTests.ino in the similarly named tests folder.
+-	These can be tested within ChaChaTest.ino.
 
 -	Only the Additional Test Vectors of RFC8439 are listed here. More test vectors are provided throughout RFC8439 which were confirmed to work in LiteChaCha,
 	but are not given here. Feel free to find them and test them yourself.
@@ -722,7 +726,7 @@ CHACHA TEST VECTORS END
 
 POLY1305 TEST VECTORS BEGIN
 
--	These can be tested within ManualTests.ino.
+-	These can be tested within Poly1305Test.ino.
 
 RFC8439 & CONTRIVED TEST VECTORS:
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

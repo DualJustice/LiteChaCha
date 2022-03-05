@@ -1,3 +1,8 @@
+#include "keyinfrastructure.h"
+#include "authenticatedencrypt.h"
+#include "errorflags.h"
+
+
 /*
 This file exists to demonstrate the functions that are available to users in LiteChaCha, 
 as well as the order of operations necessary to implement encrypted peer-to-peer communication.
@@ -27,11 +32,6 @@ This goes without saying, but do not send private variables unless you explicitl
 and know the consequences! The private variables used by LiteChaCha are peerEphemeralPubKey after 
 pki.createSessionKey(peerEphemeralPubKey) is called, and userDSAPrivateKey.
 */
-
-
-#include "keyinfrastructure.h"
-#include "authenticatedencrypt.h"
-#include "errorflags.h"
 
 
 void setup() {

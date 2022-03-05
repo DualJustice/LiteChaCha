@@ -1,5 +1,11 @@
+#include "Arduino.h"
+#include "HardwareSerial.h"
+
+#include "chacha.h"
+
+
 /*
-This file exists to help users validate the implementation of the ChaCha20 streamcipher used in LiteChaCha, 
+This file exists to help users validate the implementation of the ChaCha20 algorithm used in LiteChaCha, 
 as well as to test its runtime.
 
 Relevant test vectors can be found in TestVectors.txt.
@@ -8,10 +14,7 @@ In order to use this file, simply input the desired variables into the User Inpu
 */
 
 
-#include "chacha.h"
-
-
-void stringToHex(unsigned char* hexOut, const char* s, const unsigned short length = 32) {
+void stringToHex(unsigned char* hexOut, const char* s, const size_t length = 32) {
 	char t[length*2];
 	for(unsigned short i = 0; i < (length*2); i += 1) {
 		t[i] = s[i];
@@ -40,7 +43,7 @@ void stringToHex(unsigned char* hexOut, const char* s, const unsigned short leng
 }
 
 
-void printHex(const unsigned char* h, const unsigned short length) {
+void printHex(const unsigned char* h, const size_t length = 32) {
 	for(unsigned short i = 0; i < length; i += 1) {
 		if(h[i] > 0x0f) {
 			Serial.print(h[i], HEX);
