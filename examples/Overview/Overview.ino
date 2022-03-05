@@ -98,7 +98,7 @@ void setup() {
 // -------------------- Encrypt and Decrypt Block --------------------
 
 //	Outgoing message and the number of bytes in the message:
-	const unsigned long long messageBytes = 2;
+	const size_t messageBytes = 2;
 	char messageBuffer[messageBytes + 1] = {"42"};
 	char message[messageBytes];
 

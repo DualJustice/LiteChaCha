@@ -387,7 +387,7 @@ ED25519 TEST VECTORS END
 
 CHACHA TEST VECTORS BEGIN
 
--	In order to test the ChaCha20 streamcipher, you will need to use the ManualTestVectorsValidation.ino in the similarly named tests folder.
+-	In order to test the ChaCha20 streamcipher, you will need to use the ManualChaChaTests.ino in the similarly named tests folder.
 
 -	Only the Additional Test Vectors of RFC8439 are listed here. More test vectors are provided throughout RFC8439 which were confirmed to work in LiteChaCha,
 	but are not given here. Feel free to find them and test them yourself.
@@ -401,17 +401,24 @@ RFC8439 TEST VECTORS WITHOUT CIPHERTEXTS (HEX):
   Key:
   000  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
   016  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  
+
   Nonce:
   000  00 00 00 00 00 00 00 00 00 00 00 00              ............
 
-  Block Counter = 0
+  Initial Block Counter = 0
 
     ChaCha state at the end
         ade0b876  903df1a0  e56a5d40  28bd8653
         b819d2bd  1aed8da0  ccef36a8  c70d778b
         7c5941da  8d485751  3fe02477  374ad8b8
         f4b8436a  1ca11815  69b687c3  8665eeb2
+
+  			EQUIVALENT MANUAL TEST VARIABLES:
+  keyBuffer: "0000000000000000000000000000000000000000000000000000000000000000"
+  nonce = 0
+  initialBlockCounter = 0
+  plaintextBytes = 0
+  plaintextBuffer = ""
 
   Keystream:
   000  76 b8 e0 ad a0 f1 3d 90 40 5d 6a e5 53 86 bd 28  v.....=.@]j.S..(
@@ -432,7 +439,14 @@ RFC8439 TEST VECTORS WITHOUT CIPHERTEXTS (HEX):
   Nonce:
   000  00 00 00 00 00 00 00 00 00 00 00 00              ............
 
-  Block Counter = 1
+  Initial Block Counter = 1
+
+  			EQUIVALENT MANUAL TEST VARIABLES:
+  keyBuffer: "0000000000000000000000000000000000000000000000000000000000000000"
+  nonce = 0
+  initialBlockCounter = 1
+  plaintextBytes = 0
+  plaintextBuffer = ""
 
     ChaCha state at the end
         bee7079f  7a385155  7c97ba98  0d082d73
@@ -459,7 +473,14 @@ RFC8439 TEST VECTORS WITHOUT CIPHERTEXTS (HEX):
   Nonce:
   000  00 00 00 00 00 00 00 00 00 00 00 00              ............
 
-  Block Counter = 1
+  Initial Block Counter = 1
+
+  			EQUIVALENT MANUAL TEST VARIABLES:
+  keyBuffer: "0000000000000000000000000000000000000000000000000000000000000001"
+  nonce = 0
+  initialBlockCounter = 1
+  plaintextBytes = 0
+  plaintextBuffer = ""
 
     ChaCha state at the end
         2452eb3a  9249f8ec  8d829d9b  ddd4ceb1
@@ -486,7 +507,14 @@ RFC8439 TEST VECTORS WITHOUT CIPHERTEXTS (HEX):
   Nonce:
   000  00 00 00 00 00 00 00 00 00 00 00 00              ............
 
-  Block Counter = 2
+  Initial Block Counter = 2
+
+  			EQUIVALENT MANUAL TEST VARIABLES:
+  keyBuffer: "00ff000000000000000000000000000000000000000000000000000000000000"
+  nonce = 0
+  initialBlockCounter = 2
+  plaintextBytes = 0
+  plaintextBuffer = ""
 
     ChaCha state at the end
         fb4dd572  4bc42ef1  df922636  327f1394
@@ -513,7 +541,14 @@ RFC8439 TEST VECTORS WITHOUT CIPHERTEXTS (HEX):
   Nonce:
   000  00 00 00 00 00 00 00 00 00 00 00 02              ............
 
-  Block Counter = 0
+  Initial Block Counter = 0
+
+  			EQUIVALENT MANUAL TEST VARIABLES:
+  keyBuffer: "0000000000000000000000000000000000000000000000000000000000000000"
+  nonce = 2
+  initialBlockCounter = 0
+  plaintextBytes = 0
+  plaintextBuffer = ""
 
     ChaCha state at the end
         374dc6c2  3736d58c  b904e24a  cd3f93ef
@@ -548,6 +583,13 @@ RFC8439 TEST VECTORS WITH CIPHERTEXTS:
   016  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
   032  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
   048  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+
+  			EQUIVALENT MANUAL TEST VARIABLES:
+  keyBuffer: "0000000000000000000000000000000000000000000000000000000000000000"
+  nonce = 0
+  initialBlockCounter = 0
+  plaintextBytes = 64
+  plaintextBuffer = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
   Ciphertext:
   000  76 b8 e0 ad a0 f1 3d 90 40 5d 6a e5 53 86 bd 28  v.....=.@]j.S..(
@@ -595,6 +637,13 @@ RFC8439 TEST VECTORS WITH CIPHERTEXTS:
   336  79 20 74 69 6d 65 20 6f 72 20 70 6c 61 63 65 2c  y time or place,
   352  20 77 68 69 63 68 20 61 72 65 20 61 64 64 72 65   which are addre
   368  73 73 65 64 20 74 6f                             ssed to
+
+  			EQUIVALENT MANUAL TEST VARIABLES:
+  keyBuffer: "0000000000000000000000000000000000000000000000000000000000000001"
+  nonce = 2
+  initialBlockCounter = 1
+  plaintextBytes = 375
+  plaintextBuffer = "416e79207375626d697373696f6e20746f20746865204945544620696e74656e6465642062792074686520436f6e7472696275746f7220666f72207075626c69636174696f6e20617320616c6c206f722070617274206f6620616e204945544620496e7465726e65742d4472616674206f722052464320616e6420616e792073746174656d656e74206d6164652077697468696e2074686520636f6e74657874206f6620616e204945544620616374697669747920697320636f6e7369646572656420616e20224945544620436f6e747269627574696f6e222e20537563682073746174656d656e747320696e636c756465206f72616c2073746174656d656e747320696e20494554462073657373696f6e732c2061732077656c6c206173207772697474656e20616e6420656c656374726f6e696320636f6d6d756e69636174696f6e73206d61646520617420616e792074696d65206f7220706c6163652c207768696368206172652061646472657373656420746f"
 
   Ciphertext:
   000  a3 fb f0 7d f3 fa 2f de 4f 37 6c a2 3e 82 73 70  ...}../.O7l.>.sp
@@ -646,6 +695,13 @@ RFC8439 TEST VECTORS WITH CIPHERTEXTS:
   080  65 72 65 20 74 68 65 20 62 6f 72 6f 67 6f 76 65  ere the borogove
   096  73 2c 0a 41 6e 64 20 74 68 65 20 6d 6f 6d 65 20  s,.And the mome
   112  72 61 74 68 73 20 6f 75 74 67 72 61 62 65 2e     raths outgrabe.
+
+  			EQUIVALENT MANUAL TEST VARIABLES:
+  keyBuffer: "1c9240a5eb55d38af333888604f6b5f0473917c1402b80099dca5cbc207075c0"
+  nonce = 2
+  initialBlockCounter = 42
+  plaintextBytes = 127
+  plaintextBuffer = "2754776173206272696c6c69672c20616e642074686520736c6974687920746f7665730a446964206779726520616e642067696d626c6520696e2074686520776162653a0a416c6c206d696d737920776572652074686520626f726f676f7665732c0a416e6420746865206d6f6d65207261746873206f757467726162652e"
 
   Ciphertext:
   000  62 e6 34 7f 95 ed 87 a4 5f fa e7 42 6f 27 a1 df  b.4....._..Bo'..
